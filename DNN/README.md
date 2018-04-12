@@ -8,8 +8,9 @@ ttH multilepton dilepton analysis region.
 
 
 USAGE:
-$> python train_DNN.py
-
+```
+  python train_DNN.py
+```
 
 ## Introduction
 - Using pyMVA Keras interface with Tensorflow backend to design DNN model for ttH multilpeton dilepton analysis region.
