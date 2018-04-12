@@ -3,9 +3,9 @@
 #         Joshuha Thomas-Wilsker
 #           IHEP Beijing, CERN
 ############################################
-# Python script using Keras with TensorFlow
-# backend to train deep neural network for
-# ttH multilepton dilepton analysis region.
+Python script using Keras with TensorFlow
+backend to train deep neural network for
+ttH multilepton dilepton analysis region.
 ############################################
 
 USAGE:
@@ -21,7 +21,6 @@ $> python train_DNN.py
 - .root files output with training histograms/ttrees.
 - '.h5' file (stores multidimensional arrays of scientific data) stores model.
 - pyKeras much faster and better performing (integral of ROC) than TMVA DNN especially when going to higher number of hidden layers.
-
 
 ########################
 # Initial setup
@@ -50,13 +49,34 @@ $> bash init_virtualenv.sh
 Every time you open a new shell you need to rerun the
 commands beneath in the keras work area:
 
-$> scl enable python27 bash
-$> source /afs/cern.ch/work/j/jthomasw/private/IHEP/ttH_multilepton/DNN/fermilab_keras_workshop/py2_virtualenv/bin/activate
+scl enable python27 bash
+source /afs/cern.ch/work/j/jthomasw/private/IHEP/ttH_multilepton/DNN/fermilab_keras_workshop/py2_virtualenv/bin/activate
 
 Because this script uses ROOT with pyRoot enabled we need an additional step to
 so that the libraries are accessible in this environment:
-$> source /cvmfs/sft.cern.ch/lcg/views/LCG_91/x86_64-slc6-gcc62-opt/setup.sh
 
+source /cvmfs/sft.cern.ch/lcg/views/LCG_91/x86_64-slc6-gcc62-opt/setup.sh
+
+########################
+# DNN Training
+########################
+The first script to run is train_DNN.py. This script uses the keras interface within pyTMVA to train and test a DNN using Tensorflow.
+
+Three ttrees containing events from the ttH multilepton analysis training regions are loaded. Global event weights are set in order to focus the training on a particular sample of events. The dataloader is told which input variables to look out for. Any event weights required are then set and events are split into the training and testing trees.
+
+Then we build the model which in this case is the DNN. This is done using the keras interface. The model is saved to a .h5 file.
+
+We then book the method in the factory object and use this object to call training, testing and evaluation of the methods. The outputs from this are contained in a .root file entitled at the top of this script.
+
+############################
+# Plotting the DNN Response
+############################
+Various plots of the response of the DNN can be performed by the appropriately titled script DNN_ResponsePlotter.py. As input it takes the .root file from the training script and makes plots of the combined response from all the output layer nodes along with plots of the individual nodes. The individual histograms are store in an output .root file whereas the canvas' of the plots are drawn into .pdf files normally titled 'MCDNN_Response_XXXXXX.pdf'.
+
+############################
+# Using the DNN weights
+############################
+This
 
 ########################
 # TMVA GUI
@@ -101,14 +121,8 @@ $> ROOT.TMVA.TMVAMultiClassGui('TMVAoutput.root')
                        : Dataset[MultiClass_DNN] : Class index : 2  name : sample=ttJets*
 
 - As you can see here, the three classes (neurons) in the output layer are associated with one of the inputs.
--
 
-########################
-# DNN Training
-########################
 
--
--
 
 ########################
 # Possible Methods
