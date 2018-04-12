@@ -1,6 +1,6 @@
 
 #              train_DNN.py
-##         Joshuha Thomas-Wilsker, ###IHEP Beijing, CERN
+###         Joshuha Thomas-Wilsker, IHEP Beijing CERN
 
 Python script using Keras with TensorFlow
 backend to train deep neural network for
