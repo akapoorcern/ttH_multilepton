@@ -9,7 +9,7 @@ ttH multilepton dilepton analysis region.
 
 USAGE:
 ```
-  python train_DNN.py
+python train_DNN.py
 ```
 
 ## Introduction
@@ -100,13 +100,13 @@ ROOT.TMVA.TMVAMultiClassGui('TMVAoutput.root')
 
 ## Normalisation
 - One very important parameter here is 'NormMode'.
-        - 'NormMode=EqualNumEvents' : Sets the average weight of signal events to 1 and the sum of the background weights is set equal to signal.
-        - 'NormMode=NumEvents' : Average weight of 1 per event, signal and background renormalised independently.
+  - 'NormMode=EqualNumEvents' : Sets the average weight of signal events to 1 and the sum of the background weights is set equal to signal.
+  - 'NormMode=NumEvents' : Average weight of 1 per event, signal and background renormalised independently.
 - In the case of ttH multilepton, if one *doesn't* normalise background to the same as signal, the DNN will seperate out ttV seeing as the MC has many more events (DNN tunes to this).
 
 ## Number of Hidden layers
 - Increasing the number of hidden layers seems to make ttJets more background like, ttW more signal like and ttH remains in the middle (if perhaps more background like).
--
+
 
 ## Output Layers
 - Number of neurons in the output layer should be the same as the number of samples[processes] you want to run.
