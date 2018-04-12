@@ -24,19 +24,27 @@ USAGE:
 
 ## Initial setup
 The fermilab keras workshop has a nice set of scripts one can use to setup the keras environment. Checkout the package:
-$> git clone https://github.com/stwunsch/fermilab_keras_workshop
+```
+git clone https://github.com/stwunsch/fermilab_keras_workshop
+```
 
 and follow the commands here:
 https://github.com/stwunsch/fermilab_keras_workshop
 
 On lxplus we needed python 2.7 for initial setup. Check which python versions are available:
-$> scl -l | grep python
+```
+scl -l | grep python
+```
 
 Enable the one you want:
-$> scl enable python27 bash
+```
+scl enable python27 bash
+```
 
 Run the following command to install necessary packages with pip:
-$> bash init_virtualenv.sh
+```
+bash init_virtualenv.sh
+```
 
 ## New shell
 Every time you open a new shell you need to rerun the commands beneath in the keras work area:
