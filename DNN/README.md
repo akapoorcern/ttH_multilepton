@@ -1,8 +1,8 @@
-############################################
+
 #              train_DNN.py
-#         Joshuha Thomas-Wilsker
-#           IHEP Beijing, CERN
-############################################
+##         Joshuha Thomas-Wilsker
+###           IHEP Beijing, CERN
+
 Python script using Keras with TensorFlow
 backend to train deep neural network for
 ttH multilepton dilepton analysis region.
@@ -25,16 +25,13 @@ $> python train_DNN.py
 ########################
 # Initial setup
 ########################
-The fermilab keras workshop has a nice set of scripts
-one can use to setup the keras environment. Check
-out the package:
+The fermilab keras workshop has a nice set of scripts one can use to setup the keras environment. Checkout the package:
 $> git clone https://github.com/stwunsch/fermilab_keras_workshop
 
 and follow the commands here:
 https://github.com/stwunsch/fermilab_keras_workshop
 
-On lxplus we needed python 2.7 for initial setup.
-Check which python versions are available:
+On lxplus we needed python 2.7 for initial setup. Check which python versions are available:
 $> scl -l | grep python
 
 Enable the one you want:
@@ -46,16 +43,14 @@ $> bash init_virtualenv.sh
 ########################
 # New shell
 ########################
-Every time you open a new shell you need to rerun the
-commands beneath in the keras work area:
+Every time you open a new shell you need to rerun the commands beneath in the keras work area:
 
-scl enable python27 bash
-source /afs/cern.ch/work/j/jthomasw/private/IHEP/ttH_multilepton/DNN/fermilab_keras_workshop/py2_virtualenv/bin/activate
+$> scl enable python27 bash
+$> source <path_where_you_cloned_fermilab_keras_workshop>/fermilab_keras_workshop/py2_virtualenv/bin/activate
 
-Because this script uses ROOT with pyRoot enabled we need an additional step to
-so that the libraries are accessible in this environment:
+Because this script uses ROOT with pyRoot enabled we need an additional step to so that the libraries are accessible in this environment:
 
-source /cvmfs/sft.cern.ch/lcg/views/LCG_91/x86_64-slc6-gcc62-opt/setup.sh
+$> source /cvmfs/sft.cern.ch/lcg/views/LCG_91/x86_64-slc6-gcc62-opt/setup.sh
 
 ########################
 # DNN Training
