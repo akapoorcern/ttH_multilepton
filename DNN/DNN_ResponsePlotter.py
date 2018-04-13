@@ -174,12 +174,6 @@ def plot_node_response(input_root, node):
         histo_DNN_response_ttHsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttH')
         histo_DNN_response_ttVsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttH')
         histo_DNN_response_ttJetssample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttH')
-        '''histo_BDTG_response_ttHsample_test = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Test_ttH_prob_for_ttH')
-        histo_BDTG_response_ttVsample_test = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Test_ttV_prob_for_ttH')
-        histo_BDTG_response_ttJetssample_test = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Test_ttJets_prob_for_ttH')
-        histo_BDTG_response_ttHsample_train = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Train_ttH_prob_for_ttH')
-        histo_BDTG_response_ttVsample_train = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Train_ttV_prob_for_ttH')
-        histo_BDTG_response_ttJetssample_train = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Train_ttJets_prob_for_ttH')'''
     elif node == 'ttV':
         histo_DNN_response_ttHsample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttV')
         histo_DNN_response_ttVsample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttV')
@@ -187,12 +181,6 @@ def plot_node_response(input_root, node):
         histo_DNN_response_ttHsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttV')
         histo_DNN_response_ttVsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttV')
         histo_DNN_response_ttJetssample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttV')
-        '''histo_BDTG_response_ttHsample_test = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Test_ttH_prob_for_ttV')
-        histo_BDTG_response_ttVsample_test = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Test_ttV_prob_for_ttV')
-        histo_BDTG_response_ttJetssample_test = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Test_ttJets_prob_for_ttV')
-        histo_BDTG_response_ttHsample_train = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Train_ttH_prob_for_ttV')
-        histo_BDTG_response_ttVsample_train = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Train_ttV_prob_for_ttV')
-        histo_BDTG_response_ttJetssample_train = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Train_ttJets_prob_for_ttV')'''
     elif node == 'ttJets':
         histo_DNN_response_ttHsample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttJets')
         histo_DNN_response_ttVsample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttJets')
@@ -200,12 +188,7 @@ def plot_node_response(input_root, node):
         histo_DNN_response_ttHsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttJets')
         histo_DNN_response_ttVsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttJets')
         histo_DNN_response_ttJetssample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttJets')
-        '''histo_BDTG_response_ttHsample_test = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Test_ttH_prob_for_ttJets')
-        histo_BDTG_response_ttVsample_test = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Test_ttV_prob_for_ttJets')
-        histo_BDTG_response_ttJetssample_test = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Test_ttJets_prob_for_ttJets')
-        histo_BDTG_response_ttHsample_train = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Train_ttH_prob_for_ttJets')
-        histo_BDTG_response_ttVsample_train = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Train_ttV_prob_for_ttJets')
-        histo_BDTG_response_ttJetssample_train = input_root.Get('MultiClass_DNN/Method_BDTG/BDTG/MVA_BDTG_Train_ttJets_prob_for_ttJets')'''
+
 
     histo_DNN_response_ttHsample_test.Sumw2()
     histo_DNN_response_ttVsample_test.Sumw2()
@@ -215,14 +198,6 @@ def plot_node_response(input_root, node):
     histo_DNN_response_ttVsample_train.Sumw2()
     histo_DNN_response_ttJetssample_train.Sumw2()
 
-    '''
-    histo_BDTG_response_ttHsample_train.Sumw2()
-    histo_BDTG_response_ttVsample_train.Sumw2()
-    histo_BDTG_response_ttJetssample_train.Sumw2()
-    histo_BDTG_response_ttHsample_test.Sumw2()
-    histo_BDTG_response_ttVsample_test.Sumw2()
-    histo_BDTG_response_ttJetssample_test.Sumw2()
-    '''
 
     c1 = ROOT.TCanvas("c1","c1",900,700)
     p1 = ROOT.TPad("p1","p1", 0.0,0.2,1.0,1.0)
@@ -334,117 +309,9 @@ def plot_node_response(input_root, node):
     c1.Print(outfile_name,'pdf')
     c1.Clear()
 
-    #//////////////////////////
-    '''
-    c3 = ROOT.TCanvas("c3","c3",900,700)
-    c3.cd()
-    p3 = ROOT.TPad("p3","p3", 0.0,0.2,1.0,1.0)
-    p3.Draw()
-    p3.SetBottomMargin(0.1)
-    p3.SetTopMargin(0.1)
-    p3.SetLeftMargin(0.1)
-    p3.SetRightMargin(0.1)
-    p3.SetGridx(True)
-    p3.SetGridy(True)
-    p3.cd()
-    ROOT.gStyle.SetOptStat(0)
-    ROOT.gStyle.SetOptTitle(0)
-
-    histo_BDTG_response_ttHsample_test.SetLineColor(2)
-    histo_BDTG_response_ttHsample_test.SetMarkerColor(2)
-    histo_BDTG_response_ttHsample_test.SetMarkerStyle(20)
-
-    histo_BDTG_response_ttHsample_train.SetLineColor(2)
-    histo_BDTG_response_ttHsample_train.SetMarkerColor(2)
-    histo_BDTG_response_ttHsample_train.SetFillColor(2)
-    histo_BDTG_response_ttHsample_train.SetFillStyle(3001)
-
-    histo_BDTG_response_ttVsample_test.SetLineColor(3)
-    histo_BDTG_response_ttVsample_test.SetMarkerColor(3)
-    histo_BDTG_response_ttVsample_test.SetMarkerStyle(20)
-
-    histo_BDTG_response_ttVsample_train.SetLineColor(3)
-    histo_BDTG_response_ttVsample_train.SetMarkerColor(3)
-    histo_BDTG_response_ttVsample_train.SetFillColor(3)
-    histo_BDTG_response_ttVsample_train.SetFillStyle(3001)
-
-    histo_BDTG_response_ttJetssample_test.SetLineColor(4)
-    histo_BDTG_response_ttJetssample_test.SetMarkerColor(4)
-    histo_BDTG_response_ttJetssample_test.SetMarkerStyle(20)
-
-    histo_BDTG_response_ttJetssample_train.SetLineColor(4)
-    histo_BDTG_response_ttJetssample_train.SetMarkerColor(4)
-    histo_BDTG_response_ttJetssample_train.SetFillColor(4)
-    histo_BDTG_response_ttJetssample_train.SetFillStyle(3001)
-
-    histo_BDTG_response_ttHsample_test.GetYaxis().SetTitle("Counts/Bin (normalised)")
-
-    legend_1 = TLegend(0.8,  0.7,  0.99,  0.99)
-    legend_1.AddEntry(histo_BDTG_response_ttHsample_train,"ttH events (train)")
-    legend_1.AddEntry(histo_BDTG_response_ttVsample_train,"ttV events (train)")
-    legend_1.AddEntry(histo_BDTG_response_ttJetssample_train,"tt+jets events (train)")
-    legend_1.AddEntry(histo_BDTG_response_ttHsample_test,"ttH events (test)")
-    legend_1.AddEntry(histo_BDTG_response_ttVsample_test,"ttV events (test)")
-    legend_1.AddEntry(histo_BDTG_response_ttJetssample_test,"tt+jets events (test)")
-
-    histo_BDTG_response_ttHsample_test.SetAxisRange(0.,4.,"Y")
-    histo_BDTG_response_ttHsample_test.Draw('EP')
-    histo_BDTG_response_ttVsample_test.Draw('EPsame')
-    histo_BDTG_response_ttJetssample_test.Draw('EPsame')
-    histo_BDTG_response_ttHsample_train.Draw('HISTsame')
-    histo_BDTG_response_ttVsample_train.Draw('HISTsame')
-    histo_BDTG_response_ttJetssample_train.Draw('HISTsame')
-    legend_1.Draw("sameP")
-
-
-    c3.cd()
-    p4 = ROOT.TPad("p4","p4",0.0,0.0,1.0,0.2)
-    p4.Draw()
-    p4.SetLeftMargin(0.1)
-    p4.SetRightMargin(0.1)
-    p4.SetTopMargin(0.05)
-    p4.SetBottomMargin(0.4)
-    p4.SetGridx(True)
-    p4.SetGridy(True)
-    p4.cd()
-
-    ratioframe_ttH_1 = histo_BDTG_response_ttHsample_train.Clone('ratioframe_ttH_1')
-    ratioframe_ttH_1.Divide(histo_BDTG_response_ttHsample_test)
-    ratioframe_ttH_1.GetYaxis().SetTitle('Train/Test')
-    ratioframe_ttH_1.GetYaxis().SetRangeUser(0.46,1.54)
-    ratioframe_ttH_1.GetYaxis().SetNdivisions(6)
-    ratioframe_ttH_1.GetYaxis().SetLabelSize(0.12)
-    ratioframe_ttH_1.GetYaxis().SetTitleSize(0.12)
-    ratioframe_ttH_1.GetYaxis().SetTitleOffset(0.2)
-    ratioframe_ttH_1.GetXaxis().SetTitle('BDTG Response')
-    ratioframe_ttH_1.GetXaxis().SetLabelSize(0.15)
-    ratioframe_ttH_1.GetXaxis().SetTitleSize(0.15)
-    ratioframe_ttH_1.GetXaxis().SetTitleOffset(1.)
-    ratioframe_ttH_1.SetFillStyle(0)
-    ratioframe_ttH_1.SetMarkerStyle(2)
-    ratioframe_ttH_1.SetMarkerColor(2)
-    ratioframe_ttH_1.Draw('P')
-
-    ratioframe_ttV = histo_BDTG_response_ttVsample_train.Clone('ratioframe_ttV')
-    ratioframe_ttV.Divide(histo_BDTG_response_ttVsample_test)
-    ratioframe_ttV.SetMarkerStyle(2)
-    ratioframe_ttV.SetMarkerColor(3)
-    ratioframe_ttV.Draw("sameP")
-
-    ratioframe_ttJets = histo_BDTG_response_ttJetssample_train.Clone('ratioframe_ttJets')
-    ratioframe_ttJets.Divide(histo_BDTG_response_ttJetssample_test)
-    ratioframe_ttJets.SetMarkerStyle(2)
-    ratioframe_ttJets.SetMarkerColor(4)
-    ratioframe_ttJets.Draw("sameP")
-
-    c3.cd()
-    c3.Modified()
-    c3.Update()
-
-    outfile_name = 'MCBDTG_Response_new-%s.pdf' % node
-    c3.Print(outfile_name,'pdf')'''
-
 def main():
+
+    classifier_directory = ''
 
     input_root = TFile.Open('ttHML_MCDNN_new.root')
 
