@@ -17,10 +17,13 @@ environ["KERAS_BACKEND"] = "tensorflow"
 #environ['KERAS_BACKEND'] = 'theano'
 #environ['THEANO_FLAGS'] = 'gcc.cxxflags=-march=corei7'
 import ROOT
-from ROOT import TMVA, TFile, TTree, TCut
+from ROOT import TMVA, TFile, TTree, TCut, TString
 from array import array
 from subprocess import call
 from os.path import isfile
+
+import optparse
+import json
 
 from keras.utils import np_utils
 from keras.models import Sequential
@@ -37,39 +40,56 @@ tf.python.control_flow_ops = tf
 
 def main():
 
-    number_of_hidden_layers = 2
+    usage = 'usage: %prog [options]'
+    parser = optparse.OptionParser(usage)
+    parser.add_option('-s', '--signal_sample',        dest='input_file_name_signal'  ,      help='signal sample path',      default='samples/DiLepTR_ttH_bInclude.root',        type='string')
+    parser.add_option('-x', '--bckg1_sample',        dest='input_file_name_ttJets'  ,      help='background sample 1 path',      default='samples/DiLepTR_ttJets_bInclude.root',        type='string')
+    parser.add_option('-y', '--bckg2_sample',        dest='input_file_name_ttV'  ,      help='background sample 2 path',      default='samples/DiLepTR_ttV_bInclude.root',        type='string')
+    parser.add_option('-a', '--activation',        dest='activation_function'  ,      help='activation function',      default='relu',        type='string')
+    parser.add_option('-l', '--hidden_layers',        dest='number_of_hidden_layers'  ,      help='number of hidden layers',      default='2',        type='int')
+    parser.add_option('-j', '--json',        dest='json'  ,      help='json file with list of variables',      default=None,        type='string')
+
+    (opt, args) = parser.parse_args()
+
+    number_of_hidden_layers = opt.number_of_hidden_layers
+    activation_function = opt.activation_function
+    jsonFile = open(opt.json,'r')
+    new_variable_list = json.load(jsonFile,encoding='utf-8').items()
 
     # Setup TMVA interface to use Keras
     #TMVA.Tools.Instance()
     TMVA.PyMethodBase.PyInitialize()
 
-    suffix = 'new'
-    output_file_name = 'ttHML_MCDNN_%s.root'%str(suffix)
+    output_file_name = 'ttHML_MCDNN_%sHLs_%s.root'%(str(number_of_hidden_layers),activation_function)
     output_file = TFile.Open(output_file_name,'RECREATE')
 
     # 'AnalysisType' is where one defines what kind of analysis youre doing e.g. multiclass, Classification ....
     # VarTransform: Decorrelation, PCA-transformation, Gaussianisation, Normalisation (for all classes if none is specified).
-    factory = TMVA.Factory('TMVAClassification',output_file,'!V:!Silent:Color:DrawProgressBar:Transformations=D,G:AnalysisType=multiclass')
+    factory_name = 'TMVAClassification_%sHLs_%s' % (str(number_of_hidden_layers),activation_function)
+    factory = TMVA.Factory(factory_name, output_file,'!V:!Silent:Color:DrawProgressBar:Transformations=D,G:AnalysisType=multiclass')
 
     #Load data
-    input_file_name_signal = 'samples/DiLepTR_ttH_bInclude.root'
+    input_file_name_signal = opt.input_file_name_signal
     data_signal = TFile.Open(input_file_name_signal)
     signal = data_signal.Get('BOOM')
 
-    input_file_name_ttJets = 'samples/DiLepTR_ttJets_bInclude.root'
+    input_file_name_ttJets = opt.input_file_name_ttJets
     data_bckg_ttJets = TFile.Open(input_file_name_ttJets)
     background_ttJets = data_bckg_ttJets.Get('BOOM')
 
-    input_file_name_ttV = 'samples/DiLepTR_ttV_bInclude.root'
+    input_file_name_ttV = opt.input_file_name_ttV
     data_bckg_ttV = TFile.Open(input_file_name_ttV)
     background_ttV = data_bckg_ttV.Get('BOOM')
 
     # Declare a dataloader interface
-    dataloader = TMVA.DataLoader('MultiClass_DNN')
+    dataloader_name = 'MultiClass_DNN_%sHLs_%s' % (str(number_of_hidden_layers),activation_function)
+    dataloader = TMVA.DataLoader(dataloader_name)
 
-    ### Global event weights ###
+
     # Can add selection cuts via:
     #dataloader.AddTree(background_ttJets, 'Background_1', 'myvar > cutBarrelOnly && myEventTypeVar=1', backgroundWeight)
+
+    ### Global event weights ###
     signalWeight = 1.
     backgroundWeight0 = 1.
     backgroundWeight1 = 1.
@@ -77,29 +97,24 @@ def main():
     dataloader.AddTree(background_ttV, 'ttV', backgroundWeight0)
     dataloader.AddTree(background_ttJets, 'ttJets', backgroundWeight1)
 
+    variable_list = [('Jet_numLoose','F'), ('maxeta','F'), ('mindrlep1jet','F'), ('mindrlep2jet','F'), ('SR_InvarMassT','F'), ('corrptlep1','F'), ('corrptlep2','F'), ('hadTop_BDT','F'), ('Hj1_BDT','F')]
     #variable_list = [('Jet_numLoose','F'), ('maxeta','F'), ('mindrlep1jet','F'), ('mindrlep2jet','F'), ('SR_InvarMassT','F'), ('corrptlep1','F'), ('corrptlep2','F'), ('hadTop_BDT := max(hadTop_BDT,-1.)','F'), ('Hj1_BDT := max(Hj1_BDT,-1.)','F')]
-    #variable_list = [('Jet_numLoose','F'), ('maxeta','F'), ('mindrlep1jet','F'), ('mindrlep2jet','F'), ('SR_InvarMassT','F'), ('corrptlep1','F'), ('corrptlep2','F'), ('hadTop_BDT','F'), ('Hj1_BDT','F')]
-    variable_list = [('maxeta','F'), ('mindrlep1jet','F'), ('mindrlep2jet','F'), ('SR_InvarMassT','F'), ('corrptlep1','F'), ('corrptlep2','F'), ('hadTop_BDT','F'), ('Hj1_BDT','F')]
+
     branches = {}
-    for var, vartype in variable_list:
-        dataloader.AddVariable(var,vartype)
-        branches[var] = array('f', [-999])
+    for key, value in new_variable_list:
+        print type(key)
+        print type(value)
+        dataloader.AddVariable(str(key))
+        branches[key] = array('f', [-999])
         branchName = ''
-        if 'hadTop_BDT' in var:
+        if 'hadTop_BDT' in key:
             branchName = 'hadTop_BDT'
-        elif 'Hj1_BDT' in var:
+        elif 'Hj1_BDT' in key:
             branchName = 'Hj1_BDT'
         else:
-            branchName = var
-        #signal.SetBranchAddress(branchName, branches[branchName])
-        #background_ttV.SetBranchAddress(branchName, branches[branchName])
-        #background_ttJets.SetBranchAddress(branchName, branches[branchName])
+            branchName = key
 
     dataloader.AddSpectator('EVENT_event','F')
-
-    #for event in signal:
-        #print 'event.PUWeight: ', event.PUWeight
-
 
     # Nominal event weight:
     # event weight = puWgtNom * trigWgtNom * lepSelEffNom * genWgt * xsecWgt (* 0 or 1 depending on if it passes event selection)
@@ -127,18 +142,14 @@ def main():
     input_dim= # Shape of inputs (Number of inputs). Argument only needed for first layer.
     '''
     # softmax ensures output values are in range 0-1. Can be used as predicted probabilities.
-    activation_function = 'relu'
-    model.add(Dense(100, init='glorot_normal', activation=activation_function, input_dim=len(variable_list)))
-    model.add(Dense(100, activation=activation_function)) #Always at least 1 hidden layer
+
+    model.add(Dense(100, init='glorot_normal', activation=activation_function, input_dim=len(new_variable_list)))
+    #model.add(Dense(100, activation=activation_function)) #Always at least 1 hidden layer
 
     #Randomly set a fraction rate of input units (defined by argument) to 0 at each update during training (helps prevent overfitting).
     #model.add(Dropout(0.2))
 
-    if number_of_hidden_layers > 1:
-        model.add(Dense(100, activation=activation_function))
-    if number_of_hidden_layers > 2:
-        model.add(Dense(100, activation=activation_function))
-    if number_of_hidden_layers > 3:
+    for x in xrange(number_of_hidden_layers):
         model.add(Dense(100, activation=activation_function))
 
     model.add(Dense(3, activation='softmax'))

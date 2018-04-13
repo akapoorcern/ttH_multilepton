@@ -28,48 +28,45 @@ The fermilab keras workshop has a nice set of scripts one can use to setup the k
 git clone https://github.com/stwunsch/fermilab_keras_workshop
 ```
 
-and follow the commands here:
-https://github.com/stwunsch/fermilab_keras_workshop
-
-On lxplus we needed python 2.7 for initial setup. Check which python versions are available:
+and change into the cloned repository. On lxplus we needed python 2.7 for initial setup. Check which python versions are available:
 ```
 scl -l | grep python
 ```
-
 Enable the one you want:
 ```
 scl enable python27 bash
 ```
-
 Run the following command to install necessary packages with pip:
 ```
 bash init_virtualenv.sh
 ```
+This last step will put the py2_virtualenv directory into your current directory. You can now source the py2_virtualenv/bin/activate script whenever you open a new shell to activate the python virtual environment.
 
 ## New shell
-Every time you open a new shell you need to rerun the commands beneath in the keras work area:
+As mentioned above, now every time you open a new shell you only need to rerun the commands beneath to establish you python working environment:
 
 ```
 scl enable python27 bash
 source <path_where_you_cloned_fermilab_keras_workshop>/fermilab_keras_workshop/py2_virtualenv/bin/activate
 ```
-
-Because this script uses ROOT with pyRoot enabled we need an additional step to so that the libraries are accessible in this environment:
-
+Because this script uses ROOT with pyRoot enabled we need an additional step to so that the root libraries are accessible:
 ```
 source /cvmfs/sft.cern.ch/lcg/views/LCG_91/x86_64-slc6-gcc62-opt/setup.sh
 ```
 
-
 ## DNN Training
-The first script to run is train_DNN.py. This script uses the keras interface within pyTMVA to train and test a DNN using Tensorflow.
+The first script to run is train_DNN.py. This script uses the keras interface within pyTMVA to train and test a DNN using Tensorflow:
+```
+python train_DNN.py -s <relative_path_to_signal_sample/sample>.root -x <relative_path_to_bckg1_sample/sample>.root -y <relative_path_to_bckg2_sample/sample>.root -a <activation_function> -l <number_of_hidden_layers> -j <variables_list>.json
+```
 
-Three ttrees containing events from the ttH multilepton analysis training regions are loaded. Global event weights are set in order to focus the training on a particular sample of events. The dataloader is told which input variables to look out for. Any event weights required are then set and events are split into the training and testing trees.
+Three ntuples containing events from the ttH multilepton analysis training regions should be loaded. The files you wish to load can be passed as command line inputs. Check the current default paths in the code for where the code expects to find the files.
 
-Then we build the model which in this case is the DNN. This is done using the keras interface. The model is saved to a .h5 file.
+One can also pass as arguments the activation function, number of hidden layers and a .json list of variables. This should make it easier to perform network optimisation studies. To perform network optimisation studies, use the DNN-training-helmsman.sh. Here you will find multiple command lines that will train various networks. Each command line should represent a different training e.g. different input list or different number of hidden layers. Another set of scripts will use the various networks to evaluate how the performance changes when varying a specific hyperparameter.
 
-We then book the method in the factory object and use this object to call training, testing and evaluation of the methods. The outputs from this are contained in a .root file entitled at the top of this script.
+Global event weights are set in order to focus the training on a particular sample of events. Any event weights required are also set in the training script. The model is built using the keras interface and saved to a .h5 file.
 
+The factory object books and uses the model for training, testing and evaluation of the methods. The outputs from this are contained in a .root file in the working dircetory whereas the weights are stored in a .xml which will be inside a directory with the same name as the dataloader object and the file will have the name of the factory.
 
 ## Plotting the DNN Response
 Various plots of the response of the DNN can be performed by the appropriately titled script DNN_ResponsePlotter.py. As input it takes the .root file from the training script and makes plots of the combined response from all the output layer nodes along with plots of the individual nodes. The individual histograms are store in an output .root file whereas the canvas' of the plots are drawn into .pdf files normally titled 'MCDNN_Response_XXXXXX.pdf'.
@@ -123,6 +120,9 @@ PrepareTrainingAndTestTree
 
 
 
-## Possible Methods
+## Thoughts:
 - For each event we can calculate a probability it is of a certain hypothesis (comes from a certain process). This probability is its output score on a given node, where the node represents the process. The event is assigned to a given process according to the node with the highest probability.
 - OR Separate signal from background (only two classes) with a multiclass DNN method. Find the best working point on all nodes which maximises the signal efficiency and background rejection. Not sure we have the stats for this and/or can find a reasonable WP.
+
+- Hyperparameter optimiser script: once run e.g. several different total number of hidden layers, need code to plot the AUC or whatever figure of merit we decide to use as function of number of hidden layers. Does this exist in KERAS/TMVA?
+- Procedure for optimising number of input variables needs to agreed on. Is there something in KERAS/TMVA that will take a huge list and perform input variable selection?

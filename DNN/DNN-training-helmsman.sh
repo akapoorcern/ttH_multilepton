@@ -1,0 +1,9 @@
+python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 2 -j input_variables_list.json
+python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 3 -j input_variables_list.json
+python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 4 -j input_variables_list.json
+python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 5 -j input_variables_list.json
+python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 6 -j input_variables_list.json
+python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 7 -j input_variables_list.json
+python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 8 -j input_variables_list.json
+python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 9 -j input_variables_list.json
+python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 10 -j input_variables_list.json
