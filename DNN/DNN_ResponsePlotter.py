@@ -10,6 +10,8 @@
 import ROOT
 from ROOT import TFile, TTree, gDirectory, gROOT, TH1, TF1, TProfile, TProfile2D, TLegend
 import os
+import optparse
+
 #import numpy as np
 #import matplotlib.mlab as mlab
 #import matplotlib.pyplot as plt
@@ -331,8 +333,13 @@ def plot_node_response(input_root, node, classifier_suffix):
     c1.Clear()
 
 def main():
+    usage = 'usage: %prog [options]'
+    parser = optparse.OptionParser(usage)
+    parser.add_option('-s', '--suffix',        dest='input_suffix'  ,      help='suffix used to identify inputs from network training',      default='2HLs_relu',        type='string')
+    (opt, args) = parser.parse_args()
 
-    classifier_suffix = '2HLs_relu'
+    classifier_suffix = opt.input_suffix
+
     classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
     classifier_plots_dir = classifier_parent_dir+"/plots"
     if not os.path.exists(classifier_plots_dir):

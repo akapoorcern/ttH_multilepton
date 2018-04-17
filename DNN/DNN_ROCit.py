@@ -4,6 +4,8 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import trapz
+import optparse
+
 
 def make_roc_dist(DNN_test_signal, DNN_test_bckg1, DNN_test_bckg2, dnn_ROC_sig_eff, dnn_ROC_bckg_rej):
 
@@ -51,7 +53,15 @@ def print_canvas():
 '''
 def main():
 
-    classifier_suffix = '2HLs_relu'
+    usage = 'usage: %prog [options]'
+    parser = optparse.OptionParser(usage)
+    parser.add_option('-s', '--suffix',        dest='input_suffix'  ,      help='suffix used to identify inputs from network training',      default='2HLs_relu',        type='string')
+    (opt, args) = parser.parse_args()
+
+
+    #classifier_suffix = '2HLs_relu'
+    classifier_suffix = opt.input_suffix
+    
     classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
     classifier_plots_dir = classifier_parent_dir+"/plots"
 
@@ -161,15 +171,16 @@ def main():
     area_ROC_bckg_rej_ttJetsnode = trapz(x_ROC_sig_eff_ttJetsnode, y_ROC_bckg_rej_ttJetsnode, dx=(1./40.))
 
     plt.figure(1)
-    plt.plot(test_dnn_ROC_sig_eff_ttHnode,test_dnn_ROC_bckg_rej_ttHnode, color='k', label='ttH')
-    plt.plot(test_dnn_ROC_sig_eff_ttVnode,test_dnn_ROC_bckg_rej_ttVnode, color='g', label='ttV')
-    plt.plot(test_dnn_ROC_sig_eff_ttJetsnode,test_dnn_ROC_bckg_rej_ttJetsnode, color='b', label='tt+jets')
+    plt.title('DNN Output Node ROC Curves')
+    plt.plot(test_dnn_ROC_sig_eff_ttHnode,test_dnn_ROC_bckg_rej_ttHnode, color='k', label='ttH node')
+    plt.plot(test_dnn_ROC_sig_eff_ttVnode,test_dnn_ROC_bckg_rej_ttVnode, color='g', label='ttV node')
+    plt.plot(test_dnn_ROC_sig_eff_ttJetsnode,test_dnn_ROC_bckg_rej_ttJetsnode, color='b', label='tt+jets node')
     plt.xlim(0,1.1)
     plt.ylim(0,1.1)
     plt.grid(True)
     plt.xlabel('Signal Eff.')
     plt.ylabel('Bckg. Rej.')
-    legend = plt.legend()
+    legend = plt.legend(prop={'size': 8})
 
     ttHnode_auc_text = 'ttH node AUC = %s' % format(area_ROC_bckg_rej_ttHnode, '.2f')
     ttVnode_auc_text = 'ttV node AUC = %s' % format(area_ROC_bckg_rej_ttVnode, '.2f')
@@ -177,7 +188,7 @@ def main():
 
     auc_text_box = ttHnode_auc_text + "\n" + ttVnode_auc_text + "\n" + ttJetsnode_auc_text
 
-    plt.figtext(0.9, 0.9, auc_text_box, wrap=True, horizontalalignment='center', fontsize=8, bbox=dict(fc="none"))
+    plt.figtext(0.7, 0.7, auc_text_box, wrap=True, horizontalalignment='center', fontsize=8, bbox=dict(fc="none"))
     #plt.subplots_adjust(left=0.1)
     plt.subplots_adjust(right=0.8)
     plt.savefig(classifier_parent_dir+'/plots/DNN_ROC_test.png')
