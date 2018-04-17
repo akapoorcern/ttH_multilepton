@@ -97,8 +97,8 @@ def main():
     dataloader.AddTree(background_ttV, 'ttV', backgroundWeight0)
     dataloader.AddTree(background_ttJets, 'ttJets', backgroundWeight1)
 
-    variable_list = [('Jet_numLoose','F'), ('maxeta','F'), ('mindrlep1jet','F'), ('mindrlep2jet','F'), ('SR_InvarMassT','F'), ('corrptlep1','F'), ('corrptlep2','F'), ('hadTop_BDT','F'), ('Hj1_BDT','F')]
-    #variable_list = [('Jet_numLoose','F'), ('maxeta','F'), ('mindrlep1jet','F'), ('mindrlep2jet','F'), ('SR_InvarMassT','F'), ('corrptlep1','F'), ('corrptlep2','F'), ('hadTop_BDT := max(hadTop_BDT,-1.)','F'), ('Hj1_BDT := max(Hj1_BDT,-1.)','F')]
+    #variable_list = [('Jet_numLoose','F'), ('maxeta','F'), ('mindrlep1jet','F'), ('mindrlep2jet','F'), ('SR_InvarMassT','F'), ('corrptlep1','F'), ('corrptlep2','F'), ('hadTop_BDT','F'), ('Hj1_BDT','F')]
+    variable_list = [('Jet_numLoose','F'), ('maxeta','F'), ('mindrlep1jet','F'), ('mindrlep2jet','F'), ('SR_InvarMassT','F'), ('corrptlep1','F'), ('corrptlep2','F'), ('hadTop_BDT := max(hadTop_BDT,-1.)','F'), ('Hj1_BDT := max(Hj1_BDT,-1.)','F')]
 
     branches = {}
     for key, value in new_variable_list:
@@ -152,6 +152,7 @@ def main():
     for x in xrange(number_of_hidden_layers):
         model.add(Dense(100, activation=activation_function))
 
+    # 'softmax' activation function used in final layer so that the outputs represent probabilities (output is normalised to 1).
     model.add(Dense(3, activation='softmax'))
 
     # Set loss and optimizer

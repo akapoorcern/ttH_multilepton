@@ -60,40 +60,13 @@ The first script to run is train_DNN.py. This script uses the keras interface wi
 python train_DNN.py -s <relative_path_to_signal_sample/sample>.root -x <relative_path_to_bckg1_sample/sample>.root -y <relative_path_to_bckg2_sample/sample>.root -a <activation_function> -l <number_of_hidden_layers> -j <variables_list>.json
 ```
 
-Three ntuples containing events from the ttH multilepton analysis training regions should be loaded. The files you wish to load can be passed as command line inputs. Check the current default paths in the code for where the code expects to find the files.
+Three ntuples (ttH(ML) signal, tt+V background, tt+jets background) containing events from the ttH multilepton analysis training regions should be loaded. The files you wish to load can be passed as command line inputs. Check the current default paths in the code for where the code expects to find the files.
 
 One can also pass as arguments the activation function, number of hidden layers and a .json list of variables. This should make it easier to perform network optimisation studies. To perform network optimisation studies, use the DNN-training-helmsman.sh. Here you will find multiple command lines that will train various networks. Each command line should represent a different training e.g. different input list or different number of hidden layers. Another set of scripts will use the various networks to evaluate how the performance changes when varying a specific hyperparameter.
 
 Global event weights are set in order to focus the training on a particular sample of events. Any event weights required are also set in the training script. The model is built using the keras interface and saved to a .h5 file.
 
 The factory object books and uses the model for training, testing and evaluation of the methods. The outputs from this are contained in a .root file in the working dircetory whereas the weights are stored in a .xml which will be inside a directory with the same name as the dataloader object and the file will have the name of the factory.
-
-## Plotting the DNN Response
-Various plots of the response of the DNN can be performed by the appropriately titled script DNN_ResponsePlotter.py. As input it takes the .root file from the training script and makes plots of the combined response from all the output layer nodes along with plots of the individual nodes. The individual histograms are store in an output .root file whereas the canvas' of the plots are drawn into .pdf files normally titled 'MCDNN_Response_XXXXXX.pdf'.
-
-## Using the DNN weights
-
-
-
-## TMVA GUI
-Can setup TMVA GUI to create plots from output files.
-Need to setup the shell as described above. Then inside
-a python environment run the following commands:
-
-```
-import ROOT
-ROOT.TMVA.TMVAMultiClassGui('TMVAoutput.root')
-```
-
-## DNN Model and Hyperparameter Tuning
-- The analysis performed is a 'multiclass' analysis.
-- Three output nodes are used here.
-- 'softmax' activation function used in final layer so that the outputs represent probabilities (output is normalised to 1).
-- A consequence of the softmax function is that the probability of a class is not independent of the other class probabilities.
-- Fine if we want to select a single label per sampling.
-- In this case, for a given event, you get three probabilities, one for each output node.
-- We assign the event to the label associated with the output node with the highest probability.
-
 
 ## Normalisation
 - One very important parameter here is 'NormMode'.
@@ -102,10 +75,16 @@ ROOT.TMVA.TMVAMultiClassGui('TMVAoutput.root')
 - In the case of ttH multilepton, if one *doesn't* normalise background to the same as signal, the DNN will seperate out ttV seeing as the MC has many more events (DNN tunes to this).
 
 ## Number of Hidden layers
-- Increasing the number of hidden layers seems to make ttJets more background like, ttW more signal like and ttH remains in the middle (if perhaps more background like).
+- To study how the number of hidden layers affects the output distributions use the helmsman to run multiple trainings changing the number of hidden layers each time.
+- On last inspection, increasing the number of hidden layers seems to make ttJets more background like, ttW more signal like and ttH remains in the middle (if perhaps more background like).
 
-
-## Output Layers
+## DNN Outputs
+- The analysis performed is a 'multiclass' analysis which has three output nodes.
+- 'softmax' activation function used in final layer so that the outputs represent probabilities (output is normalised to 1).
+- A consequence of the softmax function is that the probability of a class is not independent of the other class probabilities.
+- Fine if we want to select a single label per sampling.
+- In this case, for a given event, you get three probabilities, one for each output node.
+- We assign the event to the label associated with the output node with the highest probability.
 - Number of neurons in the output layer should be the same as the number of samples[processes] you want to run.
 - When running in TMVA using Keras interface you should see something like:
 
@@ -117,7 +96,13 @@ PrepareTrainingAndTestTree
 ```
 - As you can see here, the three classes (neurons) in the output layer are associated with one of the inputs.
 
+## Plotting the DNN Training/Testing Response
+- Various plots of the response of the DNN can be performed by the appropriately titled script DNN_ResponsePlotter.py. As input it takes the .root file from the training script and makes plots of the combined response from all the output layer nodes along with plots of the individual nodes. The individual histograms are store in an output .root file whereas the canvas' of the plots are drawn into .pdf files normally titled 'MCDNN_Response_XXXXXX.pdf'.
 
+## ROC Curves
+
+
+## Application of DNN weights
 
 
 ## Thoughts:

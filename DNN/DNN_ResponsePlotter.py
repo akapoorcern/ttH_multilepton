@@ -9,16 +9,17 @@
 
 import ROOT
 from ROOT import TFile, TTree, gDirectory, gROOT, TH1, TF1, TProfile, TProfile2D, TLegend
+import os
 #import numpy as np
 #import matplotlib.mlab as mlab
 #import matplotlib.pyplot as plt
 
 #def plot_ROCS(signal_hist, bckg0_hist, bckg1_hist):
 
-def plot_DNNResponse(TrainTree, TestTree):
+def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     # Makes plot from TestTree/TrainTree distributions. Plots made from
     # combined response values from each node for a single sample.
-
+    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
     # Declare and define new hitogram objects
     Histo_training_ttH_DNNResponse = ROOT.TH1D('Histo_training_ttH_DNNResponse','ttH sample (Train)',40,0.0,1.0)
     Histo_training_ttJets_DNNResponse = ROOT.TH1D('Histo_training_ttJets_DNNResponse','ttJets sample (Train)',40,0.0,1.0)
@@ -163,32 +164,56 @@ def plot_DNNResponse(TrainTree, TestTree):
     c1.Update()
 
     # Finally, draw the figure
-    outfile_name = 'MCDNN_overtraintest_new.pdf'
+    outfile_name = '%s/plots/MCDNN_overtraintest_%s.pdf' % (classifier_parent_dir,classifier_suffix)
     c1.Print(outfile_name,'pdf')
 
-def plot_node_response(input_root, node):
+def plot_node_response(input_root, node, classifier_suffix):
+    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
     if node == 'tth':
-        histo_DNN_response_ttHsample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttH')
-        histo_DNN_response_ttVsample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttH')
-        histo_DNN_response_ttJetssample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttH')
-        histo_DNN_response_ttHsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttH')
-        histo_DNN_response_ttVsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttH')
-        histo_DNN_response_ttJetssample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttH')
+        histo_DNN_response_ttHsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttH')
+        histo_DNN_response_ttVsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttV')
+        histo_DNN_response_ttJetssample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttJets')
+        histo_DNN_response_ttHsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttH')
+        histo_DNN_response_ttVsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttV')
+        histo_DNN_response_ttJetssample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttJets')
+        '''
+        histo_DNN_response_ttHsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttH')
+        histo_DNN_response_ttVsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttH')
+        histo_DNN_response_ttJetssample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttH')
+        histo_DNN_response_ttHsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttH')
+        histo_DNN_response_ttVsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttH')
+        histo_DNN_response_ttJetssample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttH')
+        '''
     elif node == 'ttV':
-        histo_DNN_response_ttHsample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttV')
-        histo_DNN_response_ttVsample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttV')
-        histo_DNN_response_ttJetssample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttV')
-        histo_DNN_response_ttHsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttV')
-        histo_DNN_response_ttVsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttV')
-        histo_DNN_response_ttJetssample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttV')
+        histo_DNN_response_ttHsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttH')
+        histo_DNN_response_ttVsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttV')
+        histo_DNN_response_ttJetssample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttJets')
+        histo_DNN_response_ttHsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttH')
+        histo_DNN_response_ttVsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttV')
+        histo_DNN_response_ttJetssample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttJets')
+        '''
+        histo_DNN_response_ttHsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttV')
+        histo_DNN_response_ttVsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttV')
+        histo_DNN_response_ttJetssample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttV')
+        histo_DNN_response_ttHsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttV')
+        histo_DNN_response_ttVsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttV')
+        histo_DNN_response_ttJetssample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttV')
+        '''
     elif node == 'ttJets':
-        histo_DNN_response_ttHsample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttJets')
-        histo_DNN_response_ttVsample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttJets')
-        histo_DNN_response_ttJetssample_test = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttJets')
-        histo_DNN_response_ttHsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttJets')
-        histo_DNN_response_ttVsample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttJets')
-        histo_DNN_response_ttJetssample_train = input_root.Get('MultiClass_DNN/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttJets')
-
+        histo_DNN_response_ttHsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttH')
+        histo_DNN_response_ttVsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttV')
+        histo_DNN_response_ttJetssample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttJets')
+        histo_DNN_response_ttHsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttH')
+        histo_DNN_response_ttVsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttV')
+        histo_DNN_response_ttJetssample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttJets')
+        '''
+        histo_DNN_response_ttHsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttJets')
+        histo_DNN_response_ttVsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttJets')
+        histo_DNN_response_ttJetssample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttJets')
+        histo_DNN_response_ttHsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttJets')
+        histo_DNN_response_ttVsample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttJets')
+        histo_DNN_response_ttJetssample_train = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttJets')
+        '''
 
     histo_DNN_response_ttHsample_test.Sumw2()
     histo_DNN_response_ttVsample_test.Sumw2()
@@ -197,7 +222,6 @@ def plot_node_response(input_root, node):
     histo_DNN_response_ttHsample_train.Sumw2()
     histo_DNN_response_ttVsample_train.Sumw2()
     histo_DNN_response_ttJetssample_train.Sumw2()
-
 
     c1 = ROOT.TCanvas("c1","c1",900,700)
     p1 = ROOT.TPad("p1","p1", 0.0,0.2,1.0,1.0)
@@ -258,9 +282,6 @@ def plot_node_response(input_root, node):
     histo_DNN_response_ttJetssample_train.Draw('HISTsame')
     legend.Draw("sameP")
 
-
-
-
     c1.cd()
     p2 = ROOT.TPad("p2","p2",0.0,0.0,1.0,0.2)
     p2.Draw()
@@ -305,22 +326,28 @@ def plot_node_response(input_root, node):
     c1.Modified()
     c1.Update()
 
-    outfile_name = 'MCDNN_Response_new-%s.pdf' % node
+    outfile_name = '%s/plots/MCDNN_Response_%s-%s.pdf' % (classifier_parent_dir, classifier_suffix , node)
     c1.Print(outfile_name,'pdf')
     c1.Clear()
 
 def main():
 
-    classifier_directory = ''
+    classifier_suffix = '2HLs_relu'
+    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
+    classifier_plots_dir = classifier_parent_dir+"/plots"
+    if not os.path.exists(classifier_plots_dir):
+        os.makedirs(classifier_plots_dir)
 
-    input_root = TFile.Open('ttHML_MCDNN_new.root')
-
+    input_name = 'ttHML_MCDNN_%s.root' % (classifier_suffix)
+    input_root = TFile.Open(input_name)
+    traintree_pathname = "MultiClass_DNN_%s/TrainTree" % (classifier_suffix)
+    testtree_pathname = "MultiClass_DNN_%s/TestTree" % (classifier_suffix)
     # Fetch the trees of events from the root file
-    TrainTree = input_root.Get("MultiClass_DNN/TrainTree")
-    TestTree = input_root.Get("MultiClass_DNN/TestTree")
-    plot_DNNResponse(TrainTree,TestTree)
-    plot_node_response(input_root,'tth')
-    plot_node_response(input_root,'ttV')
-    plot_node_response(input_root,'ttJets')
+    TrainTree = input_root.Get(traintree_pathname)
+    TestTree = input_root.Get(testtree_pathname)
+    plot_DNNResponse(TrainTree,TestTree, classifier_suffix)
+    plot_node_response(input_root,'tth',classifier_suffix)
+    plot_node_response(input_root,'ttV',classifier_suffix)
+    plot_node_response(input_root,'ttJets',classifier_suffix)
 
 main()
