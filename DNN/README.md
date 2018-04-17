@@ -62,7 +62,9 @@ python train_DNN.py -s <relative_path_to_signal_sample/sample>.root -x <relative
 
 Three ntuples (ttH(ML) signal, tt+V background, tt+jets background) containing events from the ttH multilepton analysis training regions should be loaded. The files you wish to load can be passed as command line inputs. Check the current default paths in the code for where the code expects to find the files.
 
-One can also pass as arguments the activation function, number of hidden layers and a .json list of variables. This should make it easier to perform network optimisation studies. To perform network optimisation studies, use the DNN-training-helmsman.sh. Here you will find multiple command lines that will train various networks. Each command line should represent a different training e.g. different input list or different number of hidden layers. Another set of scripts will use the various networks to evaluate how the performance changes when varying a specific hyperparameter.
+One can also pass as arguments the activation function, number of hidden layers and a .json list of variables. This should make it easier to perform network optimisation studies. The TMVA factory object uses the arguments passed to the script to create the directory where the weights are stored that should inform the user of the variable hyperparameters used for the network architecture.
+
+To perform network optimisation studies, use the DNN-training-helmsman.sh. Here you will find multiple command lines that will train various networks. Each command line should represent a different training e.g. different input list or different number of hidden layers. Another set of scripts will use the various networks to evaluate how the performance changes when varying a specific hyperparameter.
 
 Global event weights are set in order to focus the training on a particular sample of events. Any event weights required are also set in the training script. The model is built using the keras interface and saved to a .h5 file.
 
@@ -99,8 +101,22 @@ PrepareTrainingAndTestTree
 ## Plotting the DNN Training/Testing Response
 - Various plots of the response of the DNN can be performed by the appropriately titled script DNN_ResponsePlotter.py. As input it takes the .root file from the training script and makes plots of the combined response from all the output layer nodes along with plots of the individual nodes. The individual histograms are store in an output .root file whereas the canvas' of the plots are drawn into .pdf files normally titled 'MCDNN_Response_XXXXXX.pdf'.
 
-## ROC Curves
+- For example, if you created a file title 'ttHML_MCDNN_5HLs_relu.root' via the training script one can obtain the response and overtraining distributions by running the command:
+```
+python DNN_ResponsePlotter.py -s 5HLs_relu
+```
+- The script will finds the .root one created during training, creates a 'plots' directory in the same directory as the TMVA factory put the weights files (e.g. 'MultiClass_DNN_5HLs_relu' ) and places the distributions there.
 
+## ROC Curves
+- The DNN_ROCit.py script will create plots of the receiver operating characteristic curves for each of the output nodes in the DNN.
+- Plots contain the AUC as figure of merit.
+- The plots can be found in the 'plots' directory within the directory the TMVA factory created during training.
+
+- Following on from the previous examples, run the command:
+```
+python DNN_ROCit.py -s 5HLs_relu
+```
+- This will create the ROC curve plots and place them in the directory 'MultiClass_DNN_5HLs_relu/plots'.
 
 ## Application of DNN weights
 
@@ -111,3 +127,6 @@ PrepareTrainingAndTestTree
 
 - Hyperparameter optimiser script: once run e.g. several different total number of hidden layers, need code to plot the AUC or whatever figure of merit we decide to use as function of number of hidden layers. Does this exist in KERAS/TMVA?
 - Procedure for optimising number of input variables needs to agreed on. Is there something in KERAS/TMVA that will take a huge list and perform input variable selection?
+
+- Need bug fix for weights application to provide distributions for data.
+- Overtraining test needs kolmogrov-smirnoff statistic between training and testing.
