@@ -4,7 +4,7 @@
 #         Joshuha Thomas-Wilsker
 #           IHEP Beijing, CERN
 ############################################
-# Usage: python train_DNN.py
+# python train_DNN.py -s <relative_path_to_signal_sample/sample>.root -x <relative_path_to_bckg1_sample/sample>.root -y <relative_path_to_bckg2_sample/sample>.root -a <activation_function> -l <number_of_hidden_layers> -j <variables_list>.json
 ############################################
 # Python script using Keras with TensorFlow
 # backend to train deep neural network for
@@ -12,31 +12,25 @@
 ############################################
 
 # Select TensorFlow as backend for Keras
+import os
+import ROOT
+import optparse
+import json
+import h5py
+
 from os import environ
 environ["KERAS_BACKEND"] = "tensorflow"
 #environ['KERAS_BACKEND'] = 'theano'
 #environ['THEANO_FLAGS'] = 'gcc.cxxflags=-march=corei7'
-import ROOT
 from ROOT import TMVA, TFile, TTree, TCut, TString
 from array import array
 from subprocess import call
 from os.path import isfile
-
-import optparse
-import json
-
 from keras.utils import np_utils
 from keras.models import Sequential
 from keras.layers.core import Dense
 from keras.optimizers import SGD
 from keras.layers import Dropout
-
-# Hack to circumvent error "AttributeError: 'module' object has no attribute 'control_flow_ops'" in current versions of TF and Keras.
-# Issue to do with tensorflow removing undocumented symbols from tensorflow/python/__init__.py
-# meaning control_flow_ops was no longer visible as submodule of tensorflow.python
-# https://github.com/keras-team/keras/issues/3857
-import tensorflow as tf
-tf.python.control_flow_ops = tf
 
 def main():
 
@@ -47,26 +41,48 @@ def main():
     parser.add_option('-y', '--bckg2_sample',        dest='input_file_name_ttV'  ,      help='background sample 2 path',      default='samples/DiLepTR_ttV_bInclude.root',        type='string')
     parser.add_option('-a', '--activation',        dest='activation_function'  ,      help='activation function',      default='relu',        type='string')
     parser.add_option('-l', '--hidden_layers',        dest='number_of_hidden_layers'  ,      help='number of hidden layers',      default='2',        type='int')
+    parser.add_option('-t', '--var_transform',        dest='var_transform_name'  ,      help='transformation used on input variables',      default='None',        type='string')
     parser.add_option('-j', '--json',        dest='json'  ,      help='json file with list of variables',      default=None,        type='string')
+    parser.add_option('-r', '--learning_rate',        dest='learning_rate'  ,      help='learning rate',      default=0.01,        type='float')
+    parser.add_option('-n', '--num_epochs',        dest='num_epochs'  ,      help='number of epochs',      default=10,        type='string')
 
     (opt, args) = parser.parse_args()
 
     number_of_hidden_layers = opt.number_of_hidden_layers
     activation_function = opt.activation_function
+    var_transform_name = opt.var_transform_name
+    num_epochs = opt.num_epochs
     jsonFile = open(opt.json,'r')
     new_variable_list = json.load(jsonFile,encoding='utf-8').items()
+    learning_rate = opt.learning_rate
 
     # Setup TMVA interface to use Keras
-    #TMVA.Tools.Instance()
+    TMVA.Tools.Instance()
     TMVA.PyMethodBase.PyInitialize()
 
-    output_file_name = 'ttHML_MCDNN_%sHLs_%s.root'%(str(number_of_hidden_layers),activation_function)
+    if ',' in var_transform_name:
+        var_transform_name_list = var_transform_name.split(',')
+        new_var_transform_name = '+'.join(var_transform_name_list)
+        print 'new_var_transform_name: ', new_var_transform_name
+    else:
+        new_var_transform_name = var_transform_name
+        print 'new_var_transform_name: ', new_var_transform_name
+
+    classifier_parent_dir = 'MultiClass_DNN_%sHLs_%s_%s-VarTrans_%s-learnRate_%s-epochs' % (str(number_of_hidden_layers),activation_function,new_var_transform_name,str(learning_rate),num_epochs)
+    classifier_samples_dir = classifier_parent_dir+"/outputs"
+    if not os.path.exists(classifier_samples_dir):
+        os.makedirs(classifier_samples_dir)
+
+    output_file_name = '%s/%s.root'%(classifier_samples_dir,classifier_parent_dir)
     output_file = TFile.Open(output_file_name,'RECREATE')
 
     # 'AnalysisType' is where one defines what kind of analysis youre doing e.g. multiclass, Classification ....
     # VarTransform: Decorrelation, PCA-transformation, Gaussianisation, Normalisation (for all classes if none is specified).
-    factory_name = 'TMVAClassification_%sHLs_%s' % (str(number_of_hidden_layers),activation_function)
-    factory = TMVA.Factory(factory_name, output_file,'!V:!Silent:Color:DrawProgressBar:Transformations=D,G:AnalysisType=multiclass')
+    # When transformation is specified in factory object, the transformation is only used for informative purposes (not used for classifier inputs).
+    # Distributions can be found in output to see how variables would look if transformed.
+    factory_name = 'Factory_%s' % (classifier_parent_dir)
+    factory_string = '!V:!Silent:Color:DrawProgressBar:Transformations=%s:AnalysisType=multiclass' % var_transform_name
+    factory = TMVA.Factory(factory_name, output_file,factory_string)
 
     #Load data
     input_file_name_signal = opt.input_file_name_signal
@@ -82,12 +98,11 @@ def main():
     background_ttV = data_bckg_ttV.Get('BOOM')
 
     # Declare a dataloader interface
-    dataloader_name = 'MultiClass_DNN_%sHLs_%s' % (str(number_of_hidden_layers),activation_function)
+    dataloader_name = classifier_parent_dir
     dataloader = TMVA.DataLoader(dataloader_name)
 
-
     # Can add selection cuts via:
-    #dataloader.AddTree(background_ttJets, 'Background_1', 'myvar > cutBarrelOnly && myEventTypeVar=1', backgroundWeight)
+    # dataloader.AddTree(background_ttJets, 'Background_1', 'myvar > cutBarrelOnly && myEventTypeVar=1', backgroundWeight)
 
     ### Global event weights ###
     signalWeight = 1.
@@ -97,15 +112,11 @@ def main():
     dataloader.AddTree(background_ttV, 'ttV', backgroundWeight0)
     dataloader.AddTree(background_ttJets, 'ttJets', backgroundWeight1)
 
-    #variable_list = [('Jet_numLoose','F'), ('maxeta','F'), ('mindrlep1jet','F'), ('mindrlep2jet','F'), ('SR_InvarMassT','F'), ('corrptlep1','F'), ('corrptlep2','F'), ('hadTop_BDT','F'), ('Hj1_BDT','F')]
-    variable_list = [('Jet_numLoose','F'), ('maxeta','F'), ('mindrlep1jet','F'), ('mindrlep2jet','F'), ('SR_InvarMassT','F'), ('corrptlep1','F'), ('corrptlep2','F'), ('hadTop_BDT := max(hadTop_BDT,-1.)','F'), ('Hj1_BDT := max(Hj1_BDT,-1.)','F')]
-
     branches = {}
     for key, value in new_variable_list:
-        print type(key)
-        print type(value)
         dataloader.AddVariable(str(key))
         branches[key] = array('f', [-999])
+        print 'variable: ', key
         branchName = ''
         if 'hadTop_BDT' in key:
             branchName = 'hadTop_BDT'
@@ -113,7 +124,6 @@ def main():
             branchName = 'Hj1_BDT'
         else:
             branchName = key
-
     dataloader.AddSpectator('EVENT_event','F')
 
     # Nominal event weight:
@@ -147,7 +157,7 @@ def main():
     #model.add(Dense(100, activation=activation_function)) #Always at least 1 hidden layer
 
     #Randomly set a fraction rate of input units (defined by argument) to 0 at each update during training (helps prevent overfitting).
-    #model.add(Dropout(0.2))
+    model.add(Dropout(0.2))
 
     for x in xrange(number_of_hidden_layers):
         model.add(Dense(100, activation=activation_function))
@@ -158,7 +168,7 @@ def main():
     # Set loss and optimizer
     # categorical_crossentropy = optimisation algorithm with logarithmic loss function
     # binary_crossentropy
-    model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=0.01), metrics=['accuracy',])
+    model.compile(loss='categorical_crossentropy', optimizer=SGD(lr=learning_rate), metrics=['accuracy',])
 
     # Store model in file
     model.save('model.h5')
@@ -166,13 +176,16 @@ def main():
 
     # Book methods
     # Choose classifier and define hyperparameters e.g number of epochs, model filename (as chosen above) etc.
-    # VarTransform: Decorrelation, PCA-transformation, Gaussianisation, Normalisation (for all classes if none is specified).
-    factory.BookMethod(dataloader, TMVA.Types.kPyKeras, "DNN", 'H:!V:VarTransform=D,G:FilenameModel=model.h5:NumEpochs=10:BatchSize=100')
-    #factory.BookMethod(dataloader, TMVA.Types.kMLP, "MLP", "!H:!V:NeuronType=tanh:NCycles=1000:HiddenLayers=N+5,5:TestRate=5:EstimatorType=MSE")
+    # VarTransform: Decorrelate, PCA, Gauss, Norm, None.
+    # Transformations used in booking are used for actual training.
+    logs_dir = classifier_parent_dir+'/logs'
+    factory_string_bookMethod = 'H:!V:VarTransform=%s:FilenameModel=model.h5:NumEpochs=%s:BatchSize=100:Tensorboard=%s' % (var_transform_name, num_epochs, logs_dir)
+    factory.BookMethod(dataloader, TMVA.Types.kPyKeras, "DNN", factory_string_bookMethod)
 
     # Run training, testing and evaluation
     factory.TrainAllMethods()
     factory.TestAllMethods()
     factory.EvaluateAllMethods()
+
 
 main()

@@ -13,7 +13,7 @@ def make_roc_dist(DNN_test_signal, DNN_test_bckg1, DNN_test_bckg2, dnn_ROC_sig_e
 
     lowedge_cutval = -999
     dnn_cuts = []
-    for i in xrange(DNN_test_signal.GetNbinsX()):
+    for i in xrange(1,DNN_test_signal.GetNbinsX()):
         lowedge_cutval = DNN_test_signal.GetXaxis().GetBinLowEdge(i)
         dnn_cuts.append(lowedge_cutval)
 
@@ -61,48 +61,48 @@ def main():
 
     #classifier_suffix = '2HLs_relu'
     classifier_suffix = opt.input_suffix
-    
+
     classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
     classifier_plots_dir = classifier_parent_dir+"/plots"
 
     if not os.path.exists(classifier_plots_dir):
         os.makedirs(classifier_plots_dir)
 
-    input_name = 'ttHML_MCDNN_%s.root' % (classifier_suffix)
+    input_name = '%s/outputs/%s.root' % (classifier_parent_dir,classifier_parent_dir)
 
     print 'input_name: ' , input_name
 
     input_root = TFile.Open(input_name)
-    DNN_rejBvsS_ttHnode_test_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_rejBvsS_ttH" % (classifier_suffix)
-    DNN_rejBvsS_ttVnode_test_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_rejBvsS_ttV" % (classifier_suffix)
-    DNN_rejBvsS_ttJetsnode_test_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_rejBvsS_ttJets" % (classifier_suffix)
-    DNN_rejBvsS_ttHnode_train_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_rejBvsS_ttH" % (classifier_suffix)
-    DNN_rejBvsS_ttVnode_train_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_rejBvsS_ttV" % (classifier_suffix)
-    DNN_rejBvsS_ttJetsnode_train_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_rejBvsS_ttJets" % (classifier_suffix)
+    DNN_rejBvsS_ttHnode_test_name = "%s/Method_DNN/DNN/MVA_DNN_Test_rejBvsS_ttH" % (classifier_parent_dir)
+    DNN_rejBvsS_ttVnode_test_name = "%s/Method_DNN/DNN/MVA_DNN_Test_rejBvsS_ttV" % (classifier_parent_dir)
+    DNN_rejBvsS_ttJetsnode_test_name = "%s/Method_DNN/DNN/MVA_DNN_Test_rejBvsS_ttJets" % (classifier_parent_dir)
+    DNN_rejBvsS_ttHnode_train_name = "%s/Method_DNN/DNN/MVA_DNN_Train_rejBvsS_ttH" % (classifier_parent_dir)
+    DNN_rejBvsS_ttVnode_train_name = "%s/Method_DNN/DNN/MVA_DNN_Train_rejBvsS_ttV" % (classifier_parent_dir)
+    DNN_rejBvsS_ttJetsnode_train_name = "%s/Method_DNN/DNN/MVA_DNN_Train_rejBvsS_ttJets" % (classifier_parent_dir)
 
-    DNN_ttHnode_test_ttH_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttH" % (classifier_suffix)
-    DNN_ttHnode_test_ttV_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttV" % (classifier_suffix)
-    DNN_ttHnode_test_ttJets_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttJets" % (classifier_suffix)
+    DNN_ttHnode_test_ttH_name = "%s/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttH" % (classifier_parent_dir)
+    DNN_ttHnode_test_ttV_name = "%s/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttV" % (classifier_parent_dir)
+    DNN_ttHnode_test_ttJets_name = "%s/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttJets" % (classifier_parent_dir)
 
-    DNN_ttVnode_test_ttH_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttH" % (classifier_suffix)
-    DNN_ttVnode_test_ttV_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttV" % (classifier_suffix)
-    DNN_ttVnode_test_ttJets_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttJets" % (classifier_suffix)
+    DNN_ttVnode_test_ttH_name = "%s/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttH" % (classifier_parent_dir)
+    DNN_ttVnode_test_ttV_name = "%s/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttV" % (classifier_parent_dir)
+    DNN_ttVnode_test_ttJets_name = "%s/Method_DNN/DNN/MVA_DNN_Test_ttV_prob_for_ttJets" % (classifier_parent_dir)
 
-    DNN_ttJetsnode_test_ttH_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttH" % (classifier_suffix)
-    DNN_ttJetsnode_test_ttV_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttV" % (classifier_suffix)
-    DNN_ttJetsnode_test_ttJets_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttJets" % (classifier_suffix)
+    DNN_ttJetsnode_test_ttH_name = "%s/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttH" % (classifier_parent_dir)
+    DNN_ttJetsnode_test_ttV_name = "%s/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttV" % (classifier_parent_dir)
+    DNN_ttJetsnode_test_ttJets_name = "%s/Method_DNN/DNN/MVA_DNN_Test_ttJets_prob_for_ttJets" % (classifier_parent_dir)
 
-    DNN_ttHnode_train_ttH_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttH" % (classifier_suffix)
-    DNN_ttHnode_train_ttV_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttV" % (classifier_suffix)
-    DNN_ttHnode_train_ttJets_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttJets" % (classifier_suffix)
+    DNN_ttHnode_train_ttH_name = "%s/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttH" % (classifier_parent_dir)
+    DNN_ttHnode_train_ttV_name = "%s/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttV" % (classifier_parent_dir)
+    DNN_ttHnode_train_ttJets_name = "%s/Method_DNN/DNN/MVA_DNN_Train_ttH_prob_for_ttJets" % (classifier_parent_dir)
 
-    DNN_ttVnode_train_ttH_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttH" % (classifier_suffix)
-    DNN_ttVnode_train_ttV_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttV" % (classifier_suffix)
-    DNN_ttVnode_train_ttJets_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttJets" % (classifier_suffix)
+    DNN_ttVnode_train_ttH_name = "%s/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttH" % (classifier_parent_dir)
+    DNN_ttVnode_train_ttV_name = "%s/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttV" % (classifier_parent_dir)
+    DNN_ttVnode_train_ttJets_name = "%s/Method_DNN/DNN/MVA_DNN_Train_ttV_prob_for_ttJets" % (classifier_parent_dir)
 
-    DNN_ttJetsnode_train_ttH_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttH" % (classifier_suffix)
-    DNN_ttJetsnode_train_ttV_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttV" % (classifier_suffix)
-    DNN_ttJetsnode_train_ttJets_name = "MultiClass_DNN_%s/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttJets" % (classifier_suffix)
+    DNN_ttJetsnode_train_ttH_name = "%s/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttH" % (classifier_parent_dir)
+    DNN_ttJetsnode_train_ttV_name = "%s/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttV" % (classifier_parent_dir)
+    DNN_ttJetsnode_train_ttJets_name = "%s/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttJets" % (classifier_parent_dir)
 
     DNN_rejBvsS_ttHnode_test = input_root.Get(DNN_rejBvsS_ttHnode_test_name)
     DNN_rejBvsS_ttVnode_test = input_root.Get(DNN_rejBvsS_ttVnode_test_name)
@@ -135,7 +135,6 @@ def main():
     DNN_ttJetsnode_train_ttV = input_root.Get(DNN_ttJetsnode_train_ttV_name)
     DNN_ttJetsnode_train_ttJets = input_root.Get(DNN_ttJetsnode_train_ttJets_name)
 
-
     test_dnn_ROC_sig_eff_ttHnode = []
     test_dnn_ROC_bckg_rej_ttHnode = []
     test_dnn_ROC_sig_eff_ttVnode = []
@@ -159,11 +158,11 @@ def main():
     x_ROC_sig_eff_ttHnode = np.array(test_dnn_ROC_sig_eff_ttHnode)
     y_ROC_bckg_rej_ttHnode = np.array(test_dnn_ROC_bckg_rej_ttHnode)
 
-    x_ROC_sig_eff_ttVnode = np.array(train_dnn_ROC_sig_eff_ttVnode)
-    y_ROC_bckg_rej_ttVnode = np.array(train_dnn_ROC_bckg_rej_ttVnode)
+    x_ROC_sig_eff_ttVnode = np.array(test_dnn_ROC_sig_eff_ttVnode)
+    y_ROC_bckg_rej_ttVnode = np.array(test_dnn_ROC_bckg_rej_ttVnode)
 
-    x_ROC_sig_eff_ttJetsnode = np.array(train_dnn_ROC_sig_eff_ttJetsnode)
-    y_ROC_bckg_rej_ttJetsnode = np.array(train_dnn_ROC_bckg_rej_ttJetsnode)
+    x_ROC_sig_eff_ttJetsnode = np.array(test_dnn_ROC_sig_eff_ttJetsnode)
+    y_ROC_bckg_rej_ttJetsnode = np.array(test_dnn_ROC_bckg_rej_ttJetsnode)
 
     # Using trapezoidal rule as approximation for integral.
     area_ROC_bckg_rej_ttHnode = trapz(x_ROC_sig_eff_ttHnode, y_ROC_bckg_rej_ttHnode, dx=(1./40.))

@@ -6,6 +6,6 @@
 "SR_InvarMassT" : "\"F\"",
 "corrptlep1": "\"F\"",
 "corrptlep2" : "\"F\"",
-"hadTop_BDT":"\"F\"",
-"Hj1_BDT": "\"F\""
+"hadTop_BDT := max(hadTop_BDT,-1.)" : "\"F\"",
+"Hj1_BDT:= max(Hj1_BDT,-1.)": "\"F\""
 }

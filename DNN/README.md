@@ -6,7 +6,6 @@ Python script using Keras with TensorFlow
 backend to train deep neural network for
 ttH multilepton dilepton analysis region.
 
-
 USAGE:
 ```
 python train_DNN.py
@@ -40,7 +39,18 @@ Run the following command to install necessary packages with pip:
 ```
 bash init_virtualenv.sh
 ```
-This last step will put the py2_virtualenv directory into your current directory. You can now source the py2_virtualenv/bin/activate script whenever you open a new shell to activate the python virtual environment.
+The bash script will set up the py2_virtualenv directory. It then sources the py2_virtualenv/bin/activate which simply activates the python virtual environment. This last step will put the py2_virtualenv directory into your current directory and set up the relevant packages in your virtual environment.
+
+
+Temporarily (as will be included in next LCG build) have to also install 'werkzeug' and correctly link 'tensor_forest' plugins:
+```
+pip install --user werkzeug
+```
+and
+```
+source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-slc6-gcc62-opt/setup.sh
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-slc6-gcc62-opt/lib/python2.7/site-packages/tensorflow/contrib/tensor_forest/
+```
 
 ## New shell
 As mentioned above, now every time you open a new shell you only need to rerun the commands beneath to establish you python working environment:
@@ -49,17 +59,19 @@ As mentioned above, now every time you open a new shell you only need to rerun t
 scl enable python27 bash
 source <path_where_you_cloned_fermilab_keras_workshop>/fermilab_keras_workshop/py2_virtualenv/bin/activate
 ```
-Because this script uses ROOT with pyRoot enabled we need an additional step to so that the root libraries are accessible:
+Because this script uses pyRoot/pyMVA enabled we need an additional step to so that the root libraries are accessible:
 ```
-source /cvmfs/sft.cern.ch/lcg/views/LCG_91/x86_64-slc6-gcc62-opt/setup.sh
+source /cvmfs/sft.cern.ch/lcg/views/LCG_93/x86_64-slc6-gcc62-opt/setup.sh
 ```
-
+or for more recent version:
+```
+source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-slc6-gcc62-opt/setup.sh
+```
 ## DNN Training
 The first script to run is train_DNN.py. This script uses the keras interface within pyTMVA to train and test a DNN using Tensorflow:
 ```
 python train_DNN.py -s <relative_path_to_signal_sample/sample>.root -x <relative_path_to_bckg1_sample/sample>.root -y <relative_path_to_bckg2_sample/sample>.root -a <activation_function> -l <number_of_hidden_layers> -j <variables_list>.json
 ```
-
 Three ntuples (ttH(ML) signal, tt+V background, tt+jets background) containing events from the ttH multilepton analysis training regions should be loaded. The files you wish to load can be passed as command line inputs. Check the current default paths in the code for where the code expects to find the files.
 
 One can also pass as arguments the activation function, number of hidden layers and a .json list of variables. This should make it easier to perform network optimisation studies. The TMVA factory object uses the arguments passed to the script to create the directory where the weights are stored that should inform the user of the variable hyperparameters used for the network architecture.
@@ -98,9 +110,42 @@ PrepareTrainingAndTestTree
 ```
 - As you can see here, the three classes (neurons) in the output layer are associated with one of the inputs.
 
-## Plotting the DNN Training/Testing Response
-- Various plots of the response of the DNN can be performed by the appropriately titled script DNN_ResponsePlotter.py. As input it takes the .root file from the training script and makes plots of the combined response from all the output layer nodes along with plots of the individual nodes. The individual histograms are store in an output .root file whereas the canvas' of the plots are drawn into .pdf files normally titled 'MCDNN_Response_XXXXXX.pdf'.
+## DNN Training/Testing Plots
+- Various plots from the training/testing of the DNN can be created using the appropriately titled script DNN_ResponsePlotter.py.
+- The script takes the .root file from the training script as input and makes plots of the combined response from all the output layer nodes along with plots of the individual nodes.
 
+## Kolomogrov-Smirnov test
+- The script also produces an overtraining plot. This is a plot of the DNN output distribution on each of the nodes. A distribution is obtain from the training and testing sample and overlaid. A ratio plot of the two distributions is added to the bottom of the canvas and the result from the two-sample Kolomogrov-Smirnov test is written on the main plot.
+- Using Kolomogrov-Smirnov as data distributions are non-gaussian we use the KS-test.
+- KS test is most sensitive when empirical distribution functions differ in a global fashion near the center of the distribution.
+- However if there are repeated deviations between the EDF's or they have the same mean values then the EDFs cross each other multiple times and the maximum deviation between the distributions is reduced.
+- The two-sample Kolmogrov-Smirnov test from the scipy package returns two values. The first value is the K-S test statistic and the second value is the 'p-value'. The K-S test statistic gives the supremum deviation between the two distributions and the p-value.
+- The p(probability)-value is the probability of getting a more extreme observation (more extreme statistic) than the one observed based on the assumed statistical hypothesis (both distributions sampled from the same probability distribution) is true. For low p-values we conclude the null hypothesis is false. One can choose how to define 'low' for example typically a p-value <=0.05 is required to reject the null hypothesis.
+- p-values are often used to calculate the significance. The mathematical definition of significance is '-log(p-value)' hence for small p-values (reject the null hypothesis) we get larger significances (as p -> 0, sig -> -inf).
+
+
+## Anderson-Darling test
+- Stronger test when differences in distributions are near beginning or end of distributions.
+- Return values:
+  - Statistic: Normalized k-sample Anderson-Darling test statistic.
+  - Critical values: the critical values for significance levels: 25%, 10%, 5%, 2.5%, 1%
+  - Significance level: An approximate significance level at which the null hypothesis for the provided samples can be rejected.
+- For example, if we see the following:
+```
+(statistic=4.4797806271353506, critical_values=array([ 0.49854918,  1.3236709 ,  1.91577682,  2.49304213,  3.24593219]), significance_level=0.0020491057074350956)
+```
+- The significance is 0.002 we conclude that the samples are drawn from diffrent populations as the significance is smaller than the 25% critical value.
+
+- Currently this code does not use the Anderson-Darling test. This is due to an issue with the scipy implementation of the test.
+- For example we see the following result comparing the ttH node test/train distributions:
+```
+Anderson_ksampResult(statistic=-1.2759636700023367, critical_values=array([ 0.325,  1.226,  1.961,  2.718,  3.752]), significance_level=1.3679528987986334)
+```
+- The significance level is above 1. This is due to inaccurate extrapolation of the significance to regions outside the critical values.
+
+
+
+- The individual histograms are store in an output .root file whereas the canvas' of the plots are drawn into .pdf files normally titled 'MCDNN_Response_XXXXXX.pdf'.
 - For example, if you created a file title 'ttHML_MCDNN_5HLs_relu.root' via the training script one can obtain the response and overtraining distributions by running the command:
 ```
 python DNN_ResponsePlotter.py -s 5HLs_relu
@@ -118,8 +163,38 @@ python DNN_ROCit.py -s 5HLs_relu
 ```
 - This will create the ROC curve plots and place them in the directory 'MultiClass_DNN_5HLs_relu/plots'.
 
-## Application of DNN weights
+## Monitoring Training Plots
+- To obtain training monitoring as a function of the training epochs.
+- Using Tensorboard (see argument in BookMethod) we get a log output file (put in ./logs directory).
+- Create ssh tunnel loggin into lxplus machine where file was created e.g. for file ./MultiClass_DNN_2HLs_relu_D-VarTrans_0.008-learnRate_10-epochs/logs/events.out.tfevents.1524833056.lxplus094.cern.ch ssh to
+```
+ssh -D 8080 jthomasw@lxplus094.cern.ch
+```
+- Run command e.g.:
+```
+tensorboard --logdir MultiClass_DNN_2HLs_relu_D-VarTrans_0.008-learnRate_100-epochs/logs/ --port 8888
+```
+- Setup tunnel in browser and go to 'http://lxplus094.cern.ch:8080'
 
+## Application of DNN weights
+- To apply the weights obtained after training the DNN one can use the code 'apply_trained_DNN.py'.
+- The code requires two arguments.
+- The first is the same .json list of arguments used during training.
+- The second is the suffix of the directory where the training weights were stored.
+- For example if the weights were stored in a directory titled 'MultiClass_DNN_2HLs_relu_D-VarTrans_0.008-learnRate_100-epochs', the argument for would be '2HLs_relu_D-VarTrans_0.008-learnRate_10-epochs'
+- The following example command should demonstrate the usage:
+```
+python apply_trained_DNN.py -j input_variables_list.json -s <Suffix_of_directory_containing_training_weights>
+```
+
+## Comparison with BDT
+- The script 'apply_trained_BDTG.py' was written to apply the 2017-2018 analysis' BDTG weights to the 2017 samples and create and output .root file that can be used to create performance plots for the BDTG for comparison.
+- The code has one option '-s' that is the suffix you wish to use. The suffix must be either 'ttHvsttJets' or 'ttHvsttV' which represents the BDT weights you want to apply.
+- One must ensure that the directory that contains your classifier weights has this suffix e.g. '<prefix_of_directory_name_>ttHvsttJets'
+- Example run command:
+```
+python apply_trained_BDTG.py -s ttHvsttJets
+```
 
 ## Thoughts:
 - For each event we can calculate a probability it is of a certain hypothesis (comes from a certain process). This probability is its output score on a given node, where the node represents the process. The event is assigned to a given process according to the node with the highest probability.
