@@ -73,7 +73,7 @@ python train_DNN.py -s <relative_path_to_signal_sample/sample>.root -x <relative
 For example:
 ```
 python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 2 -t D,G -j input_variables_list.json -r 0.008 -n 10
-``
+```
 Three ntuples (ttH(ML) signal, tt+V background, tt+jets background) containing events from the ttH multilepton analysis training regions should be loaded. The files you wish to load can be passed as command line inputs. Check the current default paths in the code for where the code expects to find the files.
 
 One can also pass as arguments the activation function, number of hidden layers and a .json list of variables. This should make it easier to perform network optimisation studies. The TMVA factory object uses the arguments passed to the script to create the directory where the weights are stored that should inform the user of the variable hyperparameters used for the network architecture.
