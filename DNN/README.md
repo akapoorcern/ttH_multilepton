@@ -41,37 +41,39 @@ bash init_virtualenv.sh
 ```
 The bash script will set up the py2_virtualenv directory. It then sources the py2_virtualenv/bin/activate which simply activates the python virtual environment. This last step will put the py2_virtualenv directory into your current directory and set up the relevant packages in your virtual environment.
 
+Because this script uses pyRoot/pyMVA enabled we need an additional step to so that the root libraries are accessible (apologies for sourcing a nightly, currently only version with tensor_forest etc.):
+```
+source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-slc6-gcc62-opt/setup.sh
+```
 
-Temporarily (as will be included in next LCG build) have to also install 'werkzeug' and correctly link 'tensor_forest' plugins:
+The following instructions should only be applied if you notice errors with the 'werkzeug' or 'tensor_forest' packagea. These are temporary as they will be included in next LCG build. For now, we have to install 'werkzeug' and correctly link 'tensor_forest' plugins:
 ```
 pip install --user werkzeug
 ```
 and
 ```
-source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-slc6-gcc62-opt/setup.sh
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-slc6-gcc62-opt/lib/python2.7/site-packages/tensorflow/contrib/tensor_forest/
 ```
 
 ## New shell
 As mentioned above, now every time you open a new shell you only need to rerun the commands beneath to establish you python working environment:
-
 ```
 scl enable python27 bash
-source <path_where_you_cloned_fermilab_keras_workshop>/fermilab_keras_workshop/py2_virtualenv/bin/activate
+source <path_where_you_cloned_lxplus_setup>/lxplus_setup/py2_virtualenv/bin/activate
 ```
-Because this script uses pyRoot/pyMVA enabled we need an additional step to so that the root libraries are accessible:
-```
-source /cvmfs/sft.cern.ch/lcg/views/LCG_93/x86_64-slc6-gcc62-opt/setup.sh
-```
-or for more recent version:
+Source LCG build:
 ```
 source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-slc6-gcc62-opt/setup.sh
 ```
 ## DNN Training
-The first script to run is train_DNN.py. This script uses the keras interface within pyTMVA to train and test a DNN using Tensorflow:
+The first script to run is train_DNN.py. This script uses the keras interface within pyTMVA to train and test a DNN using Tensorflow. The input arguments are described below and more information can be found in the code:
 ```
-python train_DNN.py -s <relative_path_to_signal_sample/sample>.root -x <relative_path_to_bckg1_sample/sample>.root -y <relative_path_to_bckg2_sample/sample>.root -a <activation_function> -l <number_of_hidden_layers> -j <variables_list>.json
+python train_DNN.py -s <relative_path_to_signal_sample/sample>.root -x <relative_path_to_bckg1_sample/sample>.root -y <relative_path_to_bckg2_sample/sample>.root -a <activation_function> -l <number_of_hidden_layers> -t <input_variable_transformation> -j <variables_list>.json -r <learning_rate> -n <number_of_epochs>
 ```
+For example:
+```
+python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 2 -t D,G -j input_variables_list.json -r 0.008 -n 10
+``
 Three ntuples (ttH(ML) signal, tt+V background, tt+jets background) containing events from the ttH multilepton analysis training regions should be loaded. The files you wish to load can be passed as command line inputs. Check the current default paths in the code for where the code expects to find the files.
 
 One can also pass as arguments the activation function, number of hidden layers and a .json list of variables. This should make it easier to perform network optimisation studies. The TMVA factory object uses the arguments passed to the script to create the directory where the weights are stored that should inform the user of the variable hyperparameters used for the network architecture.
@@ -136,14 +138,12 @@ PrepareTrainingAndTestTree
 ```
 - The significance is 0.002 we conclude that the samples are drawn from diffrent populations as the significance is smaller than the 25% critical value.
 
-- Currently this code does not use the Anderson-Darling test. This is due to an issue with the scipy implementation of the test.
+- Currently this code *does not* use the Anderson-Darling test. This is due to an issue with the scipy implementation of the test.
 - For example we see the following result comparing the ttH node test/train distributions:
 ```
 Anderson_ksampResult(statistic=-1.2759636700023367, critical_values=array([ 0.325,  1.226,  1.961,  2.718,  3.752]), significance_level=1.3679528987986334)
 ```
 - The significance level is above 1. This is due to inaccurate extrapolation of the significance to regions outside the critical values.
-
-
 
 - The individual histograms are store in an output .root file whereas the canvas' of the plots are drawn into .pdf files normally titled 'MCDNN_Response_XXXXXX.pdf'.
 - For example, if you created a file title 'ttHML_MCDNN_5HLs_relu.root' via the training script one can obtain the response and overtraining distributions by running the command:
@@ -159,20 +159,32 @@ python DNN_ResponsePlotter.py -s 5HLs_relu
 
 - Following on from the previous examples, run the command:
 ```
-python DNN_ROCit.py -s 5HLs_relu
+python DNN_ROCit.py -s <Training_output_parent_directory>
+```
+For example, following on from the command used to train the network in the above section:
+```
+python DNN_ROCit.py -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs
 ```
 - This will create the ROC curve plots and place them in the directory 'MultiClass_DNN_5HLs_relu/plots'.
 
 ## Monitoring Training Plots
 - To obtain training monitoring as a function of the training epochs.
 - Using Tensorboard (see argument in BookMethod) we get a log output file (put in ./logs directory).
-- Create ssh tunnel loggin into lxplus machine where file was created e.g. for file ./MultiClass_DNN_2HLs_relu_D-VarTrans_0.008-learnRate_10-epochs/logs/events.out.tfevents.1524833056.lxplus094.cern.ch ssh to
+- Create ssh tunnel loggin into lxplus machine where file was created e.g. for file:
+```
+MultiClass_DNN_2HLs_relu_D-VarTrans_0.008-learnRate_10-epochs/logs/events.out.tfevents.1524833056.lxplus094.cern.ch
+```
+one could ssh onto an lxplus machine:
 ```
 ssh -D 8080 jthomasw@lxplus094.cern.ch
 ```
-- Run command e.g.:
+- Run command:
 ```
-tensorboard --logdir MultiClass_DNN_2HLs_relu_D-VarTrans_0.008-learnRate_100-epochs/logs/ --port 8888
+tensorboard --logdir <Training_output_parent_directory>/logs/ --port 8080
+```
+e.g.:
+```
+tensorboard --logdir MultiClass_DNN_2HLs_relu_D-VarTrans_0.008-learnRate_100-epochs/logs/ --port 8080
 ```
 - Setup tunnel in browser and go to 'http://lxplus094.cern.ch:8080'
 
@@ -181,11 +193,27 @@ tensorboard --logdir MultiClass_DNN_2HLs_relu_D-VarTrans_0.008-learnRate_100-epo
 - The code requires two arguments.
 - The first is the same .json list of arguments used during training.
 - The second is the suffix of the directory where the training weights were stored.
-- For example if the weights were stored in a directory titled 'MultiClass_DNN_2HLs_relu_D-VarTrans_0.008-learnRate_100-epochs', the argument for would be '2HLs_relu_D-VarTrans_0.008-learnRate_10-epochs'
 - The following example command should demonstrate the usage:
 ```
 python apply_trained_DNN.py -j input_variables_list.json -s <Suffix_of_directory_containing_training_weights>
 ```
+Following on from the examples before:
+```
+python apply_trained_DNN.py -j input_variables_list.json -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs
+```
+
+## Application Plotter
+- Much like the script DNN_ResponsePlotter.py we have a similar script to plot the response of the nodes after applying the network weights.
+- It runs in the same way:
+```
+python DNN_ApplicationPlotter.py -s <Suffix_of_directory_containing_training_weights>
+```
+So following on from the preceding examples:
+```
+python DNN_ApplicationPlotter.py -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs
+```
+- The code will take the outputs from apply_trained_DNN.py and plot the histograms in those ttrees.
+
 
 ## Comparison with BDT
 - The script 'apply_trained_BDTG.py' was written to apply the 2017-2018 analysis' BDTG weights to the 2017 samples and create and output .root file that can be used to create performance plots for the BDTG for comparison.
@@ -198,10 +226,4 @@ python apply_trained_BDTG.py -s ttHvsttJets
 
 ## Thoughts:
 - For each event we can calculate a probability it is of a certain hypothesis (comes from a certain process). This probability is its output score on a given node, where the node represents the process. The event is assigned to a given process according to the node with the highest probability.
-- OR Separate signal from background (only two classes) with a multiclass DNN method. Find the best working point on all nodes which maximises the signal efficiency and background rejection. Not sure we have the stats for this and/or can find a reasonable WP.
-
-- Hyperparameter optimiser script: once run e.g. several different total number of hidden layers, need code to plot the AUC or whatever figure of merit we decide to use as function of number of hidden layers. Does this exist in KERAS/TMVA?
-- Procedure for optimising number of input variables needs to agreed on. Is there something in KERAS/TMVA that will take a huge list and perform input variable selection?
-
-- Need bug fix for weights application to provide distributions for data.
-- Overtraining test needs kolmogrov-smirnoff statistic between training and testing.
+- OR Separate signal from background (only two classes) with a Binary DNN method. Find the best working point on all nodes which maximises the signal efficiency and background rejection. Not sure we have the stats for this and/or can find a reasonable WP.
