@@ -223,7 +223,3 @@ python DNN_ApplicationPlotter.py -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-ep
 ```
 python apply_trained_BDTG.py -s ttHvsttJets
 ```
-
-## Thoughts:
-- For each event we can calculate a probability it is of a certain hypothesis (comes from a certain process). This probability is its output score on a given node, where the node represents the process. The event is assigned to a given process according to the node with the highest probability.
-- OR Separate signal from background (only two classes) with a Binary DNN method. Find the best working point on all nodes which maximises the signal efficiency and background rejection. Not sure we have the stats for this and/or can find a reasonable WP.
