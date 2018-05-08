@@ -16,21 +16,26 @@ import optparse
 import json
 import math
 
-def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree, branches_reader, tmvareader):
+def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree, branches_reader, tmvareader, categorise):
 
     print 'Evaluating %s sample ' % sample_name
 
-    histo_ttHclassified_events_name = 'histo_ttHclassified_events_%s' % sample_name
-    histo_ttVclassified_events_name = 'histo_ttVclassified_events_%s' % sample_name
-    histo_ttJclassified_events_name = 'histo_ttJclassified_events_%s' % sample_name
+    if categorise == True:
+        histoname_type = 'Category'
+    else:
+        histoname_type = 'Node'
 
-    histo_ttHclassified_events_title = 'ttH Classified Events: %s Sample' % sample_name
-    histo_ttVclassified_events_title = 'ttV Classified Events: %s Sample' % sample_name
-    histo_ttJclassified_events_title = 'ttJ Classified Events: %s Sample' % sample_name
+    histo_ttHclassified_events_name = 'histo_ttH%s_events_%s' % (histoname_type,sample_name)
+    histo_ttVclassified_events_name = 'histo_ttV%s_events_%s' % (histoname_type,sample_name)
+    histo_ttJclassified_events_name = 'histo_ttJ%s_events_%s' % (histoname_type,sample_name)
 
-    histo_ttHclassified_events = ROOT.TH1D(histo_ttHclassified_events_name,histo_ttHclassified_events_title,40,0,1.)
-    histo_ttVclassified_events = ROOT.TH1D(histo_ttVclassified_events_name,histo_ttVclassified_events_title,40,0,1.)
-    histo_ttJclassified_events = ROOT.TH1D(histo_ttJclassified_events_name,histo_ttJclassified_events_title,40,0,1.)
+    histo_ttHclassified_events_title = 'ttH %s Events: %s Sample' % (histoname_type,sample_name)
+    histo_ttVclassified_events_title = 'ttV %s Events: %s Sample' % (histoname_type,sample_name)
+    histo_ttJclassified_events_title = 'ttJ %s Events: %s Sample' % (histoname_type,sample_name)
+
+    histo_ttHclassified_events = ROOT.TH1D(histo_ttHclassified_events_name,histo_ttHclassified_events_title,20,0,1.)
+    histo_ttVclassified_events = ROOT.TH1D(histo_ttVclassified_events_name,histo_ttVclassified_events_title,20,0,1.)
+    histo_ttJclassified_events = ROOT.TH1D(histo_ttJclassified_events_name,histo_ttJclassified_events_title,20,0,1.)
 
     temp_percentage_done = 0
     for i in range(sample_ttree.GetEntries()):
@@ -47,13 +52,19 @@ def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree
         event_num = array('d',[0])
         event_num = sample_ttree.EVENT_event
 
-        event_classification = max(tmvareader.EvaluateMulticlass('DNN')[0],tmvareader.EvaluateMulticlass('DNN')[1],tmvareader.EvaluateMulticlass('DNN')[2])
-        if event_classification == tmvareader.EvaluateMulticlass('DNN')[0]:
-            histo_ttHclassified_events.Fill(event_classification)
-        elif event_classification == tmvareader.EvaluateMulticlass('DNN')[1]:
-            histo_ttVclassified_events.Fill(event_classification)
-        elif event_classification == tmvareader.EvaluateMulticlass('DNN')[2]:
-            histo_ttJclassified_events.Fill(event_classification)
+        if categorise == True:
+            event_classification = max(tmvareader.EvaluateMulticlass('DNN')[0],tmvareader.EvaluateMulticlass('DNN')[1],tmvareader.EvaluateMulticlass('DNN')[2])
+            if event_classification == tmvareader.EvaluateMulticlass('DNN')[0]:
+                histo_ttHclassified_events.Fill(event_classification)
+            elif event_classification == tmvareader.EvaluateMulticlass('DNN')[1]:
+                histo_ttVclassified_events.Fill(event_classification)
+            elif event_classification == tmvareader.EvaluateMulticlass('DNN')[2]:
+                histo_ttJclassified_events.Fill(event_classification)
+        else:
+            histo_ttHclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[0])
+            histo_ttVclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[1])
+            histo_ttJclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[2])
+
 
     histo_ttHclassified_events.Write()
     histo_ttVclassified_events.Write()
@@ -152,11 +163,15 @@ def main():
     output_file_name = '%s/Applied_%s.root' % (classifier_samples_dir,classifier_parent_dir)
     output_file = TFile.Open(output_file_name,'RECREATE')
 
-    # Loop over ttH ttree evaluating MVA as we go.
-    # Keep track of the response and input values assigned to every event number for later checks.
-    network_evaluation(data_ttH_tree, new_variable_list, 'ttH', branches_doubles, branches_floats, reader)
-    network_evaluation(data_ttV_tree, new_variable_list, 'ttV', branches_doubles, branches_floats, reader)
-    network_evaluation(data_ttJets_tree, new_variable_list, 'ttJets', branches_doubles, branches_floats, reader)
+    # Evaluate network and make plots of the response on each of the nodes to each of the simulated samples.
+    network_evaluation(data_ttH_tree, new_variable_list, 'ttH', branches_doubles, branches_floats, reader, False)
+    network_evaluation(data_ttV_tree, new_variable_list, 'ttV', branches_doubles, branches_floats, reader, False)
+    network_evaluation(data_ttJets_tree, new_variable_list, 'ttJets', branches_doubles, branches_floats, reader, False)
+
+    # Evaluate network and use max node response to categorise event. Only maximum node response will be plotted per event and will be drawn in the maximum nodes response histogram.
+    network_evaluation(data_ttH_tree, new_variable_list, 'ttH', branches_doubles, branches_floats, reader, True)
+    network_evaluation(data_ttV_tree, new_variable_list, 'ttV', branches_doubles, branches_floats, reader, True)
+    network_evaluation(data_ttJets_tree, new_variable_list, 'ttJets', branches_doubles, branches_floats, reader, True)
 
     output_file.Close()
 
