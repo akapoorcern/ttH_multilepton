@@ -128,9 +128,9 @@ def main():
 
     # Nominal event weight:
     # event weight = puWgtNom * trigWgtNom * lepSelEffNom * genWgt * xsecWgt (* 0 or 1 depending on if it passes event selection)
-    #dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l*EVENT_genWeight", "ttH")
-    #dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l*EVENT_genWeight", "ttV")
-    #dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l*EVENT_genWeight", "ttJets")
+    dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l*EVENT_genWeight", "ttH")
+    dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l*EVENT_genWeight", "ttV")
+    dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l*EVENT_genWeight", "ttJets")
     #dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l", "ttH")
     #dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l", "ttV")
     #dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l", "ttJets")
@@ -157,7 +157,7 @@ def main():
     #model.add(Dense(100, activation=activation_function)) #Always at least 1 hidden layer
 
     #Randomly set a fraction rate of input units (defined by argument) to 0 at each update during training (helps prevent overfitting).
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.7))
 
     for x in xrange(number_of_hidden_layers):
         model.add(Dense(100, activation=activation_function))
