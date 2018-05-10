@@ -6,11 +6,6 @@ Python script using Keras with TensorFlow
 backend to train deep neural network for
 ttH multilepton dilepton analysis region.
 
-USAGE:
-```
-python train_DNN.py
-```
-
 ## Introduction
 - Using pyMVA Keras interface with Tensorflow backend to design DNN model for ttH multilpeton dilepton analysis region.
 - In this setup we can easily change the backend in case wewant to use e.g. Theano instead of TensorFlow.
