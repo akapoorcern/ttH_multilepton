@@ -115,6 +115,17 @@ PrepareTrainingAndTestTree
 ## DNN Training/Testing Plots
 - Various plots from the training/testing of the DNN can be created using the appropriately titled script DNN_ResponsePlotter.py.
 - The script takes the .root file from the training script as input and makes plots of the combined response from all the output layer nodes along with plots of the individual nodes.
+- Output plots are stored in the 'plots' sub-directory of the training directory for example 'MultiClass_DNN_<parameters_of_network>/plots'.
+- The individual histograms are store in an output .root file whereas the canvas' of the plots are drawn into .pdf files normally titled 'MCDNN_Response_<network_parameters>.pdf'.
+- For example, if you created a file title 'MultiClass_DNN_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs.root' via the training script one can obtain the response and overtraining distributions by running the command:
+```
+python DNN_ResponsePlotter.py -s <Suffix_of_training_directory>
+```
+So for example, one might use the following command:
+```
+python DNN_ResponsePlotter.py -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs
+```
+- The script will finds the .root one created during training, creates a 'plots' directory in the same directory as the TMVA factory put the weights files (e.g. 'MultiClass_DNN_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs/' ) and places the distributions there.
 
 ## Kolomogrov-Smirnov test
 - The script also produces an overtraining plot. This is a plot of the DNN output distribution on each of the nodes. A distribution is obtain from the training and testing sample and overlaid. A ratio plot of the two distributions is added to the bottom of the canvas and the result from the two-sample Kolomogrov-Smirnov test is written on the main plot.
@@ -122,9 +133,15 @@ PrepareTrainingAndTestTree
 - KS test is most sensitive when empirical distribution functions differ in a global fashion near the center of the distribution.
 - However if there are repeated deviations between the EDF's or they have the same mean values then the EDFs cross each other multiple times and the maximum deviation between the distributions is reduced.
 - The two-sample Kolmogrov-Smirnov test from the scipy package returns two values. The first value is the K-S test statistic and the second value is the 'p-value'. The K-S test statistic gives the supremum deviation between the two distributions and the p-value.
-- The p(probability)-value is the probability of getting a more extreme observation (more extreme statistic) than the one observed based on the assumed statistical hypothesis (both distributions sampled from the same probability distribution) is true. For low p-values we conclude the null hypothesis is false. One can choose how to define 'low' for example typically a p-value <=0.05 is required to reject the null hypothesis.
+- The p(probability)-value is the probability of getting a more extreme observation (more extreme statistic) than the one observed based on the assumed statistical hypothesis (both distributions sampled from the same probability distribution) is true. For low p-values we conclude the null hypothesis is rejected. One can choose how to define 'low' for example typically a p-value <=0.05 is required to reject the null hypothesis.
 - p-values are often used to calculate the significance. The mathematical definition of significance is '-log(p-value)' hence for small p-values (reject the null hypothesis) we get larger significances (as p -> 0, sig -> -inf).
 
+WARNING:
+If you see the following warning:
+```
+approximate p-value will be computed by extrapolation
+```
+take test result and p-value with pinch of salt.
 
 ## Anderson-Darling test
 - Stronger test when differences in distributions are near beginning or end of distributions.
@@ -145,12 +162,18 @@ Anderson_ksampResult(statistic=-1.2759636700023367, critical_values=array([ 0.32
 ```
 - The significance level is above 1. This is due to inaccurate extrapolation of the significance to regions outside the critical values.
 
-- The individual histograms are store in an output .root file whereas the canvas' of the plots are drawn into .pdf files normally titled 'MCDNN_Response_XXXXXX.pdf'.
-- For example, if you created a file title 'ttHML_MCDNN_5HLs_relu.root' via the training script one can obtain the response and overtraining distributions by running the command:
+## Input Variable plots and Separation
+- Plots of the input variables and a file containing values of the separation of each of the input processes for said variable are made available using the DNN_InputVariable_Separation.py script.
+- The plots of each of the variables will be placed inside the 'plots' sub-directory of the DNN training directory.
+- The file containing the separation will be placed inside the 'data' sub-directory of the DNN training directory.
+- One can run the script using the following example command:
 ```
-python DNN_ResponsePlotter.py -s 5HLs_relu
+python DNN_InputVariable_Separation.py -s <Suffix_of_training_directory> -j <input_variables_list>.json
 ```
-- The script will finds the .root one created during training, creates a 'plots' directory in the same directory as the TMVA factory put the weights files (e.g. 'MultiClass_DNN_5HLs_relu' ) and places the distributions there.
+So following on from the previous examples one might do:
+```
+DNN_InputVariable_Separation.py -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs -j input_variables_list.json
+```
 
 ## ROC Curves
 - The DNN_ROCit.py script will create plots of the receiver operating characteristic curves for each of the output nodes in the DNN.
@@ -159,13 +182,13 @@ python DNN_ResponsePlotter.py -s 5HLs_relu
 
 - Following on from the previous examples, run the command:
 ```
-python DNN_ROCit.py -s <Training_output_parent_directory>
+python DNN_ROCit.py -s <Suffix_of_training_directory>
 ```
 For example, following on from the command used to train the network in the above section:
 ```
 python DNN_ROCit.py -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs
 ```
-- This will create the ROC curve plots and place them in the directory 'MultiClass_DNN_5HLs_relu/plots'.
+- This will create the ROC curve plots and place them in the directory '2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs/plots'.
 
 ## Monitoring Training Plots
 - To obtain training monitoring as a function of the training epochs.
@@ -180,7 +203,7 @@ ssh -D 8080 jthomasw@lxplus094.cern.ch
 ```
 - Run command:
 ```
-tensorboard --logdir <Training_output_parent_directory>/logs/ --port 8080
+tensorboard --logdir <DNN_training_directory>/logs/ --port 8080
 ```
 e.g.:
 ```
