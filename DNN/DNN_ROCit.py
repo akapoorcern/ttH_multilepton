@@ -58,8 +58,6 @@ def main():
     parser.add_option('-s', '--suffix',        dest='input_suffix'  ,      help='suffix used to identify inputs from network training',      default='2HLs_relu',        type='string')
     (opt, args) = parser.parse_args()
 
-
-    #classifier_suffix = '2HLs_relu'
     classifier_suffix = opt.input_suffix
 
     classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
@@ -73,12 +71,6 @@ def main():
     print 'input_name: ' , input_name
 
     input_root = TFile.Open(input_name)
-    DNN_rejBvsS_ttHnode_test_name = "%s/Method_DNN/DNN/MVA_DNN_Test_rejBvsS_ttH" % (classifier_parent_dir)
-    DNN_rejBvsS_ttVnode_test_name = "%s/Method_DNN/DNN/MVA_DNN_Test_rejBvsS_ttV" % (classifier_parent_dir)
-    DNN_rejBvsS_ttJetsnode_test_name = "%s/Method_DNN/DNN/MVA_DNN_Test_rejBvsS_ttJets" % (classifier_parent_dir)
-    DNN_rejBvsS_ttHnode_train_name = "%s/Method_DNN/DNN/MVA_DNN_Train_rejBvsS_ttH" % (classifier_parent_dir)
-    DNN_rejBvsS_ttVnode_train_name = "%s/Method_DNN/DNN/MVA_DNN_Train_rejBvsS_ttV" % (classifier_parent_dir)
-    DNN_rejBvsS_ttJetsnode_train_name = "%s/Method_DNN/DNN/MVA_DNN_Train_rejBvsS_ttJets" % (classifier_parent_dir)
 
     DNN_ttHnode_test_ttH_name = "%s/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttH" % (classifier_parent_dir)
     DNN_ttHnode_test_ttV_name = "%s/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttV" % (classifier_parent_dir)
@@ -104,12 +96,6 @@ def main():
     DNN_ttJetsnode_train_ttV_name = "%s/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttV" % (classifier_parent_dir)
     DNN_ttJetsnode_train_ttJets_name = "%s/Method_DNN/DNN/MVA_DNN_Train_ttJets_prob_for_ttJets" % (classifier_parent_dir)
 
-    DNN_rejBvsS_ttHnode_test = input_root.Get(DNN_rejBvsS_ttHnode_test_name)
-    DNN_rejBvsS_ttVnode_test = input_root.Get(DNN_rejBvsS_ttVnode_test_name)
-    DNN_rejBvsS_ttJetsnode_test = input_root.Get(DNN_rejBvsS_ttJetsnode_test_name)
-    DNN_rejBvsS_ttHnode_train = input_root.Get(DNN_rejBvsS_ttHnode_train_name)
-    DNN_rejBvsS_ttVnode_train = input_root.Get(DNN_rejBvsS_ttVnode_train_name)
-    DNN_rejBvsS_ttJetsnode_train = input_root.Get(DNN_rejBvsS_ttJetsnode_train_name)
 
     DNN_ttHnode_test_ttH = input_root.Get(DNN_ttHnode_test_ttH_name)
     DNN_ttHnode_test_ttV = input_root.Get(DNN_ttHnode_test_ttV_name)
@@ -170,7 +156,7 @@ def main():
     area_ROC_bckg_rej_ttJetsnode = trapz(x_ROC_sig_eff_ttJetsnode, y_ROC_bckg_rej_ttJetsnode, dx=(1./40.))
 
     plt.figure(1)
-    plt.title('DNN Output Node ROC Curves')
+    plt.title('DNN Output Node ROC Curves: test')
     plt.plot(test_dnn_ROC_sig_eff_ttHnode,test_dnn_ROC_bckg_rej_ttHnode, color='k', label='ttH node')
     plt.plot(test_dnn_ROC_sig_eff_ttVnode,test_dnn_ROC_bckg_rej_ttVnode, color='g', label='ttV node')
     plt.plot(test_dnn_ROC_sig_eff_ttJetsnode,test_dnn_ROC_bckg_rej_ttJetsnode, color='b', label='tt+jets node')
@@ -187,10 +173,11 @@ def main():
 
     auc_text_box = ttHnode_auc_text + "\n" + ttVnode_auc_text + "\n" + ttJetsnode_auc_text
 
-    plt.figtext(0.7, 0.7, auc_text_box, wrap=True, horizontalalignment='center', fontsize=8, bbox=dict(fc="none"))
+    plt.figtext(0.75, 0.6, auc_text_box, wrap=True, horizontalalignment='center', fontsize=8, bbox=dict(fc="none"))
     #plt.subplots_adjust(left=0.1)
-    plt.subplots_adjust(right=0.8)
-    plt.savefig(classifier_parent_dir+'/plots/DNN_ROC_test.png')
+    #plt.subplots_adjust(right=0.8)
+    ROC_fig_test_name = '%s/plots/%s_ROC_test.png' % (classifier_parent_dir,classifier_parent_dir)
+    plt.savefig(ROC_fig_test_name)
 
     plt.figure(2)
     plt.plot(train_dnn_ROC_sig_eff_ttHnode,train_dnn_ROC_bckg_rej_ttHnode, color='k', label='ttH')
@@ -202,48 +189,7 @@ def main():
     plt.xlabel('Signal Eff.')
     plt.ylabel('Bckg. Rej.')
     legend = plt.legend()
-    plt.savefig(classifier_parent_dir+'/plots/DNN_ROC_train.png')
-
-    DNN_ROC_canvas_test = ROOT.TCanvas("c1","c1",900,700)
-    DNN_ROC_pad_test = ROOT.TPad("p1","p1",0,0,1,1)
-    DNN_ROC_pad_test.Draw()
-    DNN_ROC_pad_test.SetBottomMargin(0.1)
-    DNN_ROC_pad_test.SetTopMargin(0.1)
-    DNN_ROC_pad_test.SetLeftMargin(0.1)
-    DNN_ROC_pad_test.SetRightMargin(0.1)
-    DNN_ROC_pad_test.SetGridx(True)
-    DNN_ROC_pad_test.SetGridy(True)
-    DNN_ROC_pad_test.cd()
-    ROOT.gStyle.SetOptStat(0)
-    ROOT.gStyle.SetOptTitle(0)
-
-    DNN_rejBvsS_ttHnode_test.SetLineColor(2)
-    DNN_rejBvsS_ttVnode_test.SetLineColor(3)
-    DNN_rejBvsS_ttJetsnode_test.SetLineColor(4)
-
-    DNN_rejBvsS_ttHnode_test.GetXaxis().SetTitle('Signal Efficiency')
-    DNN_rejBvsS_ttHnode_test.GetYaxis().SetTitle('Background Rejection (1-FPR)')
-
-    DNN_rejBvsS_ttHnode_test.Draw()
-    DNN_rejBvsS_ttVnode_test.Draw('same')
-    DNN_rejBvsS_ttJetsnode_test.Draw('same')
-
-    legend = TLegend(0.8, 0.7, 0.99, 0.99)
-    legend.AddEntry(DNN_rejBvsS_ttHnode_test, "ttH node", "l")
-    legend.AddEntry(DNN_rejBvsS_ttVnode_test, "ttV node", "l")
-    legend.AddEntry(DNN_rejBvsS_ttJetsnode_test, "ttJets node", "l")
-    legend.Draw("same")
-
-    DNN_ROC_canvas_test.cd()
-    DNN_ROC_canvas_test.Modified()
-    DNN_ROC_canvas_test.Update()
-
-    outfile_name = '%s/plots/MCDNN_ROCs_%s.pdf' % (classifier_parent_dir, classifier_suffix)
-    DNN_ROC_canvas_test.Print(outfile_name,'pdf')
-    DNN_ROC_canvas_test.Clear()
-
-    #make_roc_dist()
-
-
+    ROC_fig_train_name = '%s/plots/%s_ROC_train.png' % (classifier_parent_dir,classifier_parent_dir)
+    plt.savefig(ROC_fig_train_name)
 
 main()

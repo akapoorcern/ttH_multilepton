@@ -195,6 +195,9 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
         ttJetsnode_testing_response_array.append(Histo_testing_ttJets_DNNResponse.GetBinContent(n))
     ttJetsnode_testing_response_nparray = np.array(ttJetsnode_testing_response_array)
 
+    print 'ttHnode_training_response_nparray: ', ttHnode_training_response_nparray
+    print 'ttHnode_testing_response_nparray: ', ttHnode_testing_response_nparray
+
     ks_teststat_ttHnode,ks_pval_ttHnode = stats.ks_2samp(ttHnode_training_response_nparray, ttHnode_testing_response_nparray)
     ks_teststat_ttVnode,ks_pval_ttVnode = stats.ks_2samp(ttVnode_training_response_nparray, ttVnode_testing_response_nparray)
     ks_teststat_ttJetsnode,ks_pval_ttJetsnode = stats.ks_2samp(ttJetsnode_training_response_nparray, ttJetsnode_testing_response_nparray)
@@ -241,12 +244,12 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     l2=ROOT.TLatex()
     l2.SetNDC();
     latex_separation_ttH_v_ttV = '#scale[0.5]{ttH vs. ttV separation = %.5f}' % sep_ttH_v_ttV_testing
-    l2.DrawLatex(0.7,0.7,latex_separation_ttH_v_ttV)
+    l2.DrawLatex(0.7,0.35,latex_separation_ttH_v_ttV)
 
     l3=ROOT.TLatex()
     l3.SetNDC();
     latex_separation_ttH_v_ttJ = '#scale[0.5]{ttH vs. ttJ separation = %.5f}' % sep_ttH_v_ttJ_testing
-    l3.DrawLatex(0.7,0.7,latex_separation_ttH_v_ttJ)
+    l3.DrawLatex(0.7,0.3,latex_separation_ttH_v_ttJ)
 
     c1.cd()
     p2 = ROOT.TPad("p2","p2",0.0,0.0,1.0,0.2)
@@ -287,7 +290,6 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     ratioframe_ttJets.SetMarkerStyle(2)
     ratioframe_ttJets.SetMarkerColor(4)
     ratioframe_ttJets.Draw("sameP")
-
 
     c1.cd()
     c1.Modified()
@@ -394,6 +396,30 @@ def plot_node_response(input_root, node, classifier_suffix):
     l1.SetNDC();
     nodehisto_title = "Multiclass DNN Response: %s" % node
     l1.DrawLatex(0.36,0.94,nodehisto_title)
+
+    if 'tth' in node:
+        sep_sig_v_bckg1_testing = GetSeparation(histo_DNN_response_ttHsample_test, histo_DNN_response_ttVsample_test)
+        sep_ttH_v_ttJ_testing = GetSeparation(histo_DNN_response_ttHsample_test, histo_DNN_response_ttJetssample_test)
+        latex_separation_sig_v_bckg1 = '#scale[0.5]{ttH vs. ttV separation = %.5f}' % sep_sig_v_bckg1_testing
+        latex_separation_sig_v_bckg2 = '#scale[0.5]{ttH vs. ttJ separation = %.5f}' % sep_ttH_v_ttJ_testing
+    elif 'ttV' in node:
+        sep_sig_v_bckg1_testing = GetSeparation(histo_DNN_response_ttVsample_test, histo_DNN_response_ttHsample_test)
+        sep_sig_v_bckg2_testing = GetSeparation(histo_DNN_response_ttVsample_test, histo_DNN_response_ttJetssample_test)
+        latex_separation_sig_v_bckg1 = '#scale[0.5]{ttV vs. ttH separation = %.5f}' % sep_sig_v_bckg1_testing
+        latex_separation_sig_v_bckg2 = '#scale[0.5]{ttV vs. ttJ separation = %.5f}' % sep_sig_v_bckg2_testing
+    elif 'ttJ' in node:
+        sep_sig_v_bckg1_testing = GetSeparation(histo_DNN_response_ttJetssample_test, histo_DNN_response_ttHsample_test)
+        sep_sig_v_bckg2_testing = GetSeparation(histo_DNN_response_ttJetssample_test, histo_DNN_response_ttVsample_test)
+        latex_separation_sig_v_bckg1 = '#scale[0.5]{ttJ vs. ttH separation = %.5f}' % sep_sig_v_bckg1_testing
+        latex_separation_sig_v_bckg2 = '#scale[0.5]{ttJ vs. ttV separation = %.5f}' % sep_sig_v_bckg2_testing
+
+    l2=ROOT.TLatex()
+    l2.SetNDC();
+    l2.DrawLatex(0.65,0.55,latex_separation_sig_v_bckg1)
+
+    l3=ROOT.TLatex()
+    l3.SetNDC();
+    l3.DrawLatex(0.65,0.5,latex_separation_sig_v_bckg2)
 
     legend.Draw("sameP")
 
