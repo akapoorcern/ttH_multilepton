@@ -44,7 +44,7 @@ def GetSeparation(hist_sig, hist_bckg):
     return separation
 
 def plot_input_variable(input_root, classifier_suffix, variable_transformation, variable_name, json_data):
-    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
+    classifier_parent_dir = 'MultiClass_DNN_2017samples_%s' % (classifier_suffix)
     variable_roofile_ttHsample_histogram_name = '%s/InputVariables_%s/%s__ttH_%s' % (classifier_parent_dir,variable_transformation,variable_name,variable_transformation)
     variable_roofile_ttVsample_histogram_name = '%s/InputVariables_%s/%s__ttV_%s' % (classifier_parent_dir,variable_transformation,variable_name,variable_transformation)
     variable_roofile_ttJetssample_histogram_name = '%s/InputVariables_%s/%s__ttJets_%s' % (classifier_parent_dir,variable_transformation,variable_name,variable_transformation)
@@ -183,14 +183,14 @@ def main():
     jsonFile = open(opt.json,'r')
     new_variable_list = json.load(jsonFile,encoding='utf-8').items()
 
-    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
+    classifier_parent_dir = 'MultiClass_DNN_2017samples_%s' % (classifier_suffix)
     classifier_plots_dir = classifier_parent_dir+"/plots"
     if not os.path.exists(classifier_plots_dir):
         os.makedirs(classifier_plots_dir)
 
     classifier_samples_dir = classifier_parent_dir+"/outputs"
 
-    input_name = '%s/MultiClass_DNN_%s.root' % (classifier_samples_dir,classifier_suffix)
+    input_name = '%s/MultiClass_DNN_2017samples_%s.root' % (classifier_samples_dir,classifier_suffix)
     input_root = TFile.Open(input_name)
 
 

@@ -1,0 +1,11 @@
+{
+"Jet_numLoose" : "\"F\"",
+"maxeta" : "\"F\"",
+"leadLep_jetdr": "\"F\"",
+"secondLep_jetdr" : "\"F\"",
+"Mt_metleadlep" : "\"F\"",
+"leadLep_corrpt": "\"F\"",
+"secondLep_corrpt" : "\"F\"",
+"hadTop_BDT := max(hadTop_BDT,-1.)" : "\"F\"",
+"Hj1_BDT:= max(Hj1_BDT,-1.)": "\"F\""
+}

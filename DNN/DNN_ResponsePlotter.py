@@ -45,7 +45,7 @@ def GetSeparation(hist_sig, hist_bckg):
 def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     # Makes plot from TestTree/TrainTree distributions. Plots made from
     # combined response values from each node for a single sample.
-    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
+    classifier_parent_dir = 'MultiClass_DNN_allJets_%s' % (classifier_suffix)
     # Declare and define new hitogram objects
     Histo_training_ttH_DNNResponse = ROOT.TH1D('Histo_training_ttH_DNNResponse','ttH sample (Train)',40,0.0,1.0)
     Histo_training_ttJets_DNNResponse = ROOT.TH1D('Histo_training_ttJets_DNNResponse','ttJets sample (Train)',40,0.0,1.0)
@@ -87,7 +87,12 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     ROOT.gStyle.SetOptTitle(0)
 
     # Set titles
+    Histo_training_ttH_DNNResponse.GetYaxis().SetTitle("(1/N)dN/dX")
     Histo_training_ttJets_DNNResponse.GetYaxis().SetTitle("(1/N)dN/dX")
+    Histo_training_ttV_DNNResponse.GetYaxis().SetTitle("(1/N)dN/dX")
+    Histo_testing_ttH_DNNResponse.GetYaxis().SetTitle("(1/N)dN/dX")
+    Histo_testing_ttJets_DNNResponse.GetYaxis().SetTitle("(1/N)dN/dX")
+    Histo_testing_ttV_DNNResponse.GetYaxis().SetTitle("(1/N)dN/dX")
 
     # Set ttH style
     Histo_training_ttH_DNNResponse.SetLineColor(2)
@@ -155,12 +160,12 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     Histo_testing_ttV_DNNResponse.Draw("EPSAME")
 
     legend = TLegend(0.8,  0.7,  0.99,  0.99)
-    legend.AddEntry(Histo_training_ttH_DNNResponse,"ttH events (train)")
-    legend.AddEntry(Histo_training_ttV_DNNResponse,"ttV events (train)")
-    legend.AddEntry(Histo_training_ttJets_DNNResponse,"tt+jets events (train)")
-    legend.AddEntry(Histo_testing_ttH_DNNResponse,"ttH events (test)")
-    legend.AddEntry(Histo_testing_ttV_DNNResponse,"ttV events (test)")
-    legend.AddEntry(Histo_testing_ttJets_DNNResponse,"tt+jets events (test)")
+    legend.AddEntry(Histo_training_ttH_DNNResponse,"ttH node (train)")
+    legend.AddEntry(Histo_training_ttV_DNNResponse,"ttV node (train)")
+    legend.AddEntry(Histo_training_ttJets_DNNResponse,"tt+jets node (train)")
+    legend.AddEntry(Histo_testing_ttH_DNNResponse,"ttH node (test)")
+    legend.AddEntry(Histo_testing_ttV_DNNResponse,"ttV node (test)")
+    legend.AddEntry(Histo_testing_ttJets_DNNResponse,"tt+jets node (test)")
     legend.Draw("same")
 
     # Test statistical significance between training and testing distributions.
@@ -241,7 +246,7 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     sep_ttH_v_ttV_testing = GetSeparation(Histo_testing_ttH_DNNResponse, Histo_testing_ttV_DNNResponse)
     sep_ttH_v_ttJ_testing = GetSeparation(Histo_testing_ttH_DNNResponse, Histo_testing_ttJets_DNNResponse)
 
-    l2=ROOT.TLatex()
+    '''l2=ROOT.TLatex()
     l2.SetNDC();
     latex_separation_ttH_v_ttV = '#scale[0.5]{ttH vs. ttV separation = %.5f}' % sep_ttH_v_ttV_testing
     l2.DrawLatex(0.7,0.35,latex_separation_ttH_v_ttV)
@@ -249,7 +254,7 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     l3=ROOT.TLatex()
     l3.SetNDC();
     latex_separation_ttH_v_ttJ = '#scale[0.5]{ttH vs. ttJ separation = %.5f}' % sep_ttH_v_ttJ_testing
-    l3.DrawLatex(0.7,0.3,latex_separation_ttH_v_ttJ)
+    l3.DrawLatex(0.7,0.3,latex_separation_ttH_v_ttJ)'''
 
     c1.cd()
     p2 = ROOT.TPad("p2","p2",0.0,0.0,1.0,0.2)
@@ -300,7 +305,7 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     c1.Print(outfile_name,'pdf')
 
 def plot_node_response(input_root, node, classifier_suffix):
-    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
+    classifier_parent_dir = 'MultiClass_DNN_allJets_%s' % (classifier_suffix)
     if node == 'tth':
         histo_DNN_response_ttHsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttH')
         histo_DNN_response_ttVsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttV')
@@ -483,17 +488,17 @@ def main():
 
     classifier_suffix = opt.input_suffix
 
-    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
+    classifier_parent_dir = 'MultiClass_DNN_allJets_%s' % (classifier_suffix)
     classifier_plots_dir = classifier_parent_dir+"/plots"
     if not os.path.exists(classifier_plots_dir):
         os.makedirs(classifier_plots_dir)
 
     classifier_samples_dir = classifier_parent_dir+"/outputs"
 
-    input_name = '%s/MultiClass_DNN_%s.root' % (classifier_samples_dir,classifier_suffix)
+    input_name = '%s/MultiClass_DNN_allJets_%s.root' % (classifier_samples_dir,classifier_suffix)
     input_root = TFile.Open(input_name)
-    traintree_pathname = "MultiClass_DNN_%s/TrainTree" % (classifier_suffix)
-    testtree_pathname = "MultiClass_DNN_%s/TestTree" % (classifier_suffix)
+    traintree_pathname = "MultiClass_DNN_allJets_%s/TrainTree" % (classifier_suffix)
+    testtree_pathname = "MultiClass_DNN_allJets_%s/TestTree" % (classifier_suffix)
     # Fetch the trees of events from the root file
     TrainTree = input_root.Get(traintree_pathname)
     TestTree = input_root.Get(testtree_pathname)

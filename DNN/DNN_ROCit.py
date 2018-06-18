@@ -60,7 +60,7 @@ def main():
 
     classifier_suffix = opt.input_suffix
 
-    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
+    classifier_parent_dir = 'MultiClass_DNN_allJets_%s' % (classifier_suffix)
     classifier_plots_dir = classifier_parent_dir+"/plots"
 
     if not os.path.exists(classifier_plots_dir):
@@ -180,15 +180,38 @@ def main():
     plt.savefig(ROC_fig_test_name)
 
     plt.figure(2)
-    plt.plot(train_dnn_ROC_sig_eff_ttHnode,train_dnn_ROC_bckg_rej_ttHnode, color='k', label='ttH')
-    plt.plot(train_dnn_ROC_sig_eff_ttVnode,train_dnn_ROC_bckg_rej_ttVnode, color='g', label='ttV')
-    plt.plot(train_dnn_ROC_sig_eff_ttJetsnode,train_dnn_ROC_bckg_rej_ttJetsnode, color='b', label='tt+jets')
+    plt.title('DNN Output Node ROC Curves: train')
+    plt.plot(train_dnn_ROC_sig_eff_ttHnode,train_dnn_ROC_bckg_rej_ttHnode, color='k', label='ttH node')
+    plt.plot(train_dnn_ROC_sig_eff_ttVnode,train_dnn_ROC_bckg_rej_ttVnode, color='g', label='ttV node')
+    plt.plot(train_dnn_ROC_sig_eff_ttJetsnode,train_dnn_ROC_bckg_rej_ttJetsnode, color='b', label='tt+jets node')
     plt.xlim(0,1.1)
     plt.ylim(0,1.1)
     plt.grid(True)
     plt.xlabel('Signal Eff.')
     plt.ylabel('Bckg. Rej.')
-    legend = plt.legend()
+    legend = plt.legend(prop={'size': 8})
+
+    x_ROC_sig_eff_ttHnode_train = np.array(train_dnn_ROC_sig_eff_ttHnode)
+    y_ROC_bckg_rej_ttHnode_train = np.array(train_dnn_ROC_bckg_rej_ttHnode)
+
+    x_ROC_sig_eff_ttVnode_train = np.array(train_dnn_ROC_sig_eff_ttVnode)
+    y_ROC_bckg_rej_ttVnode_train = np.array(train_dnn_ROC_bckg_rej_ttVnode)
+
+    x_ROC_sig_eff_ttJetsnode_train = np.array(train_dnn_ROC_sig_eff_ttJetsnode)
+    y_ROC_bckg_rej_ttJetsnode_train = np.array(train_dnn_ROC_bckg_rej_ttJetsnode)
+
+    area_ROC_bckg_rej_ttHnode_train = trapz(x_ROC_sig_eff_ttHnode_train, y_ROC_bckg_rej_ttHnode_train, dx=(1./40.))
+    area_ROC_bckg_rej_ttVnode_train = trapz(x_ROC_sig_eff_ttVnode_train, y_ROC_bckg_rej_ttVnode_train, dx=(1./40.))
+    area_ROC_bckg_rej_ttJetsnode_train = trapz(x_ROC_sig_eff_ttJetsnode_train, y_ROC_bckg_rej_ttJetsnode_train, dx=(1./40.))
+
+    ttHnode_auc_text_train = 'ttH node AUC = %s' % format(area_ROC_bckg_rej_ttHnode_train, '.2f')
+    ttVnode_auc_text_train = 'ttV node AUC = %s' % format(area_ROC_bckg_rej_ttVnode_train, '.2f')
+    ttJetsnode_auc_text_train = 'ttjets node AUC = %s' % format(area_ROC_bckg_rej_ttJetsnode_train, '.2f')
+
+    auc_text_box_train = ttHnode_auc_text_train + "\n" + ttVnode_auc_text_train + "\n" + ttJetsnode_auc_text_train
+
+    plt.figtext(0.75, 0.6, auc_text_box_train, wrap=True, horizontalalignment='center', fontsize=8, bbox=dict(fc="none"))
+
     ROC_fig_train_name = '%s/plots/%s_ROC_train.png' % (classifier_parent_dir,classifier_parent_dir)
     plt.savefig(ROC_fig_train_name)
 

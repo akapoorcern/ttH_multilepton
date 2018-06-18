@@ -21,7 +21,6 @@ The fermilab keras workshop has a nice set of scripts one can use to setup the k
 ```
 git clone https://github.com/stwunsch/fermilab_keras_workshop
 ```
-
 and change into the cloned repository. On lxplus we needed python 2.7 for initial setup. Check which python versions are available:
 ```
 scl -l | grep python
@@ -38,9 +37,10 @@ The bash script will set up the py2_virtualenv directory. It then sources the py
 
 Because this script uses pyRoot/pyMVA enabled we need an additional step to so that the root libraries are accessible (apologies for sourcing a nightly, currently only version with tensor_forest etc.):
 ```
-source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-slc6-gcc62-opt/setup.sh
+(stable LCG build) source /cvmfs/sft.cern.ch/lcg/views/LCG_93/x86_64-slc6-gcc62-opt/setup.sh
+(latest LCG build) source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-slc6-gcc62-opt/setup.sh
+(nightly LCG build) source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-slc6-gcc62-opt/setup.sh
 ```
-
 The following instructions should only be applied if you notice errors with the 'werkzeug' or 'tensor_forest' packagea. These are temporary as they will be included in next LCG build. For now, we have to install 'werkzeug' and correctly link 'tensor_forest' plugins:
 ```
 pip install --user werkzeug
@@ -81,9 +81,9 @@ The factory object books and uses the model for training, testing and evaluation
 
 ## Normalisation
 - One very important parameter here is 'NormMode'.
-  - 'NormMode=EqualNumEvents' : Sets the average weight of signal events to 1 and the sum of the background weights is set equal to signal.
-  - 'NormMode=NumEvents' : Average weight of 1 per event, signal and background renormalised independently.
-- In the case of ttH multilepton, if one *doesn't* normalise background to the same as signal, the DNN will seperate out ttV seeing as the MC has many more events (DNN tunes to this).
+  - 'NormMode=EqualNumEvents' : Sets the average weight of signal events to 1. The number of effective events in the signal(/first) class are then normalised to equal the sum of all the other(/background) event weights.
+  - 'NormMode=NumEvents' : Average weight of 1 per event, signal and background re-normalised independently. All classes have the same number of effective events.
+- In the case of ttH multilepton, if one *doesn't* normalise background to the same as signal, the DNN will separate out ttV seeing as the MC has many more events (DNN tunes to this).
 
 ## Number of Hidden layers
 - To study how the number of hidden layers affects the output distributions use the helmsman to run multiple trainings changing the number of hidden layers each time.
@@ -174,6 +174,7 @@ DNN_InputVariable_Separation.py -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epo
 - The DNN_ROCit.py script will create plots of the receiver operating characteristic curves for each of the output nodes in the DNN.
 - Plots contain the AUC as figure of merit.
 - The plots can be found in the 'plots' directory within the directory the TMVA factory created during training.
+!WARNING! - Currently doesnt work with LCG builds of python 2.7! Perform the following without enabling LCG filesystem via 'scl' command.
 
 - Following on from the previous examples, run the command:
 ```
@@ -232,6 +233,12 @@ python DNN_ApplicationPlotter.py -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-ep
 ```
 - The code will take the outputs from apply_trained_DNN.py and plot the histograms in those ttrees.
 
+## Evaluation
+- A sub-directory called 'Evaluation' exists that contains a script called evaluate_DNN.py which contains the code to evaluate the DNN and categorise events for a given ntuple.
+- To make things faster, 'Evaluation' also contains lxbatch scripts to run each job on an lxbatch node (e.g. lxbatch_runjob_evaluateDNN_tthsample.sh) and a submission script to submit all jobs to lxbatch (e.g.lxbatch_submit_evaluateDNN.sh).
+- For an example of how to text locally simply look at the python command inside one of the 'runjob' scripts.
+- If you want to run a new trained DNN model, it is advised to first copy the training directory from one level above this sub-directory to here.
+- Then one needs to change the training .xml file to ensure the path to the trained model .h5 file is the full path, not the relative path as default otherwise the code will abort on the lxbatch node.
 
 ## Comparison with BDT
 - The script 'apply_trained_BDTG.py' was written to apply the 2017-2018 analysis' BDTG weights to the 2017 samples and create and output .root file that can be used to create performance plots for the BDTG for comparison.

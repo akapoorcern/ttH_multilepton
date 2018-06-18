@@ -68,7 +68,7 @@ def main():
         new_var_transform_name = var_transform_name
         print 'new_var_transform_name: ', new_var_transform_name
 
-    classifier_parent_dir = 'MultiClass_DNN_%sHLs_%s_%s-VarTrans_%s-learnRate_%s-epochs' % (str(number_of_hidden_layers),activation_function,new_var_transform_name,str(learning_rate),num_epochs)
+    classifier_parent_dir = 'MultiClass_DNN_allJets_%sHLs_%s_%s-VarTrans_%s-learnRate_%s-epochs' % (str(number_of_hidden_layers),activation_function,new_var_transform_name,str(learning_rate),num_epochs)
     classifier_samples_dir = classifier_parent_dir+"/outputs"
     if not os.path.exists(classifier_samples_dir):
         os.makedirs(classifier_samples_dir)
@@ -87,15 +87,18 @@ def main():
     #Load data
     input_file_name_signal = opt.input_file_name_signal
     data_signal = TFile.Open(input_file_name_signal)
-    signal = data_signal.Get('BOOM')
+    #signal = data_signal.Get('BOOM')
+    signal = data_signal.Get('syncTree')
 
     input_file_name_ttJets = opt.input_file_name_ttJets
     data_bckg_ttJets = TFile.Open(input_file_name_ttJets)
-    background_ttJets = data_bckg_ttJets.Get('BOOM')
+    #background_ttJets = data_bckg_ttJets.Get('BOOM')
+    background_ttJets = data_bckg_ttJets.Get('syncTree')
 
     input_file_name_ttV = opt.input_file_name_ttV
     data_bckg_ttV = TFile.Open(input_file_name_ttV)
-    background_ttV = data_bckg_ttV.Get('BOOM')
+    #background_ttV = data_bckg_ttV.Get('BOOM')
+    background_ttV = data_bckg_ttV.Get('syncTree')
 
     # Declare a dataloader interface
     dataloader_name = classifier_parent_dir
@@ -124,20 +127,20 @@ def main():
             branchName = 'Hj1_BDT'
         else:
             branchName = key
-    dataloader.AddSpectator('EVENT_event','F')
+    #dataloader.AddSpectator('EVENT_event','F')
+    dataloader.AddSpectator('nEvent','F')
 
     # Nominal event weight:
     # event weight = puWgtNom * trigWgtNom * lepSelEffNom * genWgt * xsecWgt (* 0 or 1 depending on if it passes event selection)
-    dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l*EVENT_genWeight", "ttH")
-    dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l*EVENT_genWeight", "ttV")
-    dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l*EVENT_genWeight", "ttJets")
-    #dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l", "ttH")
-    #dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l", "ttV")
-    #dataloader.SetWeightExpression("PUWeight*SF_Trigger_2l*SF_Lepton_2l", "ttJets")
+
+    #dataloader.SetWeightExpression("lumi_wgt", "ttH")
+    #dataloader.SetWeightExpression("lumi_wgt", "ttV")
+    #dataloader.SetWeightExpression("lumi_wgt", "ttJets")
 
     # NormMode: Overall renormalisation of event-by-event weights used in training.
     # "NumEvents" = average weight of 1 per event, independantly renormalised for signal and background.
     # "EqualNumEvents" = average weight of 1 per signal event, sum of weights in background equal to sum of weights for signal.
+    #dataloader.PrepareTrainingAndTestTree(TCut(''), 'V:NSigTrain=3000:NBkgTrain=3000:NSigTest=3000:NBkgTest=3000:SplitMode=Random:NormMode=EqualNumEvents')
     dataloader.PrepareTrainingAndTestTree(TCut(''), 'V:SplitMode=Random:NormMode=EqualNumEvents')
 
     # Generate model:
@@ -153,11 +156,12 @@ def main():
     '''
     # softmax ensures output values are in range 0-1. Can be used as predicted probabilities.
 
+    #Always at least 1 hidden layer
     model.add(Dense(100, init='glorot_normal', activation=activation_function, input_dim=len(new_variable_list)))
-    #model.add(Dense(100, activation=activation_function)) #Always at least 1 hidden layer
+    #model.add(Dense(100, init='glorot_normal', activation=activation_function, input_dim=9))
 
     #Randomly set a fraction rate of input units (defined by argument) to 0 at each update during training (helps prevent overfitting).
-    model.add(Dropout(0.7))
+    #model.add(Dropout(0.7))
 
     for x in xrange(number_of_hidden_layers):
         model.add(Dense(100, activation=activation_function))
@@ -179,7 +183,8 @@ def main():
     # VarTransform: Decorrelate, PCA, Gauss, Norm, None.
     # Transformations used in booking are used for actual training.
     logs_dir = classifier_parent_dir+'/logs'
-    factory_string_bookMethod = 'H:!V:VarTransform=%s:FilenameModel=model.h5:NumEpochs=%s:BatchSize=100:Tensorboard=%s' % (var_transform_name, num_epochs, logs_dir)
+    #factory_string_bookMethod = 'H:!V:VarTransform=%s:FilenameModel=model.h5:NumEpochs=%s:BatchSize=100:Tensorboard=%s' % (var_transform_name, num_epochs, logs_dir)
+    factory_string_bookMethod = 'H:!V:VarTransform=%s:FilenameModel=model.h5:NumEpochs=%s:BatchSize=100' % (var_transform_name, num_epochs)
     factory.BookMethod(dataloader, TMVA.Types.kPyKeras, "DNN", factory_string_bookMethod)
 
     # Run training, testing and evaluation
