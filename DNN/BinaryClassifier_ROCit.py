@@ -39,13 +39,6 @@ def make_roc_dist(MVA_signal_histo, MVA_bckg_histo, MVA_ROC_sig_eff, MVA_ROC_bck
         MVA_ROC_sig_eff.append(true_positive_rate)
         MVA_ROC_bckg_rej.append(bckg_rej)
 
-'''
-def histogram_settings():
-
-def print_canvas():
-'''
-
-
 def main():
 
     usage = 'usage: %prog [options]'
@@ -57,7 +50,7 @@ def main():
 
     MVA_list = [('DNN','red'),('BDTG','blue')]
     plt.figure(1)
-    title_label = 'Binary Classifier ROC Curves'
+    title_label = 'Binary Classifier ROC Curves: %s ' % (classifier_suffix)
     plt.title(title_label)
     plt.xlim(0,1.1)
     plt.ylim(0,1.1)

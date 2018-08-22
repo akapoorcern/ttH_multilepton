@@ -68,7 +68,11 @@ def main():
         new_var_transform_name = var_transform_name
         print 'new_var_transform_name: ', new_var_transform_name
 
-    classifier_parent_dir = 'MultiClass_DNN_allJets_%sHLs_%s_%s-VarTrans_%s-learnRate_%s-epochs' % (str(number_of_hidden_layers),activation_function,new_var_transform_name,str(learning_rate),num_epochs)
+    num_inputs = 0
+    for key, value in new_variable_list:
+        num_inputs = num_inputs + 1
+
+    classifier_parent_dir = 'MultiClass_DNN_%sVars_%sHLs_%s_%s-VarTrans_%s-learnRate_%s-epochs' % (str(num_inputs),str(number_of_hidden_layers),activation_function,new_var_transform_name,str(learning_rate),num_epochs)
     classifier_samples_dir = classifier_parent_dir+"/outputs"
     if not os.path.exists(classifier_samples_dir):
         os.makedirs(classifier_samples_dir)
@@ -87,17 +91,14 @@ def main():
     #Load data
     input_file_name_signal = opt.input_file_name_signal
     data_signal = TFile.Open(input_file_name_signal)
-    #signal = data_signal.Get('BOOM')
     signal = data_signal.Get('syncTree')
 
     input_file_name_ttJets = opt.input_file_name_ttJets
     data_bckg_ttJets = TFile.Open(input_file_name_ttJets)
-    #background_ttJets = data_bckg_ttJets.Get('BOOM')
     background_ttJets = data_bckg_ttJets.Get('syncTree')
 
     input_file_name_ttV = opt.input_file_name_ttV
     data_bckg_ttV = TFile.Open(input_file_name_ttV)
-    #background_ttV = data_bckg_ttV.Get('BOOM')
     background_ttV = data_bckg_ttV.Get('syncTree')
 
     # Declare a dataloader interface
@@ -127,15 +128,14 @@ def main():
             branchName = 'Hj1_BDT'
         else:
             branchName = key
-    #dataloader.AddSpectator('EVENT_event','F')
     dataloader.AddSpectator('nEvent','F')
 
     # Nominal event weight:
     # event weight = puWgtNom * trigWgtNom * lepSelEffNom * genWgt * xsecWgt (* 0 or 1 depending on if it passes event selection)
 
-    #dataloader.SetWeightExpression("lumi_wgt", "ttH")
-    #dataloader.SetWeightExpression("lumi_wgt", "ttV")
-    #dataloader.SetWeightExpression("lumi_wgt", "ttJets")
+    dataloader.SetWeightExpression("EventWeight", "ttH")
+    dataloader.SetWeightExpression("EventWeight", "ttV")
+    dataloader.SetWeightExpression("EventWeight", "ttJets")
 
     # NormMode: Overall renormalisation of event-by-event weights used in training.
     # "NumEvents" = average weight of 1 per event, independantly renormalised for signal and background.
@@ -191,6 +191,5 @@ def main():
     factory.TrainAllMethods()
     factory.TestAllMethods()
     factory.EvaluateAllMethods()
-
 
 main()

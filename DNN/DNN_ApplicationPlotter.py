@@ -4,6 +4,7 @@ from ROOT import TMVA, TFile, TString, TLegend, THStack, TLatex, TH1D
 from array import array
 from subprocess import call
 from os.path import isfile
+import json
 
 def GetSeparation(hist_sig, hist_bckg):
 
@@ -358,12 +359,14 @@ def main():
     parser.add_option('-s', '--suffix',        dest='input_suffix'  ,      help='suffix used to identify inputs from network training',      default=None,        type='string')
     (opt, args) = parser.parse_args()
 
+
     if opt.input_suffix == None:
         print 'Input files suffix not defined!'
         sys.exit(1)
 
     classifier_suffix = opt.input_suffix
-    classifier_parent_dir = 'MultiClass_DNN_2017_updated_samples_%s' % (classifier_suffix)
+    #classifier_parent_dir = 'MultiClass_DNN_%sVars_%sHLs_%s_%s-VarTrans_%s-learnRate_%s-epochs' % (str(num_inputs),str(number_of_hidden_layers),activation_function,new_var_transform_name,str(learning_rate),num_epochs)
+    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
     classifier_samples_dir = classifier_parent_dir+"/outputs"
     input_name = '%s/Applied_%s.root' % (classifier_samples_dir,classifier_parent_dir)
     print 'input_name: ', input_name

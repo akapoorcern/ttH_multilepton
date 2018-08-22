@@ -65,10 +65,7 @@ The first script to run is train_DNN.py. This script uses the keras interface wi
 ```
 python train_DNN.py -s <relative_path_to_signal_sample/sample>.root -x <relative_path_to_bckg1_sample/sample>.root -y <relative_path_to_bckg2_sample/sample>.root -a <activation_function> -l <number_of_hidden_layers> -t <input_variable_transformation> -j <variables_list>.json -r <learning_rate> -n <number_of_epochs>
 ```
-For example:
-```
-python train_DNN.py -s samples/DiLepTR_ttH_bInclude.root -x samples/DiLepTR_ttJets_bInclude.root -y samples/DiLepTR_ttV_bInclude.root -a relu -l 2 -t D,G -j input_variables_list.json -r 0.008 -n 10
-```
+
 Three ntuples (ttH(ML) signal, tt+V background, tt+jets background) containing events from the ttH multilepton analysis training regions should be loaded. The files you wish to load can be passed as command line inputs. Check the current default paths in the code for where the code expects to find the files.
 
 One can also pass as arguments the activation function, number of hidden layers and a .json list of variables. This should make it easier to perform network optimisation studies. The TMVA factory object uses the arguments passed to the script to create the directory where the weights are stored that should inform the user of the variable hyperparameters used for the network architecture.
@@ -234,7 +231,7 @@ python DNN_ApplicationPlotter.py -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-ep
 - The code will take the outputs from apply_trained_DNN.py and plot the histograms in those ttrees.
 
 ## Evaluation
-- A sub-directory called 'Evaluation' exists that contains a script called evaluate_DNN.py which contains the code to evaluate the DNN and categorise events for a given ntuple.
+- A sub-directory called 'Evaluation' exists that contains a script called evaluate_DNN.py which contains the code to evaluate the DNN and categorise events for a given ntuple, based on a training file defined in an input directory.
 - To make things faster, 'Evaluation' also contains lxbatch scripts to run each job on an lxbatch node (e.g. lxbatch_runjob_evaluateDNN_tthsample.sh) and a submission script to submit all jobs to lxbatch (e.g.lxbatch_submit_evaluateDNN.sh).
 - For an example of how to text locally simply look at the python command inside one of the 'runjob' scripts.
 - If you want to run a new trained DNN model, it is advised to first copy the training directory from one level above this sub-directory to here.
