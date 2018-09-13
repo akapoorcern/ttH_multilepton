@@ -1,0 +1,11 @@
+{
+"data_obs" : "/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/DNN/Evaluation/MultiClass_DNN_17Vars_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs/outputs/2LSS/Evaluated_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs_Data_2LSS.root",
+"Convs" : "/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/DNN/Evaluation/MultiClass_DNN_17Vars_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs/outputs/2LSS/Evaluated_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs_Conv_2LSS.root",
+"EWK" : "/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/DNN/Evaluation/MultiClass_DNN_17Vars_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs/outputs/2LSS/Evaluated_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs_EWK_2LSS.root",
+"data_fake" : "/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/DNN/Evaluation/MultiClass_DNN_17Vars_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs/outputs/2LSS/Evaluated_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs_Fakes_2LSS.root",
+"data_flips" : "/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/DNN/Evaluation/MultiClass_DNN_17Vars_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs/outputs/2LSS/Evaluated_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs_Flips_2LSS.root",
+"Rares" : "/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/DNN/Evaluation/MultiClass_DNN_17Vars_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs/outputs/2LSS/Evaluated_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs_Rares_2LSS.root",
+"ttH_hww" : "/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/DNN/Evaluation/MultiClass_DNN_17Vars_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs/outputs/2LSS/Evaluated_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs_TTH_2LSS.root",
+"TTW" : "/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/DNN/Evaluation/MultiClass_DNN_17Vars_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs/outputs/2LSS/Evaluated_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs_TTW_2LSS.root",
+"TTZ" : "/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/DNN/Evaluation/MultiClass_DNN_17Vars_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs/outputs/2LSS/Evaluated_2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epochs_TTZ_2LSS.root"
+}
