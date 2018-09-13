@@ -70,10 +70,28 @@ def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree
         for key, value in variables_list:
             print '%s: %f' %(key, branches_reader[str(key)][0] )'''
 
+        #if '_ee' in analysis_bin:
+        #    if (sample_ttree.SubCat2l != 1) and (sample_ttree.SubCat2l != 2):
+        #        print 'Event is ee!'
+        #if '_em' in analysis_bin:
+        #    if (sample_ttree.SubCat2l != 3) and (sample_ttree.SubCat2l != 4) and (sample_ttree.SubCat2l != 5) and (sample_ttree.SubCat2l != 6):
+        #        print 'Event is em!'
+        #if '_mm' in analysis_bin:
+        #    if (sample_ttree.SubCat2l != 7) and (sample_ttree.SubCat2l != 8) and (sample_ttree.SubCat2l != 9) and (sample_ttree.SubCat2l != 10):
+        #        print 'Event is mm!'
+
         EventWeight_ = array('d',[0])
         EventWeight_ = sample_ttree.EventWeight
 
         if categorise == True:
+
+            #if (sample_ttree.SubCat2l != 1) and (sample_ttree.SubCat2l != 2):
+            #    print 'Event is ee!'
+            #if (sample_ttree.SubCat2l != 3) and (sample_ttree.SubCat2l != 4) and (sample_ttree.SubCat2l != 5) and (sample_ttree.SubCat2l != 6):
+            #    print 'Event is em!'
+            #if (sample_ttree.SubCat2l != 7) and (sample_ttree.SubCat2l != 8) and (sample_ttree.SubCat2l != 9) and (sample_ttree.SubCat2l != 10):
+            #    print 'Event is mm!'
+
             event_classification = max(tmvareader.EvaluateMulticlass('DNN')[0],tmvareader.EvaluateMulticlass('DNN')[1],tmvareader.EvaluateMulticlass('DNN')[2])
             #print 'event_classification = ' , event_classification
             if event_classification == tmvareader.EvaluateMulticlass('DNN')[0]:
@@ -186,6 +204,7 @@ def main():
     # Book methods
     # First argument is user defined name. Doesn not have to be same as training name.
     # True type of method and full configuration are read from the weights file specified in the second argument.
+    #mva_weights_dir = '%s/weights/Factory_MultiClass_DNN_%sVars_%s_DNN.weights.xml' % (classifier_parent_dir,str(n_input_vars),classifier_suffix)
     mva_weights_dir = '%s/weights/Factory_MultiClass_DNN_%sVars_%s_DNN.weights.xml' % (classifier_parent_dir,str(n_input_vars),classifier_suffix)
     print 'using weights file: ', mva_weights_dir
     reader.BookMVA('DNN', TString(mva_weights_dir))
@@ -204,8 +223,9 @@ def main():
         analysis_region = 'JESUp2L'
 
 
-    classifier_samples_dir = classifier_parent_dir+"/outputs"
-    classifier_plots_dir = classifier_parent_dir+"/plots"
+    #classifier_samples_dir = classifier_parent_dir+"/outputs"
+    classifier_samples_dir = classifier_parent_dir+"_splitbyleptonchannel/outputs"
+    classifier_plots_dir = classifier_parent_dir+"_splitbyleptonchannel/plots"
     if not os.path.exists(classifier_plots_dir):
         os.makedirs(classifier_plots_dir)
     if not os.path.exists(classifier_samples_dir):
@@ -222,7 +242,6 @@ def main():
     output_suffix = input_file[input_file.rindex('/')+1:]
     print 'output_suffix: ', output_suffix
     # Define outputs: files to store histograms/ttree with results from application of classifiers and any histos/trees themselves.
-    #output_file_name = '%s/Evaluated_%s_%s' % (classifier_samples_dir,classifier_suffix,output_suffix)
     output_file_name = '%s/Evaluated_%s_%s' % (analysis_region_samples_dir,classifier_suffix,output_suffix)
     output_file = TFile.Open(output_file_name,'RECREATE')
     output_tree = data_tree.CopyTree("")
