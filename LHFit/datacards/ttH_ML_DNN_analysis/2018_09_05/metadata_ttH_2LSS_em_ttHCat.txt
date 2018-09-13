@@ -1,0 +1,9 @@
+Analysis bin: ttH_2LSS_em_ttHCat , Process: EWK , Nominal histogram integral: 0.519694 
+Analysis bin: ttH_2LSS_em_ttHCat , Process: TTZ , Nominal histogram integral: 11.072012 
+Analysis bin: ttH_2LSS_em_ttHCat , Process: TTW , Nominal histogram integral: 16.341037 
+Analysis bin: ttH_2LSS_em_ttHCat , Process: data_obs , Nominal histogram integral: 72.000000 
+Analysis bin: ttH_2LSS_em_ttHCat , Process: Convs , Nominal histogram integral: 1.704860 
+Analysis bin: ttH_2LSS_em_ttHCat , Process: data_fake , Nominal histogram integral: 17.499617 
+Analysis bin: ttH_2LSS_em_ttHCat , Process: Rares , Nominal histogram integral: 3.249070 
+Analysis bin: ttH_2LSS_em_ttHCat , Process: ttH_hww , Nominal histogram integral: 14.740701 
+Analysis bin: ttH_2LSS_em_ttHCat , Process: data_flips , Nominal histogram integral: 2.464453 

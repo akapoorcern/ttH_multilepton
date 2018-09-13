@@ -1,0 +1,132 @@
+## Datacard ttH_2LSS_em_ttJCat.txt
+shapes *        * ttH_2LSS_em_ttJCat.input.root $PROCESS $PROCESS_$SYSTEMATIC
+##-------------------------------
+bin       ttH_2LSS_em_ttJCat
+observation 143.0
+##-------------------------------
+##-------------------------------
+bin          ttH_2LSS_em_ttJCat   ttH_2LSS_em_ttJCat   ttH_2LSS_em_ttJCat   ttH_2LSS_em_ttJCat   ttH_2LSS_em_ttJCat   ttH_2LSS_em_ttJCat   ttH_2LSS_em_ttJCat   ttH_2LSS_em_ttJCat
+process        ttH_hww                   TTW                 TTZ                   Rares                 EWK               Convs              data_fake            data_flips
+process          0                        1                   2                     3                     4                 5                     6                    7
+rate           9.542029               27.015863          16.154598              5.500415            7.241196              7.528733            53.661105            9.651354
+##------------------------------------
+QCDscale_ttW lnN    -    1.12    -    -    -    -    -    -
+pdf_Higgs_ttH lnN    1.036    -    -    -    -    -    -    -
+pdf_qqbar lnN    -    1.04    -    -    -    -    -    -
+BR_hbb lnN    1.0126    -    -    -    -    -    -    -
+QCDscale_ttZ lnN    -    -    1.11    -    -    -    -    -
+lumi_13TeV_2017 lnN    1.023    1.023    1.023    1.023    1.023    1.023    -    -
+pdf_gg lnN    -    -    0.966    -    -    -    -    -
+QCDscale_ttH lnN    0.915/1.058    -    -    -    -    -    -    -
+CMS_ttHl_QF lnN    -    -    -    -    -    -    -    1.3
+CMS_ttHl_EWK_4j lnN    -    -    -    -    2    -    -    -
+CMS_ttHl_Conversion lnN    -    -    -    -    -    1.3    -    -
+CMS_ttHl_Rares lnN    -    -    -    1.5    -    -    -    -
+PU shape     1    1    1    1    1    1    -    -
+Trig shape     1    1    1    1    1    1    -    -
+elelooseSF shape     1    1    1    1    1    1    -    -
+eletightSF shape     1    1    1    1    1    1    -    -
+mulooseSF shape     1    1    1    1    1    1    -    -
+mutightSF shape     1    1    1    1    1    1    -    -
+bWeight_hfstats1 shape     1    1    1    1    1    1    -    -
+bWeight_hfstats2 shape     1    1    1    1    1    1    -    -
+bWeight_cferr1 shape     1    1    1    1    1    1    -    -
+bWeight_cferr2 shape     1    1    1    1    1    1    -    -
+bWeight_jes shape     1    1    1    1    1    1    -    -
+bWeight_lf shape     1    1    1    1    1    1    -    -
+JES shape     1    1    1    1    1    1    -    -
+FakeRate_m_norm shape     -    -    -    -    -    -    1    -
+FakeRate_m_pt shape     -    -    -    -    -    -    1    -
+FakeRate_m_be shape     -    -    -    -    -    -    1    -
+FakeRate_e_pt shape     -    -    -    -    -    -    1    -
+FakeRate_e_norm shape     -    -    -    -    -    -    1    -
+FakeRate_e_be shape     -    -    -    -    -    -    1    -
+ChargeMis shape     -    -    -    -    -    -    -    1
+
+ttH_hww_statbin0 shape     1    -    -    -    -    -    -    -
+ttH_hww_statbin1 shape     1    -    -    -    -    -    -    -
+ttH_hww_statbin2 shape     1    -    -    -    -    -    -    -
+ttH_hww_statbin3 shape     1    -    -    -    -    -    -    -
+ttH_hww_statbin4 shape     1    -    -    -    -    -    -    -
+ttH_hww_statbin5 shape     1    -    -    -    -    -    -    -
+ttH_hww_statbin6 shape     1    -    -    -    -    -    -    -
+ttH_hww_statbin7 shape     1    -    -    -    -    -    -    -
+ttH_hww_statbin8 shape     1    -    -    -    -    -    -    -
+ttH_hww_statbin9 shape     1    -    -    -    -    -    -    -
+
+TTW_statbin0 shape     -    1    -    -    -    -    -    -
+TTW_statbin1 shape     -    1    -    -    -    -    -    -
+TTW_statbin2 shape     -    1    -    -    -    -    -    -
+TTW_statbin3 shape     -    1    -    -    -    -    -    -
+TTW_statbin4 shape     -    1    -    -    -    -    -    -
+TTW_statbin5 shape     -    1    -    -    -    -    -    -
+TTW_statbin6 shape     -    1    -    -    -    -    -    -
+TTW_statbin7 shape     -    1    -    -    -    -    -    -
+TTW_statbin8 shape     -    1    -    -    -    -    -    -
+TTW_statbin9 shape     -    1    -    -    -    -    -    -
+
+TTZ_statbin0 shape     -    -    1    -    -    -    -    -
+TTZ_statbin1 shape     -    -    1    -    -    -    -    -
+TTZ_statbin2 shape     -    -    1    -    -    -    -    -
+TTZ_statbin3 shape     -    -    1    -    -    -    -    -
+TTZ_statbin4 shape     -    -    1    -    -    -    -    -
+TTZ_statbin5 shape     -    -    1    -    -    -    -    -
+TTZ_statbin6 shape     -    -    1    -    -    -    -    -
+TTZ_statbin7 shape     -    -    1    -    -    -    -    -
+TTZ_statbin8 shape     -    -    1    -    -    -    -    -
+TTZ_statbin9 shape     -    -    1    -    -    -    -    -
+
+Rares_statbin0 shape     -    -    -    1    -    -    -    -
+Rares_statbin1 shape     -    -    -    1    -    -    -    -
+Rares_statbin2 shape     -    -    -    1    -    -    -    -
+Rares_statbin3 shape     -    -    -    1    -    -    -    -
+Rares_statbin4 shape     -    -    -    1    -    -    -    -
+Rares_statbin5 shape     -    -    -    1    -    -    -    -
+Rares_statbin6 shape     -    -    -    1    -    -    -    -
+Rares_statbin7 shape     -    -    -    1    -    -    -    -
+Rares_statbin8 shape     -    -    -    1    -    -    -    -
+Rares_statbin9 shape     -    -    -    1    -    -    -    -
+
+EWK_statbin0 shape     -    -    -    -    1    -    -    -
+EWK_statbin1 shape     -    -    -    -    1    -    -    -
+EWK_statbin2 shape     -    -    -    -    1    -    -    -
+EWK_statbin3 shape     -    -    -    -    1    -    -    -
+EWK_statbin4 shape     -    -    -    -    1    -    -    -
+EWK_statbin5 shape     -    -    -    -    1    -    -    -
+EWK_statbin6 shape     -    -    -    -    1    -    -    -
+EWK_statbin7 shape     -    -    -    -    1    -    -    -
+EWK_statbin8 shape     -    -    -    -    1    -    -    -
+EWK_statbin9 shape     -    -    -    -    1    -    -    -
+
+Convs_statbin0 shape     -    -    -    -    -    1    -    -
+Convs_statbin1 shape     -    -    -    -    -    1    -    -
+Convs_statbin2 shape     -    -    -    -    -    1    -    -
+Convs_statbin3 shape     -    -    -    -    -    1    -    -
+Convs_statbin4 shape     -    -    -    -    -    1    -    -
+Convs_statbin5 shape     -    -    -    -    -    1    -    -
+Convs_statbin6 shape     -    -    -    -    -    1    -    -
+Convs_statbin7 shape     -    -    -    -    -    1    -    -
+Convs_statbin8 shape     -    -    -    -    -    1    -    -
+Convs_statbin9 shape     -    -    -    -    -    1    -    -
+
+data_fake_statbin0 shape     -    -    -    -    -    -    1    -
+data_fake_statbin1 shape     -    -    -    -    -    -    1    -
+data_fake_statbin2 shape     -    -    -    -    -    -    1    -
+data_fake_statbin3 shape     -    -    -    -    -    -    1    -
+data_fake_statbin4 shape     -    -    -    -    -    -    1    -
+data_fake_statbin5 shape     -    -    -    -    -    -    1    -
+data_fake_statbin6 shape     -    -    -    -    -    -    1    -
+data_fake_statbin7 shape     -    -    -    -    -    -    1    -
+data_fake_statbin8 shape     -    -    -    -    -    -    1    -
+data_fake_statbin9 shape     -    -    -    -    -    -    1    -
+
+data_flips_statbin0 shape     -    -    -    -    -    -    -    1
+data_flips_statbin1 shape     -    -    -    -    -    -    -    1
+data_flips_statbin2 shape     -    -    -    -    -    -    -    1
+data_flips_statbin3 shape     -    -    -    -    -    -    -    1
+data_flips_statbin4 shape     -    -    -    -    -    -    -    1
+data_flips_statbin5 shape     -    -    -    -    -    -    -    1
+data_flips_statbin6 shape     -    -    -    -    -    -    -    1
+data_flips_statbin7 shape     -    -    -    -    -    -    -    1
+data_flips_statbin8 shape     -    -    -    -    -    -    -    1
+data_flips_statbin9 shape     -    -    -    -    -    -    -    1
