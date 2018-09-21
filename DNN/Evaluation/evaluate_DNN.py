@@ -24,17 +24,35 @@ def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree
     else:
         histoname_type = 'Node'
 
-    histo_ttHclassified_events_name = 'histo_ttH%s_events_%s' % (histoname_type,sample_name)
-    histo_ttVclassified_events_name = 'histo_ttV%s_events_%s' % (histoname_type,sample_name)
-    histo_ttJclassified_events_name = 'histo_ttJ%s_events_%s' % (histoname_type,sample_name)
+    histo_ee_events_name = 'histo_ee_events_%s' % (sample_name)
 
-    histo_ttHclassified_events_title = 'ttH %s Events: %s Sample' % (histoname_type,sample_name)
-    histo_ttVclassified_events_title = 'ttV %s Events: %s Sample' % (histoname_type,sample_name)
-    histo_ttJclassified_events_title = 'ttJ %s Events: %s Sample' % (histoname_type,sample_name)
+    histo_em_ttHclassified_events_name = 'histo_em_ttH%s_events_%s' % (histoname_type,sample_name)
+    histo_em_ttVclassified_events_name = 'histo_em_ttV%s_events_%s' % (histoname_type,sample_name)
+    histo_em_ttJclassified_events_name = 'histo_em_ttJ%s_events_%s' % (histoname_type,sample_name)
 
-    histo_ttHclassified_events = ROOT.TH1D(histo_ttHclassified_events_name,histo_ttHclassified_events_title,20,0,1.)
-    histo_ttVclassified_events = ROOT.TH1D(histo_ttVclassified_events_name,histo_ttVclassified_events_title,20,0,1.)
-    histo_ttJclassified_events = ROOT.TH1D(histo_ttJclassified_events_name,histo_ttJclassified_events_title,20,0,1.)
+    histo_mm_ttHclassified_events_name = 'histo_mm_ttH%s_events_%s' % (histoname_type,sample_name)
+    histo_mm_ttVclassified_events_name = 'histo_mm_ttV%s_events_%s' % (histoname_type,sample_name)
+    histo_mm_ttJclassified_events_name = 'histo_mm_ttJ%s_events_%s' % (histoname_type,sample_name)
+
+    histo_ee_events_title = 'ttH ee Events: %s Sample' % (sample_name)
+
+    histo_em_ttHclassified_events_title = 'ttH em %s Events: %s Sample' % (histoname_type,sample_name)
+    histo_em_ttVclassified_events_title = 'ttV em %s Events: %s Sample' % (histoname_type,sample_name)
+    histo_em_ttJclassified_events_title = 'ttJ em %s Events: %s Sample' % (histoname_type,sample_name)
+
+    histo_mm_ttHclassified_events_title = 'ttH mm %s Events: %s Sample' % (histoname_type,sample_name)
+    histo_mm_ttVclassified_events_title = 'ttV mm %s Events: %s Sample' % (histoname_type,sample_name)
+    histo_mm_ttJclassified_events_title = 'ttJ mm %s Events: %s Sample' % (histoname_type,sample_name)
+
+    histo_ee_events = ROOT.TH1D(histo_ee_events_name,histo_ee_events_title,20,0,1.)
+
+    histo_em_ttHclassified_events = ROOT.TH1D(histo_em_ttHclassified_events_name,histo_em_ttHclassified_events_title,20,0,1.)
+    histo_em_ttVclassified_events = ROOT.TH1D(histo_em_ttVclassified_events_name,histo_em_ttVclassified_events_title,20,0,1.)
+    histo_em_ttJclassified_events = ROOT.TH1D(histo_em_ttJclassified_events_name,histo_em_ttJclassified_events_title,20,0,1.)
+
+    histo_mm_ttHclassified_events = ROOT.TH1D(histo_mm_ttHclassified_events_name,histo_mm_ttHclassified_events_title,20,0,1.)
+    histo_mm_ttVclassified_events = ROOT.TH1D(histo_mm_ttVclassified_events_name,histo_mm_ttVclassified_events_title,20,0,1.)
+    histo_mm_ttJclassified_events = ROOT.TH1D(histo_mm_ttJclassified_events_name,histo_mm_ttJclassified_events_title,20,0,1.)
 
     eval_ttHnode = array('f',[0.])
     eval_ttVnode = array('f',[0.])
@@ -70,52 +88,74 @@ def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree
         for key, value in variables_list:
             print '%s: %f' %(key, branches_reader[str(key)][0] )'''
 
-        #if '_ee' in analysis_bin:
-        #    if (sample_ttree.SubCat2l != 1) and (sample_ttree.SubCat2l != 2):
-        #        print 'Event is ee!'
-        #if '_em' in analysis_bin:
-        #    if (sample_ttree.SubCat2l != 3) and (sample_ttree.SubCat2l != 4) and (sample_ttree.SubCat2l != 5) and (sample_ttree.SubCat2l != 6):
-        #        print 'Event is em!'
-        #if '_mm' in analysis_bin:
-        #    if (sample_ttree.SubCat2l != 7) and (sample_ttree.SubCat2l != 8) and (sample_ttree.SubCat2l != 9) and (sample_ttree.SubCat2l != 10):
-        #        print 'Event is mm!'
-
         EventWeight_ = array('d',[0])
         EventWeight_ = sample_ttree.EventWeight
 
         if categorise == True:
 
-            #if (sample_ttree.SubCat2l != 1) and (sample_ttree.SubCat2l != 2):
-            #    print 'Event is ee!'
-            #if (sample_ttree.SubCat2l != 3) and (sample_ttree.SubCat2l != 4) and (sample_ttree.SubCat2l != 5) and (sample_ttree.SubCat2l != 6):
-            #    print 'Event is em!'
-            #if (sample_ttree.SubCat2l != 7) and (sample_ttree.SubCat2l != 8) and (sample_ttree.SubCat2l != 9) and (sample_ttree.SubCat2l != 10):
-            #    print 'Event is mm!'
+            lep_cat = ''
 
+            #print 'sample_ttree.SubCat2l : ' , sample_ttree.SubCat2l
+
+            if (sample_ttree.SubCat2l == 1) or (sample_ttree.SubCat2l == 2):
+                lep_cat = 'ee'
+            if (sample_ttree.SubCat2l == 3) or (sample_ttree.SubCat2l == 4) or (sample_ttree.SubCat2l == 5) or (sample_ttree.SubCat2l == 6):
+                lep_cat = 'em'
+            if (sample_ttree.SubCat2l == 7) or (sample_ttree.SubCat2l == 8) or (sample_ttree.SubCat2l == 9) or (sample_ttree.SubCat2l == 10):
+                lep_cat = 'mm'
+
+            #print 'lep_cat : ' , lep_cat
             event_classification = max(tmvareader.EvaluateMulticlass('DNN')[0],tmvareader.EvaluateMulticlass('DNN')[1],tmvareader.EvaluateMulticlass('DNN')[2])
-            #print 'event_classification = ' , event_classification
+
+            if lep_cat == 'ee':
+                histo_ee_events.Fill(event_classification,EventWeight_)
+
             if event_classification == tmvareader.EvaluateMulticlass('DNN')[0]:
                 #print 'ttH category'
-                histo_ttHclassified_events.Fill(event_classification,EventWeight_)
+                if lep_cat == 'em':
+                    histo_em_ttHclassified_events.Fill(event_classification,EventWeight_)
+                if lep_cat == 'mm':
+                    histo_mm_ttHclassified_events.Fill(event_classification,EventWeight_)
+                #histo_ttHclassified_events.Fill(event_classification,EventWeight_)
                 eval_ttHnode[0] = event_classification
                 eval_ttVnode[0] = -999
                 eval_ttJnode[0] = -999
             elif event_classification == tmvareader.EvaluateMulticlass('DNN')[1]:
                 #print 'ttV category'
-                histo_ttVclassified_events.Fill(event_classification,EventWeight_)
+                if lep_cat == 'em':
+                    histo_em_ttVclassified_events.Fill(event_classification,EventWeight_)
+                if lep_cat == 'mm':
+                    histo_mm_ttVclassified_events.Fill(event_classification,EventWeight_)
+                #histo_ttVclassified_events.Fill(event_classification,EventWeight_)
                 eval_ttHnode[0] = -999
                 eval_ttVnode[0] = event_classification
                 eval_ttJnode[0] = -999
             elif event_classification == tmvareader.EvaluateMulticlass('DNN')[2]:
                 #print 'ttJ category'
-                histo_ttJclassified_events.Fill(event_classification,EventWeight_)
+                if lep_cat == 'em':
+                    histo_em_ttJclassified_events.Fill(event_classification,EventWeight_)
+                if lep_cat == 'mm':
+                    histo_mm_ttJclassified_events.Fill(event_classification,EventWeight_)
+                #histo_ttJclassified_events.Fill(event_classification,EventWeight_)
                 eval_ttHnode[0] = -999
                 eval_ttVnode[0] = -999
                 eval_ttJnode[0] = event_classification
         else:
-            histo_ttHclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[0],EventWeight_)
-            histo_ttVclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[1],EventWeight_)
-            histo_ttJclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[2],EventWeight_)
+            if lep_cat == 'ee':
+                histo_ee_events.Fill(tmvareader.EvaluateMulticlass('DNN')[2],EventWeight_)
+                histo_ee_events.Fill(tmvareader.EvaluateMulticlass('DNN')[1],EventWeight_)
+                histo_ee_events.Fill(tmvareader.EvaluateMulticlass('DNN')[0],EventWeight_)
+            if lep_cat == 'em':
+                histo_em_ttJclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[2],EventWeight_)
+                histo_em_ttVclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[1],EventWeight_)
+                histo_em_ttHclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[0],EventWeight_)
+            if lep_cat == 'mm':
+                histo_mm_ttJclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[2],EventWeight_)
+                histo_mm_ttVclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[1],EventWeight_)
+                histo_mm_ttHclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[0],EventWeight_)
+            #histo_ttHclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[0],EventWeight_)
+            #histo_ttVclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[1],EventWeight_)
+            #histo_ttJclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[2],EventWeight_)
             eval_ttHnode[0] = tmvareader.EvaluateMulticlass('DNN')[0]
             eval_ttVnode[0] = tmvareader.EvaluateMulticlass('DNN')[1]
             eval_ttJnode[0] = tmvareader.EvaluateMulticlass('DNN')[2]
@@ -124,9 +164,15 @@ def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree
         ttV_branch.Fill()
         ttJ_branch.Fill()
 
-    histo_ttHclassified_events.Write()
-    histo_ttVclassified_events.Write()
-    histo_ttJclassified_events.Write()
+    histo_ee_events.Write()
+
+    histo_em_ttJclassified_events.Write()
+    histo_em_ttVclassified_events.Write()
+    histo_em_ttHclassified_events.Write()
+
+    histo_mm_ttJclassified_events.Write()
+    histo_mm_ttVclassified_events.Write()
+    histo_mm_ttHclassified_events.Write()
 
 def main():
 
