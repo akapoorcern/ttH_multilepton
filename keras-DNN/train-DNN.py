@@ -46,27 +46,27 @@ def load_data(inputPath,variables,criteria,lepsel):
         print key
         if 'ttH' in key or 'TTH' in key:
             sampleName='ttH'
-            if lepsel == 'loose':
+            if lepsel == 'loose' or lepsel == 'fakeable':
                 fileName = 'ttHnobb_NoJetNCut'
-            elif lepsel == 'fakeable' or lepsel == 'mixed':
+            elif lepsel == 'mixed':
                 fileName = 'ttHnobb_TrainMVA'
         if 'ttJ' in key or 'TTJ' in key:
             sampleName='ttJ'
-            if lepsel == 'loose':
+            if lepsel == 'loose' or lepsel == 'fakeable':
                 fileName='ttJets_NoJetNCut'
-            elif lepsel == 'fakeable'or lepsel == 'mixed':
+            elif lepsel == 'mixed':
                 fileName='ttJets_TrainMVA'
         if 'ttW' in key or 'TTW' in key:
             sampleName='ttW'
-            if lepsel == 'loose':
+            if lepsel == 'loose' or lepsel == 'fakeable':
                 fileName='ttWJets_NoJetNCut'
-            elif lepsel == 'fakeable' or lepsel == 'mixed':
+            elif lepsel == 'mixed':
                 fileName='ttWJets_TrainMVA'
         if 'ttZ' in key or 'TTZ' in key:
             sampleName='ttZ'
-            if lepsel == 'loose':
+            if lepsel == 'loose' or lepsel == 'fakeable':
                 fileName='ttZJets_NoJetNCut'
-            elif lepsel == 'fakeable' or lepsel == 'mixed':
+            elif lepsel == 'mixed':
                 fileName='ttZJets_TrainMVA'
         if 'ttH' in key:
                 target=0
@@ -197,15 +197,15 @@ def main():
     lepsel = args.lepsel
     number_of_classes = 4
 
-    classweights_name = 'trial'
+    #classweights_name = 'trial'
 
     # Create instance of output directory where all results are saved.
     if lepsel == 'loose':
-        output_directory = '2019-03-14_loose_%s_%s/' % (classweights_name,region)
+        output_directory = '2019-03-20_SRSel_loose_%s_%s/' % (classweights_name,region)
     elif lepsel == 'fakeable':
-        output_directory = '2019-03-14_fakeable_%s_%s/' % (classweights_name,region)
+        output_directory = '2019-03-20_SRSel_fakeable_%s_%s/' % (classweights_name,region)
     elif lepsel == 'mixed':
-        output_directory = '2019-03-14_mixed_%s_%s/' % (classweights_name,region)
+        output_directory = '2019-03-20_SRSel_mixed_%s_%s/' % (classweights_name,region)
 
     check_dir(output_directory)
 
@@ -218,7 +218,8 @@ def main():
     elif 'SigRegion' == region:
         input_var_jsonFile = open('input_vars_SigRegion.json','r')
         #input_var_jsonFile = open('input_vars_SigRegion_extended.json','r')
-        selection_criteria = 'Jet_numLoose>=4'
+        selection_criteria = 'Jet_numLoose>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
+
 
     variable_list = json.load(input_var_jsonFile,encoding="utf-8").items()
     column_headers = []
@@ -237,9 +238,9 @@ def main():
 
     # Create instance of the input files directory
     if lepsel == 'loose':
-        inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_looselepsel/'
+        inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_looselepsel_new/'
     elif lepsel == 'fakeable':
-        inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples/'
+        inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_fakeablelepsel/'
     elif lepsel == 'mixed':
         inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_mixed/'
 
@@ -271,7 +272,7 @@ def main():
     train_df = data.iloc[:traindataset.shape[0]]
     train_df.drop(['EventWeight'], axis=1, inplace=True)
     train_df.drop(['xsec_rwgt'], axis=1, inplace=True)
-    train_df.drop(['Jet_numLoose'], axis=1, inplace=True)
+    #train_df.drop(['Jet_numLoose'], axis=1, inplace=True)
 
     train_weights = traindataset['EventWeight'].values * traindataset['xsec_rwgt'].values
     test_weights = valdataset['EventWeight'].values * valdataset['xsec_rwgt'].values
@@ -307,7 +308,7 @@ def main():
     # Yields 2LSS SR HIG 18-019 |      60.08      | 140.25+22.79+17.25 |      151.03      |      87.05       |
     #                                                    =180.29
     ############################
-    #Fakeable lepton TR selection
+    #Fakeable lepton TR selection_criteria
     ############################
     # # events in TR            |     98722      |      26356       |      145168      |      78431      |
     # Sum of weights:           |    83.098679    |   495.427460      |    357.781403    |    229.331726    |
@@ -404,9 +405,11 @@ def main():
                 tuned_weighted = { 0 : 0.04369112975, 1 : 0.00199975503, 2 : 0.00279500273, 3 : 0.00436049567}
 
 
-    labels_dict = {0: ttH_sumweights, 1:ttJ_sumweights, 2:ttW_sumweights, 3:ttZ_sumweights}
-    labels_dict = create_class_weight(labels_dict)
-    tuned_weighted = labels_dict
+    #labels_dict = {0: ttH_sumweights, 1:ttJ_sumweights, 2:ttW_sumweights, 3:ttZ_sumweights}
+    #labels_dict = create_class_weight(labels_dict)
+    #tuned_weighted = labels_dict
+
+    #tuned_weighted = {0 : 1., 1 : 1., 2 : 1., 3 : 1.}
 
     print 'class weights : ', classweights_name
     print 'weights = ', tuned_weighted
