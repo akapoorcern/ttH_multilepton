@@ -153,7 +153,7 @@ def main():
     input_name = ''
     input_var_jsonFile = ''
     if region == 'CtrlRegion':
-        input_name = '2019-03-21_2OptionMerge_ttWctrl_'+leptonsel
+        input_name = '2019-04-02_ttWctrl_'+leptonsel
         if JES_flag==1:
             input_name = input_name+'_JESUp'
         if JES_flag==2:
@@ -161,7 +161,7 @@ def main():
         region = 'ttWctrl'
         input_var_jsonFile = open('../input_vars_CtrlRegion.json','r')
     elif region == 'SigRegion':
-        input_name = '2019-03-21_2OptionMerge_'+leptonsel
+        input_name = '2019-04-02_'+leptonsel
         if JES_flag==1:
             input_name = input_name+'_JESUp'
         if JES_flag==2:
@@ -229,16 +229,15 @@ def main():
     input_models_path = ''
     if region == 'SigRegion':
         if leptonsel == 'loose':
-            input_models_path = ['2019-03-20_SRSel_loose_InverseNEventsTR_SigRegion','2019-03-20_SRSel_loose_InverseSRYields_SigRegion','2019-03-20_SRSel_loose_BalancedWeights_SigRegion']
+            #input_models_path = ['2019-04-02_NEvsFake_loose_InverseNEventsTR_SigRegion','2019-04-02_NEvsFake_loose_InverseSRYields_SigRegion','2019-04-02_NEvsFake_loose_BalancedWeights_SigRegion']
+            input_models_path = ['2019-04-02_loose_InverseNEventsTR_SigRegion','2019-04-02_loose_InverseSRYields_SigRegion','2019-04-02_loose_BalancedWeights_SigRegion']
         elif leptonsel == 'fakeable':
-            input_models_path = ['2019-03-20_SRSel_fakeable_InverseNEventsTR_SigRegion','2019-03-20_SRSel_fakeable_InverseSRYields_SigRegion','2019-03-20_SRSel_fakeable_BalancedWeights_SigRegion']
-        elif leptonsel == 'mixed':
-                input_models_path = ['2019-03-20_SRSel_mixed_InverseNEventsTR_SigRegion','2019-03-20_SRSel_mixed_InverseSRYields_SigRegion','2019-03-20_SRSel_mixed_BalancedWeights_SigRegion']
+            input_models_path = ['2019-04-02_fakeable_InverseNEventsTR_SigRegion','2019-04-02_fakeable_InverseSRYields_SigRegion','2019-04-02_fakeable_BalancedWeights_SigRegion']
     elif region == 'ttWctrl':
         if leptonsel == 'loose':
-            input_models_path = ['2019-03-20_SRSel_loose_InverseNEventsTR_CtrlRegion', '2019-03-20_SRSel_loose_InverseSRYields_CtrlRegion', '2019-03-20_SRSel_loose_BalancedWeights_CtrlRegion']
+            input_models_path = ['2019-04-02_NEvsFake_loose_InverseNEventsTR_CtrlRegion', '2019-04-02_NEvsFake_loose_InverseSRYields_CtrlRegion', '2019-04-02_NEvsFake_loose_BalancedWeights_CtrlRegion']
         elif leptonsel == 'fakeable':
-            input_models_path = ['2019-03-20_SRSel_fakeable_InverseNEventsTR_CtrlRegion', '2019-03-20_SRSel_fakeable_InverseSRYields_CtrlRegion', '2019-03-20_SRSel_fakeable_BalancedWeights_CtrlRegion']
+            input_models_path = ['2019-04-02_fakeable_InverseNEventsTR_CtrlRegion', '2019-04-02_fakeable_InverseSRYields_CtrlRegion', '2019-04-02_fakeable_BalancedWeights_CtrlRegion']
 
     model_name_1 = os.path.join('../',input_models_path[0],'model.h5')
     model_1 = load_trained_model(model_name_1, num_variables, optimizer)
@@ -343,6 +342,19 @@ def main():
         output_tree.SetName("output_tree")
         nEvents_check = output_tree.BuildIndex("nEvent","run")
 
+        eval_ttHnode_val = array('f',[0.])
+        eval_ttJnode_val = array('f',[0.])
+        eval_ttWnode_val = array('f',[0.])
+        eval_ttZnode_val = array('f',[0.])
+        eval_ttHnode_val_option2 = array('f',[0.])
+        eval_ttJnode_val_option2 = array('f',[0.])
+        eval_ttWnode_val_option2 = array('f',[0.])
+        eval_ttZnode_val_option2 = array('f',[0.])
+        eval_ttHnode_val_option3 = array('f',[0.])
+        eval_ttJnode_val_option3 = array('f',[0.])
+        eval_ttWnode_val_option3 = array('f',[0.])
+        eval_ttZnode_val_option3 = array('f',[0.])
+
         eval_ttHnode = array('f',[0.])
         eval_ttJnode = array('f',[0.])
         eval_ttWnode = array('f',[0.])
@@ -351,7 +363,6 @@ def main():
         eval_ttJnode_option2 = array('f',[0.])
         eval_ttWnode_option2 = array('f',[0.])
         eval_ttZnode_option2 = array('f',[0.])
-
         eval_ttHnode_option3 = array('f',[0.])
         eval_ttJnode_option3 = array('f',[0.])
         eval_ttWnode_option3 = array('f',[0.])
@@ -371,25 +382,35 @@ def main():
         ttJ_branch = output_tree.Branch('DNN_ttJnode', eval_ttJnode, 'DNN_ttJnode/F')
         ttW_branch = output_tree.Branch('DNN_ttWnode', eval_ttWnode, 'DNN_ttWnode/F')
         ttZ_branch = output_tree.Branch('DNN_ttZnode', eval_ttZnode, 'DNN_ttZnode/F')
-
         ttH_branch_option2 = output_tree.Branch('DNN_ttHnode_option2', eval_ttHnode_option2, 'DNN_ttHnode_option2/F')
         ttJ_branch_option2 = output_tree.Branch('DNN_ttJnode_option2', eval_ttJnode_option2, 'DNN_ttJnode_option2/F')
         ttW_branch_option2 = output_tree.Branch('DNN_ttWnode_option2', eval_ttWnode_option2, 'DNN_ttWnode_option2/F')
         ttZ_branch_option2 = output_tree.Branch('DNN_ttZnode_option2', eval_ttZnode_option2, 'DNN_ttZnode_option2/F')
-
         ttH_branch_option3 = output_tree.Branch('DNN_ttHnode_option3', eval_ttHnode_option3, 'DNN_ttHnode_option3/F')
         ttJ_branch_option3 = output_tree.Branch('DNN_ttJnode_option3', eval_ttJnode_option3, 'DNN_ttJnode_option3/F')
         ttW_branch_option3 = output_tree.Branch('DNN_ttWnode_option3', eval_ttWnode_option3, 'DNN_ttWnode_option3/F')
         ttZ_branch_option3 = output_tree.Branch('DNN_ttZnode_option3', eval_ttZnode_option3, 'DNN_ttZnode_option3/F')
 
+        ttH_branch_val = output_tree.Branch('DNN_ttHnode_val', eval_ttHnode_val, 'DNN_ttHnode_val/F')
+        ttJ_branch_val = output_tree.Branch('DNN_ttJnode_val', eval_ttJnode_val, 'DNN_ttJnode_val/F')
+        ttW_branch_val = output_tree.Branch('DNN_ttWnode_val', eval_ttWnode_val, 'DNN_ttWnode_val/F')
+        ttZ_branch_val = output_tree.Branch('DNN_ttZnode_val', eval_ttZnode_val, 'DNN_ttZnode_val/F')
+        ttH_branch_val_option2 = output_tree.Branch('DNN_ttHnode_val_option2', eval_ttHnode_val_option2, 'DNN_ttHnode_val_option2/F')
+        ttJ_branch_val_option2 = output_tree.Branch('DNN_ttJnode_val_option2', eval_ttJnode_val_option2, 'DNN_ttJnode_val_option2/F')
+        ttW_branch_val_option2 = output_tree.Branch('DNN_ttWnode_val_option2', eval_ttWnode_val_option2, 'DNN_ttWnode_val_option2/F')
+        ttZ_branch_val_option2 = output_tree.Branch('DNN_ttZnode_val_option2', eval_ttZnode_val_option2, 'DNN_ttZnode_val_option2/F')
+        ttH_branch_val_option3 = output_tree.Branch('DNN_ttHnode_val_option3', eval_ttHnode_val_option3, 'DNN_ttHnode_val_option3/F')
+        ttJ_branch_val_option3 = output_tree.Branch('DNN_ttJnode_val_option3', eval_ttJnode_val_option3, 'DNN_ttJnode_val_option3/F')
+        ttW_branch_val_option3 = output_tree.Branch('DNN_ttWnode_val_option3', eval_ttWnode_val_option3, 'DNN_ttWnode_val_option3/F')
+        ttZ_branch_val_option3 = output_tree.Branch('DNN_ttZnode_val_option3', eval_ttZnode_val_option3, 'DNN_ttZnode_val_option3/F')
+
+
         DNNMaxval_branch = output_tree.Branch('DNN_maxval', eval_maxval, 'DNN_maxval/F')
         DNNMaxval_branch_2 = output_tree.Branch('DNN_maxval_option2', eval_maxval_2, 'DNN_maxval_option2/F')
-
         DNNMaxval_branch_3 = output_tree.Branch('DNN_maxval_option3', eval_maxval_3, 'DNN_maxval_option3/F')
 
         DNNCat_branch = output_tree.Branch('DNNCat', DNNCat, 'DNNCat/F')
         DNNCat_branch_option2 = output_tree.Branch('DNNCat_option2', DNNCat_option2, 'DNNCat_option2/F')
-
         DNNCat_branch_option3 = output_tree.Branch('DNNCat_option3', DNNCat_option3, 'DNNCat_option3/F')
 
         sample_name = process
@@ -446,7 +467,6 @@ def main():
 
             event_classification = max(eventnum_resultsprob_dict.get(Eventnum_)[0], eventnum_resultsprob_dict.get(Eventnum_)[1], eventnum_resultsprob_dict.get(Eventnum_)[2], eventnum_resultsprob_dict.get(Eventnum_)[3])
             event_classification_2 = max(eventnum_resultsprob_1_dict.get(Eventnum_)[0], eventnum_resultsprob_1_dict.get(Eventnum_)[1], eventnum_resultsprob_1_dict.get(Eventnum_)[2], eventnum_resultsprob_1_dict.get(Eventnum_)[3])
-
             event_classification_3 = max(eventnum_resultsprob_2_dict.get(Eventnum_)[0], eventnum_resultsprob_2_dict.get(Eventnum_)[1], eventnum_resultsprob_2_dict.get(Eventnum_)[2], eventnum_resultsprob_2_dict.get(Eventnum_)[3])
 
             if 'ttH_' in process:
@@ -457,6 +477,11 @@ def main():
                 true_process.append(2)
             if 'ttZ' in process:
                 true_process.append(3)
+
+            eval_ttHnode_val[0] = eventnum_resultsprob_dict.get(Eventnum_)[0]
+            eval_ttJnode_val[0] = eventnum_resultsprob_dict.get(Eventnum_)[1]
+            eval_ttWnode_val[0] = eventnum_resultsprob_dict.get(Eventnum_)[2]
+            eval_ttZnode_val[0] = eventnum_resultsprob_dict.get(Eventnum_)[3]
 
             if event_classification == eventnum_resultsprob_dict.get(Eventnum_)[0]:
                 option1_pred_process.append(0)
@@ -495,6 +520,11 @@ def main():
                 DNNCat[0] = 4
                 eval_maxval[0] = eventnum_resultsprob_dict.get(Eventnum_)[3]
 
+            eval_ttHnode_val_option2[0] = eventnum_resultsprob_1_dict.get(Eventnum_)[0]
+            eval_ttJnode_val_option2[0] = eventnum_resultsprob_1_dict.get(Eventnum_)[1]
+            eval_ttWnode_val_option2[0] = eventnum_resultsprob_1_dict.get(Eventnum_)[2]
+            eval_ttZnode_val_option2[0] = eventnum_resultsprob_1_dict.get(Eventnum_)[3]
+
             if event_classification_2 == eventnum_resultsprob_1_dict.get(Eventnum_)[0]:
                 option2_pred_process.append(0)
                 eval_ttHnode_option2[0] = eventnum_resultsprob_1_dict.get(Eventnum_)[0]
@@ -532,6 +562,10 @@ def main():
                 eval_maxval_2[0] = eventnum_resultsprob_1_dict.get(Eventnum_)[3]
                 histo_ttZclassified_events_option2.Fill(event_classification_2,EventWeight_)
 
+            eval_ttHnode_val_option3[0] = eventnum_resultsprob_2_dict.get(Eventnum_)[0]
+            eval_ttJnode_val_option3[0] = eventnum_resultsprob_2_dict.get(Eventnum_)[1]
+            eval_ttWnode_val_option3[0] = eventnum_resultsprob_2_dict.get(Eventnum_)[2]
+            eval_ttZnode_val_option3[0] = eventnum_resultsprob_2_dict.get(Eventnum_)[3]
 
             if event_classification_3 == eventnum_resultsprob_2_dict.get(Eventnum_)[0]:
                 option3_pred_process.append(0)
@@ -578,11 +612,15 @@ def main():
             ttJ_branch_option2.Fill()
             ttW_branch_option2.Fill()
             ttZ_branch_option2.Fill()
-
             ttH_branch_option3.Fill()
             ttJ_branch_option3.Fill()
             ttW_branch_option3.Fill()
             ttZ_branch_option3.Fill()
+
+            ttH_branch_val.Fill()
+            ttJ_branch_val.Fill()
+            ttW_branch_val.Fill()
+            ttZ_branch_val.Fill()
 
             DNNMaxval_branch.Fill()
             DNNMaxval_branch_2.Fill()

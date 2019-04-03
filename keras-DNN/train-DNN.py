@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy
 import pandas
 import pandas as pd
 import optparse, json, argparse, math
@@ -48,26 +47,18 @@ def load_data(inputPath,variables,criteria,lepsel):
             sampleName='ttH'
             if lepsel == 'loose' or lepsel == 'fakeable':
                 fileName = 'ttHnobb_NoJetNCut'
-            elif lepsel == 'mixed':
-                fileName = 'ttHnobb_TrainMVA'
         if 'ttJ' in key or 'TTJ' in key:
             sampleName='ttJ'
             if lepsel == 'loose' or lepsel == 'fakeable':
                 fileName='ttJets_NoJetNCut'
-            elif lepsel == 'mixed':
-                fileName='ttJets_TrainMVA'
         if 'ttW' in key or 'TTW' in key:
             sampleName='ttW'
             if lepsel == 'loose' or lepsel == 'fakeable':
                 fileName='ttWJets_NoJetNCut'
-            elif lepsel == 'mixed':
-                fileName='ttWJets_TrainMVA'
         if 'ttZ' in key or 'TTZ' in key:
             sampleName='ttZ'
             if lepsel == 'loose' or lepsel == 'fakeable':
                 fileName='ttZJets_NoJetNCut'
-            elif lepsel == 'mixed':
-                fileName='ttZJets_TrainMVA'
         if 'ttH' in key:
                 target=0
         if 'ttJ' in key:
@@ -95,8 +86,27 @@ def load_data(inputPath,variables,criteria,lepsel):
                 chunk_df['key']=key
                 chunk_df['target']=target
                 chunk_df['totalWeight']=chunk_df["EventWeight"]
-                '''if key == 'ttJ':
-                    chunk_df = chunk_df.head(300000)'''
+
+                # Used to make loose lepton selected training region match fake lepton selected training Region
+                # the same statistics to study impact of loosening cut.
+                # SigRegion: 98722 26356 145168 78431
+                '''if key == 'ttH':
+                    chunk_df = chunk_df.head(98722)
+                if key == 'ttJ':
+                    chunk_df = chunk_df.head(26356)
+                if key == 'ttW':
+                    chunk_df = chunk_df.head(145168)
+                if key == 'ttZ':
+                    chunk_df = chunk_df.head(78431)'''
+                # CtrlRegion: 26969 27860 77217 39034
+                '''if key == 'ttH':
+                    chunk_df = chunk_df.head(26969)
+                if key == 'ttJ':
+                    chunk_df = chunk_df.head(27860)
+                if key == 'ttW':
+                    chunk_df = chunk_df.head(77217)
+                if key == 'ttZ':
+                    chunk_df = chunk_df.head(39034)'''
                 data=data.append(chunk_df, ignore_index=True)
         tfile.Close()
         if len(data) == 0 : continue
@@ -187,7 +197,7 @@ def main():
     parser = argparse.ArgumentParser(usage)
     parser.add_argument('-t', '--train_model', dest='train_model', help='Option to train model or simply make diagnostic plots (0=False, 1=True)', default=0, type=int)
     parser.add_argument('-r', '--region', dest='region', help='Option to choose SigRegion or CtrlRegion', default='SigRegion', type=str)
-    parser.add_argument('-w', '--classweights', dest='classweights', help='Option to choose class weights (InverseNEventsTR, SRYieldsOverNEventsTR, InverseSRYields or BalancedWeights)', default='InverseNEventsTR', type=str)
+    parser.add_argument('-w', '--classweights', dest='classweights', help='Option to choose class weights (InverseNEventsTR, InverseSRYields or BalancedWeights)', default='InverseNEventsTR', type=str)
     parser.add_argument('-l', '--lepsel', dest='lepsel', help='type of lepton selection for trained model (loose, fakeable)', default='loose', type=str)
 
     args = parser.parse_args()
@@ -201,11 +211,9 @@ def main():
 
     # Create instance of output directory where all results are saved.
     if lepsel == 'loose':
-        output_directory = '2019-03-20_SRSel_loose_%s_%s/' % (classweights_name,region)
+        output_directory = '2019-04-02_StdScalar_M0Std1_newvars_loose_%s_%s/' % (classweights_name,region)
     elif lepsel == 'fakeable':
-        output_directory = '2019-03-20_SRSel_fakeable_%s_%s/' % (classweights_name,region)
-    elif lepsel == 'mixed':
-        output_directory = '2019-03-20_SRSel_mixed_%s_%s/' % (classweights_name,region)
+        output_directory = '2019-04-02_StdScalar_M0Std1_newvars_fakeable_%s_%s/' % (classweights_name,region)
 
     check_dir(output_directory)
 
@@ -216,9 +224,11 @@ def main():
         input_var_jsonFile = open('input_vars_CtrlRegion.json','r')
         selection_criteria = 'Jet_numLoose==3'
     elif 'SigRegion' == region:
-        input_var_jsonFile = open('input_vars_SigRegion.json','r')
-        #input_var_jsonFile = open('input_vars_SigRegion_extended.json','r')
-        selection_criteria = 'Jet_numLoose>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
+        #input_var_jsonFile = open('input_vars_SigRegion.json','r')
+        #input_var_jsonFile = open('input_vars_SigRegion_oldvars.json','r')
+        input_var_jsonFile = open('input_vars_SigRegion_extended.json','r')
+        #selection_criteria = 'Jet_numLoose>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
+        selection_criteria = 'Jet_numLoose>=4'
 
 
     variable_list = json.load(input_var_jsonFile,encoding="utf-8").items()
@@ -238,11 +248,9 @@ def main():
 
     # Create instance of the input files directory
     if lepsel == 'loose':
-        inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_looselepsel_new/'
+        inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_looselepsel/'
     elif lepsel == 'fakeable':
         inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_fakeablelepsel/'
-    elif lepsel == 'mixed':
-        inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_mixed/'
 
     print 'Getting files from:', inputs_file_path
     outputdataframe_name = '%s/output_dataframe_%s.csv' %(output_directory,region) #"output_dataframe_NJetgeq4.csv"
@@ -265,7 +273,7 @@ def main():
     ttZ_sumweights = data.iloc[(data.key.values=='ttZ')]["totalWeight"].sum()
     print 'ttH_sumweights: %s , ttJ_sumweights: %s , ttW_sumweights: %s, ttZ_sumweights: %s ' % (ttH_sumweights,ttJ_sumweights,ttW_sumweights,ttZ_sumweights)
 
-    traindataset, valdataset = train_test_split(data, test_size=0.3)
+    traindataset, valdataset = train_test_split(data, test_size=0.2)
 
     print 'train dataset shape: ', traindataset.shape
     print 'validation dataset shape: ', valdataset.shape
@@ -285,6 +293,13 @@ def main():
     Y_train = traindataset.target.astype(int)
     X_test = valdataset[training_columns].values
     Y_test = valdataset.target.astype(int)
+
+    scaler = StandardScaler(with_mean=False, with_std=False).fit(X_train)
+    #scaler = StandardScaler().fit(X_train)
+    print 'scaler.mean_' , scaler.mean_
+    print 'scaler.scale_' , scaler.scale_
+    X_train = scaler.transform(X_train)
+    X_test = scaler.transform(X_test)
 
     num_variables = len(training_columns)
 
@@ -330,34 +345,27 @@ def main():
     # Sum of weights:           |    22.887941    |    500.061249      |    357.781403    |    229.331726    |
     # Yields 2LSS ttWctrl       |    14.36        |    120.54 + 9.55   |       75.97      |      38.64       |
 
-
-
     balancedweights = class_weight.compute_class_weight('balanced', np.unique([0,1,2,3]), Y_train)
 
     if region == 'SigRegion':
         if lepsel == 'loose':
             #Loose
-            if classweights_name == 'SRYieldsOverNEventsTR':
-                # Yields in SR / # MC events TR
-                tuned_weighted = { 0 : 0.000271175, 1 : 0.000154239, 2 : 0.000469513, 3 : 0.000424638}
-            elif classweights_name == 'InverseSRYields':
+            if classweights_name == 'InverseSRYields':
                 # 1/Yields in SR
                 tuned_weighted = {0 : 0.0166445, 1 : 0.00554662, 2 : 0.00662120, 3 : 0.0114877}
             elif classweights_name == 'InverseNEventsTR':
                 # 1/MC Events TR
                 tuned_weighted = {0 : 0.00000451357, 1 : 0.000000855507, 2 : 0.00000310874, 3 : 0.00000487810}
+                #tuned_weighted = {0 : 0.00001012945, 1 : 0.00003794202, 2 : 0.00000688857, 3 : 0.00001275006}
             elif classweights_name == 'BalancedWeights':
                 tuned_weighted = balancedweights
             elif classweights_name == 'InverseSumWeightsTR':
                 tuned_weighted = {0 : 0.01059548939, 1 : 0.00013564632, 2 : 0.00483142111, 3 : 0.00814104066}
         elif lepsel == 'fakeable':
             #Fakeable
-            if classweights_name == 'SRYieldsOverNEventsTR':
-                # Yields in SR / # MC events TR
-                tuned_weighted = { 0 : 0.00060857762, 1 : 0.00684056761, 2 : 0.0010403808, 3 : 0.00110989277}
-            elif classweights_name == 'InverseSRYields':
+            if classweights_name == 'InverseSRYields':
                 # 1/Yields in SR
-                tuned_weighted = { 0 : 0.069637883, 1 : 0.00768698593, 2 : 0.01316309069, 3 : 0.02587991718}
+                tuned_weighted = {0 : 0.0166445, 1 : 0.00554662, 2 : 0.00662120, 3 : 0.0114877}
             elif classweights_name == 'InverseNEventsTR':
                 # 1/MC Events TR
                 tuned_weighted = {0 : 0.00001012945, 1 : 0.00003794202, 2 : 0.00000688857, 3 : 0.00001275006}
@@ -365,35 +373,21 @@ def main():
                 tuned_weighted = balancedweights
             elif classweights_name == 'InverseSumWeightsTR':
                 tuned_weighted = {0 : 0.01203388564, 1 : 0.00201845896, 2 : 0.00279500273, 3 : 0.00436049567}
-        elif lepsel == 'mixed':
-            if classweights_name == 'InverseSRYields':
-                # 1/Yields in SR
-                tuned_weighted = { 0 : 0.069637883, 1 : 0.00768698593, 2 : 0.01316309069, 3 : 0.02587991718}
-            elif classweights_name == 'InverseNEventsTR':
-                # 1/MC Events TR (Use Fakeable numbers for all processes except ttJ where we use loose)
-                tuned_weighted = {0 : 0.00001012945, 1 : 0.000000855507, 2 : 0.00000688857, 3 : 0.00001275006}
-            elif classweights_name == 'BalancedWeights':
-                tuned_weighted = balancedweights
     elif region == 'CtrlRegion':
         if lepsel == 'loose':
-            if classweights_name == 'SRYieldsOverNEventsTR':
-                # Yields in ttWctrl region / # MC events TR
-                tuned_weighted = { 0 : 0.00036430057, 1 : 0.00022874012, 2 : 0.00067946229, 3 : 0.00066043379}
-            elif classweights_name == 'InverseSRYields':
+            if classweights_name == 'InverseSRYields':
                 # 1/Yields in ttWCR
                 tuned_weighted = { 0 : 0.069637883, 1 : 0.00768698593, 2 : 0.01316309069, 3 : 0.02587991718}
             elif classweights_name == 'InverseNEventsTR':
                 # 1/MC Events ttWCR
                 tuned_weighted = {0 : 0.00002536912, 1 : 0.00000175832, 2 : 0.00000894382, 3 : 0.00001709197}
+                #tuned_weighted = { 0 : 0.0000370796, 1 : 0.00003589375, 2 : 0.00001295051, 3 : 0.00002561869}
             elif classweights_name == 'BalancedWeights':
                 tuned_weighted = balancedweights
             elif classweights_name == 'InverseSumWeightsTR':
                 tuned_weighted = {0 : 0.04120335723, 1 : 0.00026262878, 2 : 0.00971955289, 3 : 0.01699941491}
         elif lepsel == 'fakeable':
-            if classweights_name == 'SRYieldsOverNEventsTR':
-                # Yields in ttWctrl region / # MC events TR
-                tuned_weighted = { 0 : 0.00053246319, 1 : 0.00466941852, 2 : 0.0009838507, 3 : 0.00098990623}
-            elif classweights_name == 'InverseSRYields':
+            if classweights_name == 'InverseSRYields':
                 # 1/Yields in ttWCR
                 tuned_weighted = { 0 : 0.069637883, 1 : 0.00768698593, 2 : 0.01316309069, 3 : 0.02587991718}
             elif classweights_name == 'InverseNEventsTR':
@@ -403,7 +397,6 @@ def main():
                 tuned_weighted = balancedweights
             elif classweights_name == 'InverseSumWeightsTR':
                 tuned_weighted = { 0 : 0.04369112975, 1 : 0.00199975503, 2 : 0.00279500273, 3 : 0.00436049567}
-
 
     #labels_dict = {0: ttH_sumweights, 1:ttJ_sumweights, 2:ttW_sumweights, 3:ttZ_sumweights}
     #labels_dict = create_class_weight(labels_dict)
@@ -470,7 +463,7 @@ def main():
         model3 = baseline_model(num_variables,optimizer)
 
         #Batch size = number of examples before updating weights (larger = faster training)
-        history3 = model3.fit(X_train,Y_train,validation_split=0.3,epochs=100,batch_size=1000,verbose=1,shuffle=True,class_weight=tuned_weighted,callbacks=[early_stopping_monitor])
+        history3 = model3.fit(X_train,Y_train,validation_split=0.2,epochs=100,batch_size=1000,verbose=1,shuffle=True,class_weight=tuned_weighted,callbacks=[early_stopping_monitor])
         histories.append(history3)
         labels.append(optimizer)
         Plotter.plot_training_progress_acc(histories, labels)
@@ -502,7 +495,6 @@ def main():
     # Initialise output directory where plotter results will be saved.
     Plotter.output_directory = output_directory
 
-    #Plotter.overfitting(model, Y_train, Y_test, result_probs, result_probs_test, plots_dir, train_weights, test_weights, nbins=20)
     Plotter.overfitting(model, Y_train, Y_test, result_probs, result_probs_test, plots_dir, train_weights, test_weights)
 
     original_encoded_Y = []
