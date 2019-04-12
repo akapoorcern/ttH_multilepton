@@ -210,10 +210,8 @@ def main():
     #classweights_name = 'trial'
 
     # Create instance of output directory where all results are saved.
-    if lepsel == 'loose':
-        output_directory = '2019-04-02_StdScalar_M0Std1_newvars_loose_%s_%s/' % (classweights_name,region)
-    elif lepsel == 'fakeable':
-        output_directory = '2019-04-02_StdScalar_M0Std1_newvars_fakeable_%s_%s/' % (classweights_name,region)
+
+    output_directory = '2019-04-12_newvars_loosesel_%s_%s/' % (classweights_name,region)
 
     check_dir(output_directory)
 
@@ -224,12 +222,9 @@ def main():
         input_var_jsonFile = open('input_vars_CtrlRegion.json','r')
         selection_criteria = 'Jet_numLoose==3'
     elif 'SigRegion' == region:
-        #input_var_jsonFile = open('input_vars_SigRegion.json','r')
-        #input_var_jsonFile = open('input_vars_SigRegion_oldvars.json','r')
-        input_var_jsonFile = open('input_vars_SigRegion_extended.json','r')
-        #selection_criteria = 'Jet_numLoose>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
+        input_var_jsonFile = open('input_vars_SigRegion.json','r')
         selection_criteria = 'Jet_numLoose>=4'
-
+        #selection_criteria = 'Jet_numLoose>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
 
     variable_list = json.load(input_var_jsonFile,encoding="utf-8").items()
     column_headers = []
@@ -294,12 +289,10 @@ def main():
     X_test = valdataset[training_columns].values
     Y_test = valdataset.target.astype(int)
 
-    scaler = StandardScaler(with_mean=False, with_std=False).fit(X_train)
+    #scaler = StandardScaler(with_mean=False, with_std=False).fit(X_train)
     #scaler = StandardScaler().fit(X_train)
-    print 'scaler.mean_' , scaler.mean_
-    print 'scaler.scale_' , scaler.scale_
-    X_train = scaler.transform(X_train)
-    X_test = scaler.transform(X_test)
+    #X_train = scaler.transform(X_train)
+    #X_test = scaler.transform(X_test)
 
     num_variables = len(training_columns)
 
@@ -348,55 +341,23 @@ def main():
     balancedweights = class_weight.compute_class_weight('balanced', np.unique([0,1,2,3]), Y_train)
 
     if region == 'SigRegion':
-        if lepsel == 'loose':
-            #Loose
-            if classweights_name == 'InverseSRYields':
-                # 1/Yields in SR
-                tuned_weighted = {0 : 0.0166445, 1 : 0.00554662, 2 : 0.00662120, 3 : 0.0114877}
-            elif classweights_name == 'InverseNEventsTR':
-                # 1/MC Events TR
-                tuned_weighted = {0 : 0.00000451357, 1 : 0.000000855507, 2 : 0.00000310874, 3 : 0.00000487810}
-                #tuned_weighted = {0 : 0.00001012945, 1 : 0.00003794202, 2 : 0.00000688857, 3 : 0.00001275006}
-            elif classweights_name == 'BalancedWeights':
-                tuned_weighted = balancedweights
-            elif classweights_name == 'InverseSumWeightsTR':
-                tuned_weighted = {0 : 0.01059548939, 1 : 0.00013564632, 2 : 0.00483142111, 3 : 0.00814104066}
-        elif lepsel == 'fakeable':
-            #Fakeable
-            if classweights_name == 'InverseSRYields':
-                # 1/Yields in SR
-                tuned_weighted = {0 : 0.0166445, 1 : 0.00554662, 2 : 0.00662120, 3 : 0.0114877}
-            elif classweights_name == 'InverseNEventsTR':
-                # 1/MC Events TR
-                tuned_weighted = {0 : 0.00001012945, 1 : 0.00003794202, 2 : 0.00000688857, 3 : 0.00001275006}
-            elif classweights_name == 'BalancedWeights':
-                tuned_weighted = balancedweights
-            elif classweights_name == 'InverseSumWeightsTR':
-                tuned_weighted = {0 : 0.01203388564, 1 : 0.00201845896, 2 : 0.00279500273, 3 : 0.00436049567}
+        if classweights_name == 'InverseSRYields':
+            tuned_weighted = {0 : 0.0166445, 1 : 0.00554662, 2 : 0.00662120, 3 : 0.0114877}
+        elif classweights_name == 'InverseNEventsTR':
+            tuned_weighted = {0 : 0.00000451357, 1 : 0.000000855507, 2 : 0.00000310874, 3 : 0.00000487810}
+        elif classweights_name == 'BalancedWeights':
+            tuned_weighted = balancedweights
+        elif classweights_name == 'InverseSumWeightsTR':
+            tuned_weighted = {0 : 0.01059548939, 1 : 0.00013564632, 2 : 0.00483142111, 3 : 0.00814104066}
     elif region == 'CtrlRegion':
-        if lepsel == 'loose':
-            if classweights_name == 'InverseSRYields':
-                # 1/Yields in ttWCR
-                tuned_weighted = { 0 : 0.069637883, 1 : 0.00768698593, 2 : 0.01316309069, 3 : 0.02587991718}
-            elif classweights_name == 'InverseNEventsTR':
-                # 1/MC Events ttWCR
-                tuned_weighted = {0 : 0.00002536912, 1 : 0.00000175832, 2 : 0.00000894382, 3 : 0.00001709197}
-                #tuned_weighted = { 0 : 0.0000370796, 1 : 0.00003589375, 2 : 0.00001295051, 3 : 0.00002561869}
-            elif classweights_name == 'BalancedWeights':
-                tuned_weighted = balancedweights
-            elif classweights_name == 'InverseSumWeightsTR':
-                tuned_weighted = {0 : 0.04120335723, 1 : 0.00026262878, 2 : 0.00971955289, 3 : 0.01699941491}
-        elif lepsel == 'fakeable':
-            if classweights_name == 'InverseSRYields':
-                # 1/Yields in ttWCR
-                tuned_weighted = { 0 : 0.069637883, 1 : 0.00768698593, 2 : 0.01316309069, 3 : 0.02587991718}
-            elif classweights_name == 'InverseNEventsTR':
-                # 1/MC Events ttWCR
-                tuned_weighted = { 0 : 0.0000370796, 1 : 0.00003589375, 2 : 0.00001295051, 3 : 0.00002561869}
-            elif classweights_name == 'BalancedWeights':
-                tuned_weighted = balancedweights
-            elif classweights_name == 'InverseSumWeightsTR':
-                tuned_weighted = { 0 : 0.04369112975, 1 : 0.00199975503, 2 : 0.00279500273, 3 : 0.00436049567}
+        if classweights_name == 'InverseSRYields':
+            tuned_weighted = { 0 : 0.069637883, 1 : 0.00768698593, 2 : 0.01316309069, 3 : 0.02587991718}
+        elif classweights_name == 'InverseNEventsTR':
+            tuned_weighted = {0 : 0.00002536912, 1 : 0.00000175832, 2 : 0.00000894382, 3 : 0.00001709197}
+        elif classweights_name == 'BalancedWeights':
+            tuned_weighted = balancedweights
+        elif classweights_name == 'InverseSumWeightsTR':
+            tuned_weighted = {0 : 0.04120335723, 1 : 0.00026262878, 2 : 0.00971955289, 3 : 0.01699941491}
 
     #labels_dict = {0: ttH_sumweights, 1:ttJ_sumweights, 2:ttW_sumweights, 3:ttZ_sumweights}
     #labels_dict = create_class_weight(labels_dict)
@@ -508,12 +469,25 @@ def main():
         if Y_test[i][3] == 1:
             original_encoded_Y.append(3)
 
-    result_classes_test = newencoder.inverse_transform(result_classes_test)
+    original_encoded_train_Y = []
+    for i in xrange(len(result_probs)):
+        if Y_train[i][0] == 1:
+            original_encoded_train_Y.append(0)
+        if Y_train[i][1] == 1:
+            original_encoded_train_Y.append(1)
+        if Y_train[i][2] == 1:
+            original_encoded_train_Y.append(2)
+        if Y_train[i][3] == 1:
+            original_encoded_train_Y.append(3)
 
-    Plotter.conf_matrix(original_encoded_Y,result_classes_test,'index')
-    Plotter.save_plots(dir=plots_dir, filename='confusion_accuracy_matrix.png')
-    Plotter.conf_matrix(original_encoded_Y,result_classes_test,'columns')
-    Plotter.save_plots(dir=plots_dir, filename='confusion_purity_matrix.png')
+    result_classes_test = newencoder.inverse_transform(result_classes_test)
+    result_classes_train = newencoder.inverse_transform(result_classes)
+
+    Plotter.conf_matrix(original_encoded_train_Y,result_classes_train,train_weights,'index')
+    Plotter.save_plots(dir=plots_dir, filename='yields_norm_confusion_matrix_TRAIN.png')
+
+    Plotter.conf_matrix(original_encoded_Y,result_classes_test,test_weights,'index')
+    Plotter.save_plots(dir=plots_dir, filename='yields_norm_confusion_matrix_TEST.png')
 
     Plotter.separation_table(Plotter.output_directory)
 

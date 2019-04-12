@@ -49,7 +49,7 @@ class plotter(object):
         #iloc[<row selection>,<column selection>]
         self.data = data.iloc[:, :-4]
         self.labels = self.data.corr(**kwds).columns.values
-        self.fig, self.ax1 = plt.subplots(ncols=1, figsize=(10,10))
+        self.fig, self.ax1 = plt.subplots(ncols=1, figsize=(20,20))
         opts = {"annot" : True, "ax" : self.ax1, "vmin" : 0, "vmax" : 1*100, "annot_kws" : {"size":8}, "cmap" : plt.get_cmap("Blues",20), 'fmt' : '0.2f',}
         self.ax1.set_title("Correlations")
         sns.heatmap(self.data.corr(method='spearman')*100, **opts)
@@ -64,19 +64,28 @@ class plotter(object):
 
         return
 
-    def conf_matrix(self, y_true, y_predicted,norm='index'):
+    def conf_matrix(self, y_true, y_predicted, EventWeights_, norm=' '):
         y_true = pandas.Series(y_true , name='truth')
-        y_predicted = pandas.Series(y_predicted,name='prediction')
-        self.matrix = pandas.crosstab(y_true,y_predicted,normalize=norm) #for classification accuracy
-        #self.matrix = pandas.crosstab(y_true,y_predicted,normalize='columns') #for node purities
-        print 'self.matrix.columns:'
-        print self.matrix.columns
+        y_predicted = pandas.Series(y_predicted, name='prediction')
+        EventWeights_ = pandas.Series(EventWeights_, name='eventweights')
+        if norm == 'index':
+            print 'normalising along rows'
+            self.matrix = pandas.crosstab(y_true,y_predicted,EventWeights_,aggfunc=sum,normalize='index')
+            vmax = 1
+        elif norm == 'columns':
+            print 'normalising along columns'
+            self.matrix = pandas.crosstab(y_true,y_predicted,EventWeights_,aggfunc=sum,normalize='columns')
+            vmax = 1
+        else:
+            self.matrix = pandas.crosstab(y_true,y_predicted,EventWeights_,aggfunc=sum)
+            vmax = 150
+        #self.matrix = pandas.crosstab(y_true,y_predicted,EventWeights_,aggfunc=sum,normalize='index')
         self.labelsx = self.matrix.columns
         self.labelsy = self.matrix.index
         self.fig, self.ax1 = plt.subplots(ncols=1, figsize=(10,10))
         plt.rcParams.update({'font.size': 22})
-        opts = {"annot" : True, "ax" : self.ax1, "vmin" : 0, "vmax" : 1, "annot_kws" : {"size":18}, "cmap" : plt.get_cmap("Reds",20), 'fmt' : '0.2f',}
         self.ax1.set_title("Confusion Matrix", fontsize=18)
+        opts = {"annot" : True, "ax" : self.ax1, "vmin" : 0, "vmax" : vmax, "annot_kws" : {"size":18}, "cmap" : plt.get_cmap("Reds",20), 'fmt' : '0.2f',}
         sns.set(font_scale=2.4)
         sns.heatmap(self.matrix, **opts)
         label_dict = {
@@ -223,7 +232,7 @@ class plotter(object):
             self.ax.annotate(ttJ_v_ttH_train_sep,  xy=(0.7, 2.5), xytext=(0.7, 2.5), fontsize=9)
             ttJ_v_ttW_train_sep = 'ttJ vs ttW train Sep.: %s' % ( train_ttJvttW )
             self.ax.annotate(ttJ_v_ttW_train_sep,  xy=(0.7, 2.25), xytext=(0.7, 2.25), fontsize=9)
-            ttJ_v_ttZ_train_sep = 'ttJ vs ttW train Sep.: %s' % ( train_ttJvttZ )
+            ttJ_v_ttZ_train_sep = 'ttJ vs ttZ train Sep.: %s' % ( train_ttJvttZ )
             self.ax.annotate(ttJ_v_ttZ_train_sep,  xy=(0.7, 2.), xytext=(0.7, 2.), fontsize=9)
             ttJ_v_ttH_test_sep = 'ttJ vs ttH test Sep.: %s' % ( test_ttJvttH )
             self.ax.annotate(ttJ_v_ttH_test_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)

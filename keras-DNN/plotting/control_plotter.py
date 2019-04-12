@@ -85,14 +85,10 @@ class control_plotter(object):
         return [nbinsx,minX,maxX]
 
 
-    '''draw_command = '%s>>temph' % (branch_)
-    file_.Get(treename_).Draw(draw_command,'Jet_numLoose>=4')
-    htemp = ROOT.gDirectory.Get("temph")
-    htemp.SetName(branch_)
-    input_hist_dict[file_.GetName()] = htemp'''
 
     def load_histos(self, input_files_, branches_, treename_):
-        input_hist_dict = {}
+        #input_hist_dict = {}
+        input_hist_dict = OrderedDict([])
         file_index = 0
         for file_ in input_files_:
             print 'file_: ', file_.GetName()
@@ -109,7 +105,7 @@ class control_plotter(object):
                     if percentage_done % 10 == 0:
                         if percentage_done != temp_percentage_done:
                             temp_percentage_done = percentage_done
-                            print '%f percent done' % (temp_percentage_done)
+                            print '%.2f percent done' % (temp_percentage_done)
                     tree_.GetEntry(i)
                     nJets_ = tree_.GetBranch('Jet_numLoose').GetLeaf('Jet_numLoose')
                     if nJets_.GetValue() < 4:
@@ -187,6 +183,48 @@ class control_plotter(object):
         c1.SaveAs(output_fullpath,'png')
         return
 
+    def make_dataMC_comparison(self, input_hist_mc, input_hist_data, variable_name):
+
+        c1 = ROOT.TCanvas('c1',',1000,1000')
+        p1 = ROOT.TPad('p1','p1',0.0,0.0,1.0,1.0)
+        p1.Draw()
+        p1.SetRightMargin(0.1)
+        p1.SetLeftMargin(0.1)
+        p1.SetBottomMargin(0.1)
+        p1.SetTopMargin(0.1)
+        p1.SetGridx(True)
+        p1.SetGridy(True)
+        p1.cd()
+        ROOT.gStyle.SetOptStat(0)
+        ROOT.gStyle.SetOptTitle(0)
+        hist_count = 0
+        maxy = 0
+        legend = ROOT.TLegend(0.7,0.8,0.9,0.9)
+
+        maxy = input_hist_mc.GetMaximum()*1.2 if input_hist_mc.GetStack().Last().GetMaximum()>input_hist_data.GetMaximum() else input_hist_data.GetMaximum()*1.2
+
+        histo_title_mc = 'MC'
+        input_hist_mc.Draw('HIST')
+        input_hist_mc.SetTitle(histo_title_mc)
+        input_hist_mc.GetXaxis().SetTitle('Arbitrary Units')
+        input_hist_mc.GetXaxis().SetTitle(variable_name)
+        input_hist_mc.SetMaximum(maxy)
+        legend.AddEntry(input_hist_mc,input_hist_mc.GetTitle(),"l")
+
+        histo_title_data = 'DATA'
+        input_hist_data.Draw('HISTSAMEEP')
+        input_hist_data.SetTitle(histo_title_data)
+        input_hist_data.GetXaxis().SetTitle('Arbitrary Units')
+        input_hist_data.GetXaxis().SetTitle(variable_name)
+        input_hist_data.SetMaximum(maxy)
+        legend.AddEntry(input_hist_data,input_hist_data.GetTitle(),"p")
+
+        legend.Draw('SAME')
+        output_fullpath = 'invar_control_plots_190404/' + variable_name + '_DataMC.png'
+        c1.Update()
+        c1.SaveAs(output_fullpath,'png')
+        return
+
     def sum_hists(self, hists_, title):
         binning_ = self.define_binning(hists_[0].GetName())
         combined_hist = ROOT.TH1F(title,title,binning_[0],binning_[1],binning_[2])
@@ -194,3 +232,86 @@ class control_plotter(object):
             combined_hist.Add(hist_)
             combined_hist.SetTitle(title)
         return combined_hist
+
+    def stack_hists(self, hists_, title, variable_name):
+
+        c1 = ROOT.TCanvas('c1',',1000,1000')
+        p1 = ROOT.TPad('p1','p1',0.0,0.0,1.0,1.0)
+        p1.Draw()
+        p1.SetRightMargin(0.1)
+        p1.SetLeftMargin(0.1)
+        p1.SetBottomMargin(0.1)
+        p1.SetTopMargin(0.1)
+        p1.SetGridx(True)
+        p1.SetGridy(True)
+        p1.cd()
+        ROOT.gStyle.SetOptStat(0)
+        ROOT.gStyle.SetOptTitle(0)
+        hist_count = 0
+        maxy = 0
+        legend = TLegend(0.7,  0.7,  0.9,  0.9)
+        legend.SetNColumns(2)
+
+        process_list = OrderedDict([
+        ("Conv" , 5),
+        ("EWK" , 6),
+        ("Fakes" , 13),
+        ("Flips" , 17),
+        ("Rares" , 38),
+        ("TTW" , 8),
+        ("TTZ" , 9),
+        ("TTWW" , 3),
+        ("TTH_hww" , 2),
+        ("TTH_hzz" , 2),
+        ("TTH_htt" , 2),
+        ("TTH_hot" , 2),
+        ("TTH_hmm" , 2),
+        ("Data" , 1)
+        ])
+
+        stacked_hist = ROOT.THStack()
+        data_hist_name = 'Data_SigRegion_%s_SignalRegion' % (variable_name)
+        binning_ = self.define_binning(hists_.get(data_hist_name).GetName())
+        for name, hist_ in hists_.iteritems():
+            print 'name = ', name
+            for key in process_list:
+                if key in name:
+                    print 'add %s to legend' % (key)
+                    hist_.SetMarkerColor(process_list[key])
+                    hist_.SetMarkerStyle(20)
+                    hist_.SetLineColor(process_list[key])
+                    hist_.SetFillColor(process_list[key])
+                    if 'Data' in name:
+                        legend.AddEntry(hist_,key,'p')
+                    else:
+                        legend.AddEntry(hist_,key,'f')
+            if 'Data' in name:
+                continue
+            stacked_hist.Add(hist_)
+            stacked_hist.SetTitle(title)
+        stacked_hist.SetMaximum(stacked_hist.GetStack().Last().GetMaximum() + (stacked_hist.GetStack().Last().GetMaximum()/2))
+        stacked_hist.SetMinimum(0.)
+
+        input_hist_data = hists_.get(data_hist_name)
+
+        maxy = stacked_hist.GetMaximum()*1.2 if stacked_hist.GetStack().Last().GetMaximum()>input_hist_data.GetMaximum() else input_hist_data.GetMaximum()*1.2
+
+        histo_title_mc = 'MC'
+        stacked_hist.Draw('HIST')
+        stacked_hist.SetTitle(histo_title_mc)
+        stacked_hist.GetYaxis().SetTitle('Events')
+        stacked_hist.GetXaxis().SetTitle(variable_name)
+        stacked_hist.SetMaximum(maxy)
+
+        histo_title_data = 'DATA'
+        input_hist_data.Draw('HISTSAMEEP')
+        input_hist_data.SetTitle(histo_title_data)
+        input_hist_data.GetYaxis().SetTitle('Events')
+        input_hist_data.GetXaxis().SetTitle(variable_name)
+        input_hist_data.SetMaximum(maxy)
+
+        legend.Draw('SAME')
+        output_fullpath = 'invar_control_plots_190404/' + variable_name + '_DataMC.png'
+        c1.Update()
+        c1.SaveAs(output_fullpath,'png')
+        return
