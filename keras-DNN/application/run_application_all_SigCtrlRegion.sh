@@ -1,0 +1,7 @@
+#!/bin/bash
+#source run_application_series_SigRegion.sh
+#source run_application_JESDOWN_series_SigRegion.sh
+#source run_application_JESUP_series_SigRegion.sh
+source run_application_series_CtrlRegion.sh
+source run_application_JESDOWN_series_CtrlRegion.sh
+source run_application_JESUP_series_CtrlRegion.sh
