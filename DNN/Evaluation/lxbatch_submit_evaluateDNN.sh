@@ -5,5 +5,9 @@ bsub -q 8nh -J lxbatch_runjob_evaluateDNN_Rare < lxbatch_runjob_evaluateDNN_Rare
 bsub -q 8nh -J lxbatch_runjob_evaluateDNN_data < lxbatch_runjob_evaluateDNN_data.sh
 bsub -q 8nh -J lxbatch_runjob_evaluateDNN_ttJ < lxbatch_runjob_evaluateDNN_ttJetssample.sh
 bsub -q 8nh -J lxbatch_runjob_evaluateDNN_ttW < lxbatch_runjob_evaluateDNN_ttWsample.sh
+bsub -q 8nh -J lxbatch_runjob_evaluateDNN_ttWW < lxbatch_runjob_evaluateDNN_ttWWsample.sh
 bsub -q 8nh -J lxbatch_runjob_evaluateDNN_ttZ < lxbatch_runjob_evaluateDNN_ttZsample.sh
-bsub -q 8nh -J lxbatch_runjob_evaluateDNN_ttH < lxbatch_runjob_evaluateDNN_tthsample.sh
+bsub -q 8nh -J evaluateDNN_ttHww < lxbatch_runjob_evaluateDNN_tthwwsample.sh
+bsub -q 8nh -J lxbatch_runjob_evaluateDNN_ttHzz < lxbatch_runjob_evaluateDNN_tthzzsample.sh
+bsub -q 8nh -J lxbatch_runjob_evaluateDNN_ttHtt < lxbatch_runjob_evaluateDNN_tthttsample.sh
+bsub -q 8nh -J lxbatch_runjob_evaluateDNN_ttHot < lxbatch_runjob_evaluateDNN_tthotsample.sh

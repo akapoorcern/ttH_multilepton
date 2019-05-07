@@ -36,14 +36,15 @@ def main():
 
     usage = 'usage: %prog [options]'
     parser = optparse.OptionParser(usage)
-    parser.add_option('-s', '--signal_sample',        dest='input_file_name_signal'  ,      help='signal sample path',      default='samples/DiLepTR_ttH_bInclude.root',        type='string')
-    parser.add_option('-x', '--bckg1_sample',        dest='input_file_name_ttJets'  ,      help='background sample 1 path',      default='samples/DiLepTR_ttJets_bInclude.root',        type='string')
-    parser.add_option('-y', '--bckg2_sample',        dest='input_file_name_ttV'  ,      help='background sample 2 path',      default='samples/DiLepTR_ttV_bInclude.root',        type='string')
+    parser.add_option('-s', '--signal_sample',        dest='input_file_name_signal'  ,      help='signal sample path',      default='samples/samples-NJet_geq_3/MVATraining/ttHnobb_TrainMVANoCutJetN.root',        type='string')
+    parser.add_option('-x', '--bckg1_sample',        dest='input_file_name_ttJets'  ,      help='background sample 1 path',      default='samples/samples-NJet_geq_3/MVATraining/ttJets_TrainMVANoCutJetN.root',        type='string')
+    parser.add_option('-y', '--bckg2_sample',        dest='input_file_name_ttW'  ,      help='background sample 2 path',      default='samples/samples-NJet_geq_3/MVATraining/ttWJets_TrainMVANoCutJetN.root',        type='string')
+    parser.add_option('-z', '--bckg3_sample',        dest='input_file_name_ttZ'  ,      help='background sample 3 path',      default='samples/samples-NJet_geq_3/MVATraining/ttZJets_TrainMVANoCutJetN.root',        type='string')
     parser.add_option('-a', '--activation',        dest='activation_function'  ,      help='activation function',      default='relu',        type='string')
     parser.add_option('-l', '--hidden_layers',        dest='number_of_hidden_layers'  ,      help='number of hidden layers',      default='2',        type='int')
     parser.add_option('-t', '--var_transform',        dest='var_transform_name'  ,      help='transformation used on input variables',      default='None',        type='string')
     parser.add_option('-j', '--json',        dest='json'  ,      help='json file with list of variables',      default=None,        type='string')
-    parser.add_option('-r', '--learning_rate',        dest='learning_rate'  ,      help='learning rate',      default=0.01,        type='float')
+    parser.add_option('-r', '--learning_rate',        dest='learning_rate'  ,      help='learning rate',      default=0.008,        type='float')
     parser.add_option('-n', '--num_epochs',        dest='num_epochs'  ,      help='number of epochs',      default=10,        type='string')
 
     (opt, args) = parser.parse_args()
@@ -74,7 +75,7 @@ def main():
     for key, value in new_variable_list:
         num_inputs = num_inputs + 1
     print 'num inputs = ' , str(num_inputs)
-    classifier_parent_dir = 'V8-DNN_%sVars_%sHLs_%s_%s-VarTrans_%s-learnRate_%s-epochs-%s-nodes' % (str(num_inputs),str(number_of_hidden_layers),activation_function,new_var_transform_name,str(learning_rate),num_epochs,str(layer_nodes))
+    classifier_parent_dir = 'DNN_noCutJetN_%sVars_%sHLs_%s_%s-VarTrans_%s-learnRate_%s-epochs-%s-nodes' % (str(num_inputs),str(number_of_hidden_layers),activation_function,new_var_transform_name,str(learning_rate),num_epochs,str(layer_nodes))
     classifier_samples_dir = classifier_parent_dir+"/outputs"
     if not os.path.exists(classifier_samples_dir):
         os.makedirs(classifier_samples_dir)
@@ -99,9 +100,13 @@ def main():
     data_bckg_ttJets = TFile.Open(input_file_name_ttJets)
     background_ttJets = data_bckg_ttJets.Get('syncTree')
 
-    input_file_name_ttV = opt.input_file_name_ttV
-    data_bckg_ttV = TFile.Open(input_file_name_ttV)
-    background_ttV = data_bckg_ttV.Get('syncTree')
+    input_file_name_ttW = opt.input_file_name_ttW
+    data_bckg_ttW = TFile.Open(input_file_name_ttW)
+    background_ttW = data_bckg_ttW.Get('syncTree')
+
+    input_file_name_ttZ = opt.input_file_name_ttZ
+    data_bckg_ttZ = TFile.Open(input_file_name_ttZ)
+    background_ttZ = data_bckg_ttZ.Get('syncTree')
 
     # Declare a dataloader interface
     dataloader_name = classifier_parent_dir
@@ -114,9 +119,11 @@ def main():
     signalWeight = 1.
     backgroundWeight0 = 1.
     backgroundWeight1 = 1.
+    backgroundWeight2 = 1.
     dataloader.AddTree(signal, 'ttH', signalWeight)
-    dataloader.AddTree(background_ttV, 'ttV', backgroundWeight0)
-    dataloader.AddTree(background_ttJets, 'ttJets', backgroundWeight1)
+    dataloader.AddTree(background_ttW, 'ttW', backgroundWeight0)
+    dataloader.AddTree(background_ttZ, 'ttZ', backgroundWeight1)
+    dataloader.AddTree(background_ttJets, 'ttJets', backgroundWeight2)
 
     branches = {}
     for key, value in new_variable_list:
@@ -124,12 +131,6 @@ def main():
         branches[key] = array('f', [-999])
         print 'variable: ', key
         branchName = ''
-        #if 'hadTop_BDT' in key:
-        #    branchName = 'hadTop_BDT'
-        #elif 'Hj1_BDT' in key:
-        #    branchName = 'Hj1_BDT'
-        #else:
-        #    branchName = key
         branchName = key
     dataloader.AddSpectator('nEvent','F')
 
@@ -137,7 +138,8 @@ def main():
     # event weight = puWgtNom * trigWgtNom * lepSelEffNom * genWgt * xsecWgt (* 0 or 1 depending on if it passes event selection)
 
     dataloader.SetWeightExpression("EventWeight", "ttH")
-    dataloader.SetWeightExpression("EventWeight", "ttV")
+    dataloader.SetWeightExpression("EventWeight", "ttW")
+    dataloader.SetWeightExpression("EventWeight", "ttZ")
     dataloader.SetWeightExpression("EventWeight", "ttJets")
 
     # NormMode: Overall renormalisation of event-by-event weights used in training.
@@ -161,7 +163,7 @@ def main():
     # first hidden layer
     model.add(Dense(layer_nodes, init='glorot_normal', activation=activation_function, input_dim=len(new_variable_list)))
 
-    #Randomly set a fraction rate of input units (defined by argument) to 0 at each update during training (helps prevent overfitting).
+    # Randomly set a fraction rate of input units (defined by argument) to 0 at each update during training (helps prevent overfitting).
     #model.add(Dropout(0.2))
 
 
@@ -172,7 +174,7 @@ def main():
     # Output layer
     # softmax ensures output values are in range 0-1. Can be used as predicted probabilities.
     # 'softmax' activation function used in final layer so that the outputs represent probabilities (output is normalised to 1).
-    model.add(Dense(3, activation='softmax'))
+    model.add(Dense(4, activation='softmax'))
 
     # Set loss and optimizer
     # categorical_crossentropy = optimisation algorithm with logarithmic loss function

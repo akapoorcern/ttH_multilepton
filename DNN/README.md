@@ -52,14 +52,11 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/cvmfs/sft-nightlies.cern.ch/lcg/views/d
 
 ## New shell
 As mentioned above, now every time you open a new shell you only need to rerun the commands beneath to establish you python working environment:
+Source the following software stack:
 ```
-scl enable python27 bash
-source <path_where_you_cloned_lxplus_setup>/lxplus_setup/py2_virtualenv/bin/activate
+source /cvmfs/sft.cern.ch/lcg/views/LCG_93/x86_64-slc6-gcc62-opt/setup.sh
 ```
-Source LCG build:
-```
-source /cvmfs/sft-nightlies.cern.ch/lcg/views/dev3/latest/x86_64-slc6-gcc62-opt/setup.sh
-```
+
 ## DNN Training
 The first script to run is train_DNN.py. This script uses the keras interface within pyTMVA to train and test a DNN using Tensorflow. The input arguments are described below and more information can be found in the code:
 ```
@@ -103,6 +100,11 @@ PrepareTrainingAndTestTree
                        : Dataset[MultiClass_DNN] : Class index : 2  name : sample=ttJets
 ```
 - As you can see here, the three classes (neurons) in the output layer are associated with one of the inputs.
+
+
+## Checking Models
+- If you ever need to check the network model of a training you can check in the /weights/<Factory object>.C
+
 
 ## DNN Training/Testing Plots
 - Various plots from the training/testing of the DNN can be created using the appropriately titled script DNN_ResponsePlotter.py.
@@ -168,6 +170,8 @@ DNN_InputVariable_Separation.py -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-epo
 ```
 
 ## ROC Curves
+
+
 - The DNN_ROCit.py script will create plots of the receiver operating characteristic curves for each of the output nodes in the DNN.
 - Plots contain the AUC as figure of merit.
 - The plots can be found in the 'plots' directory within the directory the TMVA factory created during training.
@@ -234,8 +238,10 @@ python DNN_ApplicationPlotter.py -s 2HLs_relu_D+G-VarTrans_0.008-learnRate_10-ep
 - A sub-directory called 'Evaluation' exists that contains a script called evaluate_DNN.py which contains the code to evaluate the DNN and categorise events for a given ntuple, based on a training file defined in an input directory.
 - To make things faster, 'Evaluation' also contains lxbatch scripts to run each job on an lxbatch node (e.g. lxbatch_runjob_evaluateDNN_tthsample.sh) and a submission script to submit all jobs to lxbatch (e.g.lxbatch_submit_evaluateDNN.sh).
 - For an example of how to text locally simply look at the python command inside one of the 'runjob' scripts.
-- If you want to run a new trained DNN model, it is advised to first copy the training directory from one level above this sub-directory to here.
+- If you want to run a new trained DNN model, it is advised to first copy the training directory from one level above to this sub-directory to here.
 - Then one needs to change the training .xml file to ensure the path to the trained model .h5 file is the full path, not the relative path as default otherwise the code will abort on the lxbatch node.
+- For example commands, one can check the lxbatch scripts.
+- The binning optimised and used in this script should be used to make templates for the fit in the analysis.
 
 ## Comparison with BDT
 - The script 'apply_trained_BDTG.py' was written to apply the 2017-2018 analysis' BDTG weights to the 2017 samples and create and output .root file that can be used to create performance plots for the BDTG for comparison.

@@ -60,7 +60,7 @@ def main():
 
     classifier_suffix = opt.input_suffix
 
-    classifier_parent_dir = 'MultiClass_DNN_allJets_%s' % (classifier_suffix)
+    classifier_parent_dir = 'V7-DNN_%s' % (classifier_suffix)
     classifier_plots_dir = classifier_parent_dir+"/plots"
 
     if not os.path.exists(classifier_plots_dir):

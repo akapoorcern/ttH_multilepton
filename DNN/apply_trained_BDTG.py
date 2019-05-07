@@ -150,9 +150,11 @@ def main():
     # First argument is user defined name. Doesn not have to be same as training name.
     # True type of method and full configuration are read from the weights file specified in the second argument.
     if classifier_suffix == "ttHvsttJets":
-        mva_weights_dir = 'BinaryClassifier_BDTG_%s/weights/2lss_ttbar_withBDTv8_BDTG.weights.xml' % classifier_suffix
+        #mva_weights_dir = 'BinaryClassifier_BDTG_%s/weights/2lss_ttbar_withBDTv8_BDTG.weights.xml' % classifier_suffix
+        mva_weights_dir = '../../../FromMarco/2lss_ttbar_withBDTv8_BDTG.weights.xml'
     elif classifier_suffix == "ttHvsttV":
-        mva_weights_dir = 'BinaryClassifier_BDTG_%s/weights/2lss_ttV_withHj_BDTG.weights.xml' % classifier_suffix
+        #mva_weights_dir = 'BinaryClassifier_BDTG_%s/weights/2lss_ttV_withHj_BDTG.weights.xml' % classifier_suffix
+        mva_weights_dir = '../../../FromMarco/2lss_ttV_withHj_BDTG.weights.xml'
 
     print 'using weights file: ', mva_weights_dir
     reader.BookMVA('BDTG', TString(mva_weights_dir))

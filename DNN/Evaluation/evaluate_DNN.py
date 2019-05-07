@@ -14,6 +14,8 @@ from os.path import isfile
 import optparse
 import json
 import math
+import pytz
+from datetime import datetime
 
 def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree, integer_branches_tree, branches_reader, tmvareader, categorise, output_tree):
 
@@ -44,15 +46,15 @@ def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree
     histo_mm_ttVclassified_events_title = 'ttV mm %s Events: %s Sample' % (histoname_type,sample_name)
     histo_mm_ttJclassified_events_title = 'ttJ mm %s Events: %s Sample' % (histoname_type,sample_name)
 
-    histo_ee_events = ROOT.TH1D(histo_ee_events_name,histo_ee_events_title,20,0,1.)
+    histo_ee_events = ROOT.TH1D(histo_ee_events_name,histo_ee_events_title,50,0,1.)
 
-    histo_em_ttHclassified_events = ROOT.TH1D(histo_em_ttHclassified_events_name,histo_em_ttHclassified_events_title,20,0,1.)
-    histo_em_ttVclassified_events = ROOT.TH1D(histo_em_ttVclassified_events_name,histo_em_ttVclassified_events_title,20,0,1.)
-    histo_em_ttJclassified_events = ROOT.TH1D(histo_em_ttJclassified_events_name,histo_em_ttJclassified_events_title,20,0,1.)
+    histo_em_ttHclassified_events = ROOT.TH1D(histo_em_ttHclassified_events_name,histo_em_ttHclassified_events_title,50,0,1.)
+    histo_em_ttVclassified_events = ROOT.TH1D(histo_em_ttVclassified_events_name,histo_em_ttVclassified_events_title,50,0,1.)
+    histo_em_ttJclassified_events = ROOT.TH1D(histo_em_ttJclassified_events_name,histo_em_ttJclassified_events_title,50,0,1.)
 
-    histo_mm_ttHclassified_events = ROOT.TH1D(histo_mm_ttHclassified_events_name,histo_mm_ttHclassified_events_title,20,0,1.)
-    histo_mm_ttVclassified_events = ROOT.TH1D(histo_mm_ttVclassified_events_name,histo_mm_ttVclassified_events_title,20,0,1.)
-    histo_mm_ttJclassified_events = ROOT.TH1D(histo_mm_ttJclassified_events_name,histo_mm_ttJclassified_events_title,20,0,1.)
+    histo_mm_ttHclassified_events = ROOT.TH1D(histo_mm_ttHclassified_events_name,histo_mm_ttHclassified_events_title,50,0,1.)
+    histo_mm_ttVclassified_events = ROOT.TH1D(histo_mm_ttVclassified_events_name,histo_mm_ttVclassified_events_title,50,0,1.)
+    histo_mm_ttJclassified_events = ROOT.TH1D(histo_mm_ttJclassified_events_name,histo_mm_ttJclassified_events_title,50,0,1.)
 
     eval_ttHnode = array('f',[0.])
     eval_ttVnode = array('f',[0.])
@@ -95,8 +97,6 @@ def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree
 
             lep_cat = ''
 
-            #print 'sample_ttree.SubCat2l : ' , sample_ttree.SubCat2l
-
             if (sample_ttree.SubCat2l == 1) or (sample_ttree.SubCat2l == 2):
                 lep_cat = 'ee'
             if (sample_ttree.SubCat2l == 3) or (sample_ttree.SubCat2l == 4) or (sample_ttree.SubCat2l == 5) or (sample_ttree.SubCat2l == 6):
@@ -104,39 +104,31 @@ def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree
             if (sample_ttree.SubCat2l == 7) or (sample_ttree.SubCat2l == 8) or (sample_ttree.SubCat2l == 9) or (sample_ttree.SubCat2l == 10):
                 lep_cat = 'mm'
 
-            #print 'lep_cat : ' , lep_cat
             event_classification = max(tmvareader.EvaluateMulticlass('DNN')[0],tmvareader.EvaluateMulticlass('DNN')[1],tmvareader.EvaluateMulticlass('DNN')[2])
-
             if lep_cat == 'ee':
                 histo_ee_events.Fill(event_classification,EventWeight_)
 
             if event_classification == tmvareader.EvaluateMulticlass('DNN')[0]:
-                #print 'ttH category'
                 if lep_cat == 'em':
                     histo_em_ttHclassified_events.Fill(event_classification,EventWeight_)
                 if lep_cat == 'mm':
                     histo_mm_ttHclassified_events.Fill(event_classification,EventWeight_)
-                #histo_ttHclassified_events.Fill(event_classification,EventWeight_)
                 eval_ttHnode[0] = event_classification
                 eval_ttVnode[0] = -999
                 eval_ttJnode[0] = -999
             elif event_classification == tmvareader.EvaluateMulticlass('DNN')[1]:
-                #print 'ttV category'
                 if lep_cat == 'em':
                     histo_em_ttVclassified_events.Fill(event_classification,EventWeight_)
                 if lep_cat == 'mm':
                     histo_mm_ttVclassified_events.Fill(event_classification,EventWeight_)
-                #histo_ttVclassified_events.Fill(event_classification,EventWeight_)
                 eval_ttHnode[0] = -999
                 eval_ttVnode[0] = event_classification
                 eval_ttJnode[0] = -999
             elif event_classification == tmvareader.EvaluateMulticlass('DNN')[2]:
-                #print 'ttJ category'
                 if lep_cat == 'em':
                     histo_em_ttJclassified_events.Fill(event_classification,EventWeight_)
                 if lep_cat == 'mm':
                     histo_mm_ttJclassified_events.Fill(event_classification,EventWeight_)
-                #histo_ttJclassified_events.Fill(event_classification,EventWeight_)
                 eval_ttHnode[0] = -999
                 eval_ttVnode[0] = -999
                 eval_ttJnode[0] = event_classification
@@ -153,9 +145,6 @@ def network_evaluation(sample_ttree, variables_list, sample_name, branches_ttree
                 histo_mm_ttJclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[2],EventWeight_)
                 histo_mm_ttVclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[1],EventWeight_)
                 histo_mm_ttHclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[0],EventWeight_)
-            #histo_ttHclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[0],EventWeight_)
-            #histo_ttVclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[1],EventWeight_)
-            #histo_ttJclassified_events.Fill(tmvareader.EvaluateMulticlass('DNN')[2],EventWeight_)
             eval_ttHnode[0] = tmvareader.EvaluateMulticlass('DNN')[0]
             eval_ttVnode[0] = tmvareader.EvaluateMulticlass('DNN')[1]
             eval_ttJnode[0] = tmvareader.EvaluateMulticlass('DNN')[2]
@@ -179,7 +168,7 @@ def main():
     usage = 'usage: %prog [options]'
     parser = optparse.OptionParser(usage)
     parser.add_option('-s', '--suffix',        dest='input_suffix'  ,      help='suffix used to identify inputs from network training',      default=None,        type='string')
-    parser.add_option('-j', '--json',        dest='json'  ,      help='json file with list of variables',      default=None,        type='string'),
+    parser.add_option('-j', '--json',        dest='json'  ,      help='json file with list of variables',      default=None,        type='string')
     parser.add_option('-i', '--input',        dest='input_file'  ,      help='input file',      default=None,        type='string')
 
     (opt, args) = parser.parse_args()
@@ -203,7 +192,7 @@ def main():
     input_file = opt.input_file
 
     classifier_suffix = opt.input_suffix
-    classifier_parent_dir = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/DNN/Evaluation/MultiClass_DNN_%sVars_%s' % (str(n_input_vars),classifier_suffix,)
+    classifier_parent_dir = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/DNN/Evaluation/V7-DNN_%s' % (classifier_suffix)
 
     # Setup TMVA
     TMVA.Tools.Instance()
@@ -250,28 +239,35 @@ def main():
     # Book methods
     # First argument is user defined name. Doesn not have to be same as training name.
     # True type of method and full configuration are read from the weights file specified in the second argument.
-    #mva_weights_dir = '%s/weights/Factory_MultiClass_DNN_%sVars_%s_DNN.weights.xml' % (classifier_parent_dir,str(n_input_vars),classifier_suffix)
-    mva_weights_dir = '%s/weights/Factory_MultiClass_DNN_%sVars_%s_DNN.weights.xml' % (classifier_parent_dir,str(n_input_vars),classifier_suffix)
+    mva_weights_dir = '%s/weights/Factory_V7-DNN_%s_DNN.weights.xml' % (classifier_parent_dir,classifier_suffix)
     print 'using weights file: ', mva_weights_dir
     reader.BookMVA('DNN', TString(mva_weights_dir))
 
-    if '/2LSS/' in input_file:
-            analysis_region = '2LSS'
+    if '/2L/' in input_file:
+            analysis_region = '2L'
     elif '/ttWctrl/' in input_file:
         analysis_region = 'ttWctrl'
+    elif '/JESDownttWctrl/' in input_file:
+        analysis_region = 'JESDownttWctrl'
+    elif '/JESUpttWctrl/' in input_file:
+        analysis_region = 'JESUpttWctrl'
+    elif '/ClosTTWctrl/' in input_file:
+        analysis_region = 'ClosTTWctrl'
     elif '/ttZctrl/' in input_file:
         analysis_region = 'ttZctrl'
-    elif '/Clos/' in input_file:
+    elif '/Clos2LSS/' in input_file:
         analysis_region = 'Closure'
     elif '/JESDown2L/' in input_file:
         analysis_region = 'JESDown2L'
     elif '/JESUp2L/' in input_file:
         analysis_region = 'JESUp2L'
 
-
+    time_suffix = str(datetime.now(pytz.utc)).split(' ')
+    print time_suffix[0]
     #classifier_samples_dir = classifier_parent_dir+"/outputs"
-    classifier_samples_dir = classifier_parent_dir+"_splitbyleptonchannel/outputs"
-    classifier_plots_dir = classifier_parent_dir+"_splitbyleptonchannel/plots"
+    classifier_samples_dir = classifier_parent_dir+"/outputs-newbinning"
+    #classifier_plots_dir = classifier_parent_dir+"/plots"
+    classifier_plots_dir = classifier_parent_dir+"/plots-newbinning"
     if not os.path.exists(classifier_plots_dir):
         os.makedirs(classifier_plots_dir)
     if not os.path.exists(classifier_samples_dir):
@@ -297,30 +293,47 @@ def main():
 
     sample_nickname = ''
 
-    if 'H_2LSS' in output_suffix:
-        if 'TTH_2LSS' in output_suffix:
-            sample_nickname = 'TTH_2LSS'
-        else:
-            sample_nickname = 'H_2LSS'
-    if 'TTWW_2LSS' in output_suffix:
-        sample_nickname = 'TTWW_2LSS'
-    if 'TTW_2LSS' in output_suffix:
-        sample_nickname = 'TTW_2LSS'
-    if 'TTZ_2LSS' in output_suffix:
-        sample_nickname = 'TTZ_2LSS'
-    if 'Conv_2LSS' in output_suffix:
-        sample_nickname = 'Conv_2LSS'
-    if 'EWK_2LSS' in output_suffix:
-        sample_nickname = 'EWK_2LSS'
-    if 'Fakes_2LSS' in output_suffix:
-        sample_nickname = 'Fakes2LSS'
-    if 'Flips_2LSS' in output_suffix:
-        sample_nickname = 'Flips_2LSS'
-    if 'Rares_2LSS' in output_suffix:
-        sample_nickname = 'Rares_2LSS'
-    if 'TT_Clos' in output_suffix:
+    if 'THQ_htt_2L' in input_file:
+        sample_nickname = 'THQ_htt_2L'
+    if 'THQ_hzz_2L' in input_file:
+        sample_nickname = 'THQ_hzz_2L'
+    if 'THW_hww_2L' in input_file:
+        sample_nickname = 'THW_hww_2L'
+    if 'TTH_hmm_2L' in input_file:
+        sample_nickname = 'TTH_hmm_2L'
+    if 'TTH_htt_2L' in input_file:
+        sample_nickname = 'TTH_htt_2L'
+    if 'TTH_hzz_2L' in input_file:
+        sample_nickname = 'TTH_hzz_2L'
+    if 'THQ_hww_2L' in input_file:
+        sample_nickname = 'THQ_hww_2L'
+    if 'THW_htt_2L' in input_file:
+        sample_nickname = 'THW_htt_2L'
+    if 'THW_hzz_2L' in input_file:
+        sample_nickname = 'THW_hzz_2L'
+    if 'TTH_hot_2L' in input_file:
+        sample_nickname = 'TTH_hot_2L'
+    if 'TTH_hww_2L' in input_file:
+        sample_nickname = 'TTH_hww_2L'
+    if 'TTWW_2L' in input_file:
+        sample_nickname = 'TTWW_2L'
+    if 'TTW_2L' in input_file:
+        sample_nickname = 'TTW_2L'
+    if 'TTZ_2L' in input_file:
+        sample_nickname = 'TTZ_2L'
+    if 'Conv_2L' in input_file:
+        sample_nickname = 'Conv_2L'
+    if 'EWK_2L' in input_file:
+        sample_nickname = 'EWK_2L'
+    if 'Fakes_2L' in input_file:
+        sample_nickname = 'Fakes_2L'
+    if 'Flips_2L' in input_file:
+        sample_nickname = 'Flips_2L'
+    if 'Rares_2L' in input_file:
+        sample_nickname = 'Rares_2L'
+    if 'TT_Clos' in input_file:
         sample_nickname = 'TT_Clos'
-    if 'Data' in output_suffix:
+    if 'Data' in input_file:
         sample_nickname = 'Data'
 
     # Evaluate network and use max node response to categorise event. Only maximum node response will be plotted per event meaning each event will only contribute in the maximum nodes response histogram.

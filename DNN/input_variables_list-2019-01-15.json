@@ -1,0 +1,21 @@
+{
+"Jet_numLoose" : "\"F\"",
+"jet1_pt": "\"F\"",
+"jet1_eta": "\"F\"",
+"jet2_pt": "\"F\"",
+"jet2_eta": "\"F\"",
+"jet3_pt": "\"F\"",
+"jet3_eta": "\"F\"",
+"jet4_pt": "\"F\"",
+"jet4_eta": "\"F\"",
+"lep1_conePt": "\"F\"",
+"lep1_eta": "\"F\"",
+"lep2_conePt": "\"F\"",
+"lep2_eta": "\"F\"",
+"PFMET":"\"F\"",
+"hadTop_BDT := max(hadTop_BDT,-1.)" : "\"F\"",
+"Hj_tagger_hadTop:= max(Hj_tagger_hadTop,-1.)": "\"F\"",
+"metLD":"\"F\"",
+"maxeta":"\"F\"",
+"massL":"\"F\""
+}

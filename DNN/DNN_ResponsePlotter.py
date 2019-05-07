@@ -45,7 +45,7 @@ def GetSeparation(hist_sig, hist_bckg):
 def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     # Makes plot from TestTree/TrainTree distributions. Plots made from
     # combined response values from each node for a single sample.
-    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
+    classifier_parent_dir = 'V8-DNN_%s' % (classifier_suffix)
     # Declare and define new hitogram objects
     Histo_training_ttH_DNNResponse = ROOT.TH1D('Histo_training_ttH_DNNResponse','ttH sample (Train)',40,0.0,1.0)
     Histo_training_ttJets_DNNResponse = ROOT.TH1D('Histo_training_ttJets_DNNResponse','ttJets sample (Train)',40,0.0,1.0)
@@ -56,12 +56,9 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     Histo_testing_ttV_DNNResponse = ROOT.TH1D('Histo_testing_ttV_DNNResponse','ttV sample (Test)',40,0.0,1.0)
 
     # Now lets project the tree information into those histograms
-    # My current understanding is that the three branches beneath
-    # represent the response (i.e.)
     TrainTree.Project("Histo_training_ttH_DNNResponse","DNN.ttH")
     TrainTree.Project("Histo_training_ttV_DNNResponse","DNN.ttV")
     TrainTree.Project("Histo_training_ttJets_DNNResponse","DNN.ttJets")
-
     TestTree.Project("Histo_testing_ttH_DNNResponse","DNN.ttH")
     TestTree.Project("Histo_testing_ttV_DNNResponse","DNN.ttV")
     TestTree.Project("Histo_testing_ttJets_DNNResponse","DNN.ttJets")
@@ -200,8 +197,6 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
         ttJetsnode_testing_response_array.append(Histo_testing_ttJets_DNNResponse.GetBinContent(n))
     ttJetsnode_testing_response_nparray = np.array(ttJetsnode_testing_response_array)
 
-    print 'ttHnode_training_response_nparray: ', ttHnode_training_response_nparray
-    print 'ttHnode_testing_response_nparray: ', ttHnode_testing_response_nparray
 
     ks_teststat_ttHnode,ks_pval_ttHnode = stats.ks_2samp(ttHnode_training_response_nparray, ttHnode_testing_response_nparray)
     ks_teststat_ttVnode,ks_pval_ttVnode = stats.ks_2samp(ttVnode_training_response_nparray, ttVnode_testing_response_nparray)
@@ -245,16 +240,6 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
 
     sep_ttH_v_ttV_testing = GetSeparation(Histo_testing_ttH_DNNResponse, Histo_testing_ttV_DNNResponse)
     sep_ttH_v_ttJ_testing = GetSeparation(Histo_testing_ttH_DNNResponse, Histo_testing_ttJets_DNNResponse)
-
-    '''l2=ROOT.TLatex()
-    l2.SetNDC();
-    latex_separation_ttH_v_ttV = '#scale[0.5]{ttH vs. ttV separation = %.5f}' % sep_ttH_v_ttV_testing
-    l2.DrawLatex(0.7,0.35,latex_separation_ttH_v_ttV)
-
-    l3=ROOT.TLatex()
-    l3.SetNDC();
-    latex_separation_ttH_v_ttJ = '#scale[0.5]{ttH vs. ttJ separation = %.5f}' % sep_ttH_v_ttJ_testing
-    l3.DrawLatex(0.7,0.3,latex_separation_ttH_v_ttJ)'''
 
     c1.cd()
     p2 = ROOT.TPad("p2","p2",0.0,0.0,1.0,0.2)
@@ -305,7 +290,7 @@ def plot_DNNResponse(TrainTree, TestTree, classifier_suffix):
     c1.Print(outfile_name,'pdf')
 
 def plot_node_response(input_root, node, classifier_suffix):
-    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
+    classifier_parent_dir = 'V8-DNN_%s' % (classifier_suffix)
     if node == 'tth':
         histo_DNN_response_ttHsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttH')
         histo_DNN_response_ttVsample_test = input_root.Get(classifier_parent_dir+'/Method_DNN/DNN/MVA_DNN_Test_ttH_prob_for_ttV')
@@ -405,26 +390,47 @@ def plot_node_response(input_root, node, classifier_suffix):
     if 'tth' in node:
         sep_sig_v_bckg1_testing = GetSeparation(histo_DNN_response_ttHsample_test, histo_DNN_response_ttVsample_test)
         sep_ttH_v_ttJ_testing = GetSeparation(histo_DNN_response_ttHsample_test, histo_DNN_response_ttJetssample_test)
-        latex_separation_sig_v_bckg1 = '#scale[0.5]{ttH vs. ttV separation = %.5f}' % sep_sig_v_bckg1_testing
-        latex_separation_sig_v_bckg2 = '#scale[0.5]{ttH vs. ttJ separation = %.5f}' % sep_ttH_v_ttJ_testing
+        latex_separation_sig_v_bckg1 = '#scale[0.5]{test ttH vs. ttV separation = %.5f}' % sep_sig_v_bckg1_testing
+        latex_separation_sig_v_bckg2 = '#scale[0.5]{test ttH vs. ttJ separation = %.5f}' % sep_ttH_v_ttJ_testing
+        sep_sig_v_bckg1_training = GetSeparation(histo_DNN_response_ttHsample_train, histo_DNN_response_ttVsample_train)
+        sep_ttH_v_ttJ_training = GetSeparation(histo_DNN_response_ttHsample_train, histo_DNN_response_ttJetssample_train)
+        latex_train_separation_sig_v_bckg1 = '#scale[0.5]{train ttH vs. ttV separation = %.5f}' % sep_sig_v_bckg1_training
+        latex_train_separation_sig_v_bckg2 = '#scale[0.5]{train ttH vs. ttJ separation = %.5f}' % sep_ttH_v_ttJ_training
     elif 'ttV' in node:
         sep_sig_v_bckg1_testing = GetSeparation(histo_DNN_response_ttVsample_test, histo_DNN_response_ttHsample_test)
         sep_sig_v_bckg2_testing = GetSeparation(histo_DNN_response_ttVsample_test, histo_DNN_response_ttJetssample_test)
-        latex_separation_sig_v_bckg1 = '#scale[0.5]{ttV vs. ttH separation = %.5f}' % sep_sig_v_bckg1_testing
-        latex_separation_sig_v_bckg2 = '#scale[0.5]{ttV vs. ttJ separation = %.5f}' % sep_sig_v_bckg2_testing
+        latex_separation_sig_v_bckg1 = '#scale[0.5]{test ttV vs. ttH separation = %.5f}' % sep_sig_v_bckg1_testing
+        latex_separation_sig_v_bckg2 = '#scale[0.5]{test ttV vs. ttJ separation = %.5f}' % sep_sig_v_bckg2_testing
+        sep_sig_v_bckg1_training = GetSeparation(histo_DNN_response_ttVsample_train, histo_DNN_response_ttHsample_train)
+        sep_sig_v_bckg2_training = GetSeparation(histo_DNN_response_ttVsample_train, histo_DNN_response_ttJetssample_train)
+        latex_train_separation_sig_v_bckg1 = '#scale[0.5]{train ttV vs. ttH separation = %.5f}' % sep_sig_v_bckg1_training
+        latex_train_separation_sig_v_bckg2 = '#scale[0.5]{train ttV vs. ttJ separation = %.5f}' % sep_sig_v_bckg2_training
     elif 'ttJ' in node:
         sep_sig_v_bckg1_testing = GetSeparation(histo_DNN_response_ttJetssample_test, histo_DNN_response_ttHsample_test)
         sep_sig_v_bckg2_testing = GetSeparation(histo_DNN_response_ttJetssample_test, histo_DNN_response_ttVsample_test)
-        latex_separation_sig_v_bckg1 = '#scale[0.5]{ttJ vs. ttH separation = %.5f}' % sep_sig_v_bckg1_testing
-        latex_separation_sig_v_bckg2 = '#scale[0.5]{ttJ vs. ttV separation = %.5f}' % sep_sig_v_bckg2_testing
+        latex_separation_sig_v_bckg1 = '#scale[0.5]{test ttJ vs. ttH separation = %.5f}' % sep_sig_v_bckg1_testing
+        latex_separation_sig_v_bckg2 = '#scale[0.5]{test ttJ vs. ttV separation = %.5f}' % sep_sig_v_bckg2_testing
+
+        sep_sig_v_bckg1_training = GetSeparation(histo_DNN_response_ttJetssample_train, histo_DNN_response_ttHsample_train)
+        sep_sig_v_bckg2_training = GetSeparation(histo_DNN_response_ttJetssample_train, histo_DNN_response_ttVsample_train)
+        latex_train_separation_sig_v_bckg1 = '#scale[0.5]{train ttJ vs. ttH separation = %.5f}' % sep_sig_v_bckg1_training
+        latex_train_separation_sig_v_bckg2 = '#scale[0.5]{train ttJ vs. ttV separation = %.5f}' % sep_sig_v_bckg2_training
 
     l2=ROOT.TLatex()
     l2.SetNDC();
-    l2.DrawLatex(0.65,0.55,latex_separation_sig_v_bckg1)
+    l2.DrawLatex(0.65,0.60,latex_separation_sig_v_bckg1)
 
     l3=ROOT.TLatex()
     l3.SetNDC();
-    l3.DrawLatex(0.65,0.5,latex_separation_sig_v_bckg2)
+    l3.DrawLatex(0.65,0.55,latex_separation_sig_v_bckg2)
+
+    l4=ROOT.TLatex()
+    l4.SetNDC();
+    l4.DrawLatex(0.65,0.50,latex_train_separation_sig_v_bckg1)
+
+    l5=ROOT.TLatex()
+    l5.SetNDC();
+    l5.DrawLatex(0.65,0.45,latex_train_separation_sig_v_bckg2)
 
     legend.Draw("sameP")
 
@@ -488,17 +494,17 @@ def main():
 
     classifier_suffix = opt.input_suffix
 
-    classifier_parent_dir = 'MultiClass_DNN_%s' % (classifier_suffix)
+    classifier_parent_dir = 'V8-DNN_%s' % (classifier_suffix)
     classifier_plots_dir = classifier_parent_dir+"/plots"
     if not os.path.exists(classifier_plots_dir):
         os.makedirs(classifier_plots_dir)
 
     classifier_samples_dir = classifier_parent_dir+"/outputs"
 
-    input_name = '%s/MultiClass_DNN_%s.root' % (classifier_samples_dir,classifier_suffix)
+    input_name = '%s/V8-DNN_%s.root' % (classifier_samples_dir,classifier_suffix)
     input_root = TFile.Open(input_name)
-    traintree_pathname = "MultiClass_DNN_%s/TrainTree" % (classifier_suffix)
-    testtree_pathname = "MultiClass_DNN_%s/TestTree" % (classifier_suffix)
+    traintree_pathname = "V8-DNN_%s/TrainTree" % (classifier_suffix)
+    testtree_pathname = "V8-DNN_%s/TestTree" % (classifier_suffix)
     # Fetch the trees of events from the root file
     TrainTree = input_root.Get(traintree_pathname)
     TestTree = input_root.Get(testtree_pathname)
