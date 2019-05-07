@@ -57,7 +57,6 @@ class control_plotter(object):
             input_files_list.append(TFile.Open(input_files_names[index]))
         return input_files_list
 
-
     def define_binning(self, branch_):
         nbinsx = 10
         maxX = 10
@@ -85,7 +84,6 @@ class control_plotter(object):
         return [nbinsx,minX,maxX]
 
 
-
     def load_histos(self, input_files_, branches_, treename_):
         #input_hist_dict = {}
         input_hist_dict = OrderedDict([])
@@ -99,7 +97,7 @@ class control_plotter(object):
                 htemp = ROOT.TH1F(branch_,branch_,binning_[0],binning_[1],binning_[2])
                 htemp.SetMinimum(0.)
                 #nentries = tree_.GetEntries() if tree_.GetEntries()<2000 else 2000
-                #for i in range(nentries):
+                #for i in range(10000):
                 for i in range(tree_.GetEntries()):
                     percentage_done = int(100*float(i)/float(tree_.GetEntries()))
                     if percentage_done % 10 == 0:
@@ -108,8 +106,37 @@ class control_plotter(object):
                             print '%.2f percent done' % (temp_percentage_done)
                     tree_.GetEntry(i)
                     nJets_ = tree_.GetBranch('Jet_numLoose').GetLeaf('Jet_numLoose')
+                    # Apply selection
+                    selection_criteria = 'Jet_numLoose>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
+                    #selection_criteria = 'Jet_numLoose>=4'
                     if nJets_.GetValue() < 4:
                         continue
+                    '''if 'NoJetNCut' in file_.GetName() or 'Train' in file_.GetName():
+                        TrigCut_ = tree_.GetBranch('passTrigCut').GetLeaf('passTrigCut')
+                        MllCut_ = tree_.GetBranch('passMassllCut').GetLeaf('passMassllCut')
+                        nTausCut_ = tree_.GetBranch('passTauNCut').GetLeaf('passTauNCut')
+                        ZVetoCut_ = tree_.GetBranch('passZvetoCut').GetLeaf('passZvetoCut')
+                        METLDCut_ = tree_.GetBranch('passMetLDCut').GetLeaf('passMetLDCut')
+                        TightChargeCut_ = tree_.GetBranch('passTightChargeCut').GetLeaf('passTightChargeCut')
+                        LepTightCut_ = tree_.GetBranch('passLepTightNCut').GetLeaf('passLepTightNCut')
+                        GenMatchCut_ = tree_.GetBranch('passGenMatchCut').GetLeaf('passGenMatchCut')
+                        if TrigCut_.GetValue() != 1:
+                            continue
+                        if MllCut_.GetValue() != 1:
+                            continue
+                        if nTausCut_.GetValue() != 1:
+                            continue
+                        if ZVetoCut_.GetValue() != 1:
+                            continue
+                        if METLDCut_.GetValue() != 1:
+                            continue
+                        if TightChargeCut_.GetValue() != 1:
+                            continue
+                        if LepTightCut_.GetValue() != 1:
+                            continue
+                        if GenMatchCut_.GetValue() != 1:
+                            continue
+                    '''
                     variable_ = tree_.GetBranch(branch_).GetLeaf(branch_)
                     weight_ = tree_.GetBranch('EventWeight').GetLeaf('EventWeight')
                     htemp.Fill(variable_.GetValue(), weight_.GetValue())
@@ -183,7 +210,7 @@ class control_plotter(object):
         c1.SaveAs(output_fullpath,'png')
         return
 
-    def make_dataMC_comparison(self, input_hist_mc, input_hist_data, variable_name):
+    def make_comparison(self, input_hist1, title_hist1, input_hist2, title_hist2, variable_name, output_fullpath):
 
         c1 = ROOT.TCanvas('c1',',1000,1000')
         p1 = ROOT.TPad('p1','p1',0.0,0.0,1.0,1.0)
@@ -199,28 +226,41 @@ class control_plotter(object):
         ROOT.gStyle.SetOptTitle(0)
         hist_count = 0
         maxy = 0
-        legend = ROOT.TLegend(0.7,0.8,0.9,0.9)
+        legend = TLegend(0.7,  0.7,  0.9,  0.9)
+        #legend.SetNColumns(2)
 
-        maxy = input_hist_mc.GetMaximum()*1.2 if input_hist_mc.GetStack().Last().GetMaximum()>input_hist_data.GetMaximum() else input_hist_data.GetMaximum()*1.2
+        input_hist1.Scale(1/input_hist1.Integral())
+        input_hist2.Scale(1/input_hist2.Integral())
 
-        histo_title_mc = 'MC'
-        input_hist_mc.Draw('HIST')
-        input_hist_mc.SetTitle(histo_title_mc)
-        input_hist_mc.GetXaxis().SetTitle('Arbitrary Units')
-        input_hist_mc.GetXaxis().SetTitle(variable_name)
-        input_hist_mc.SetMaximum(maxy)
-        legend.AddEntry(input_hist_mc,input_hist_mc.GetTitle(),"l")
+        maxy = input_hist1.GetMaximum()*1.2 if input_hist1.GetMaximum()>input_hist2.GetMaximum() else input_hist2.GetMaximum()*1.2
 
-        histo_title_data = 'DATA'
-        input_hist_data.Draw('HISTSAMEEP')
-        input_hist_data.SetTitle(histo_title_data)
-        input_hist_data.GetXaxis().SetTitle('Arbitrary Units')
-        input_hist_data.GetXaxis().SetTitle(variable_name)
-        input_hist_data.SetMaximum(maxy)
-        legend.AddEntry(input_hist_data,input_hist_data.GetTitle(),"p")
+        input_hist1.SetMarkerColor(1)
+        input_hist1.SetMarkerStyle(20)
+        input_hist1.SetLineColor(1)
+        input_hist1.SetFillColor(1)
+        input_hist1.SetFillStyle(3002)
+        legend.AddEntry(input_hist1,title_hist1,'p')
+
+        input_hist1.Draw('HIST')
+        input_hist1.SetTitle(title_hist1)
+        input_hist1.GetYaxis().SetTitle('Events')
+        input_hist1.GetXaxis().SetTitle(variable_name)
+        input_hist1.SetMaximum(maxy)
+
+        input_hist2.SetMarkerColor(2)
+        input_hist2.SetMarkerStyle(20)
+        input_hist2.SetLineColor(2)
+        input_hist2.SetFillColor(2)
+        input_hist2.SetFillStyle(3002)
+        legend.AddEntry(input_hist2,title_hist2,'p')
+
+        input_hist2.Draw('HISTSAMEEP')
+        input_hist2.SetTitle(title_hist2)
+        input_hist2.GetYaxis().SetTitle('Events')
+        input_hist2.GetXaxis().SetTitle(variable_name)
+        input_hist2.SetMaximum(maxy)
 
         legend.Draw('SAME')
-        output_fullpath = 'invar_control_plots_190404/' + variable_name + '_DataMC.png'
         c1.Update()
         c1.SaveAs(output_fullpath,'png')
         return
@@ -233,7 +273,7 @@ class control_plotter(object):
             combined_hist.SetTitle(title)
         return combined_hist
 
-    def stack_hists(self, hists_, title, variable_name):
+    def stack_hists(self, hists_, title, variable_name, input_hist_data):
 
         c1 = ROOT.TCanvas('c1',',1000,1000')
         p1 = ROOT.TPad('p1','p1',0.0,0.0,1.0,1.0)
@@ -270,17 +310,19 @@ class control_plotter(object):
         ])
 
         stacked_hist = ROOT.THStack()
-        data_hist_name = 'Data_SigRegion_%s_SignalRegion' % (variable_name)
-        binning_ = self.define_binning(hists_.get(data_hist_name).GetName())
+        binning_ = self.define_binning(input_hist_data.GetName())
         for name, hist_ in hists_.iteritems():
             print 'name = ', name
             for key in process_list:
                 if key in name:
+                    if key == 'TTW' and 'TTWW' in name:
+                        continue
                     print 'add %s to legend' % (key)
                     hist_.SetMarkerColor(process_list[key])
                     hist_.SetMarkerStyle(20)
                     hist_.SetLineColor(process_list[key])
                     hist_.SetFillColor(process_list[key])
+                    hist_.SetFillStyle(3002)
                     if 'Data' in name:
                         legend.AddEntry(hist_,key,'p')
                     else:
@@ -292,8 +334,7 @@ class control_plotter(object):
         stacked_hist.SetMaximum(stacked_hist.GetStack().Last().GetMaximum() + (stacked_hist.GetStack().Last().GetMaximum()/2))
         stacked_hist.SetMinimum(0.)
 
-        input_hist_data = hists_.get(data_hist_name)
-
+        #input_hist_data = hists_.get(data_hist_name)
         maxy = stacked_hist.GetMaximum()*1.2 if stacked_hist.GetStack().Last().GetMaximum()>input_hist_data.GetMaximum() else input_hist_data.GetMaximum()*1.2
 
         histo_title_mc = 'MC'
@@ -311,7 +352,7 @@ class control_plotter(object):
         input_hist_data.SetMaximum(maxy)
 
         legend.Draw('SAME')
-        output_fullpath = 'invar_control_plots_190404/' + variable_name + '_DataMC.png'
         c1.Update()
         c1.SaveAs(output_fullpath,'png')
-        return
+
+        return stacked_hist
