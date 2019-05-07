@@ -99,6 +99,7 @@ def rebinHistograms(hist_list, data_hist):
         tmp_bin_content_ttHzz = hist_list.get('ttH_HZZ').GetBinContent(x_bin_index)
         tmp_bin_content_conv = hist_list.get('Conv').GetBinContent(x_bin_index)
         for hist_key, hist in hist_list.iteritems():
+            print 'hist_key: %s, hist: %s' % (hist_key, hist)
             if 'Data' in hist_key: continue
             elif 'ttH_' in hist_key:
                 cumulative_sig_entries = cumulative_sig_entries + hist.GetBinContent(x_bin_index)
@@ -276,7 +277,6 @@ def separation_table(outputdir,separation_dictionary):
 \begin{tabular}{| c | c | c | c | c |} \hline
 Option \textbackslash Node & ttH & ttJ & ttW & ttZ \\ \hline
 %s \\
-%s \\
 \hline
 \end{tabular}
 \caption{Separation power on each output node. The separation is given with respect to the `signal' process the node is trained to separate (one node per column) and the combined background processes for that node. The three options represent the different mehtods to of class weights in the DNN training.}
@@ -289,11 +289,11 @@ Option \textbackslash Node & ttH & ttJ & ttW & ttZ \\ \hline
     print 'table_tex: ', table_tex
     with open(table_tex,'w') as f:
         option_1_entry = '%s & %s & %s & %s & %s' % ('Option 1', "{0:.5g}".format(separation_dictionary['option1'][0]), "{0:.5g}".format(separation_dictionary['option1'][1]), "{0:.5g}".format(separation_dictionary['option1'][2]), "{0:.5g}".format(separation_dictionary['option1'][3]))
-        option_2_entry = '%s & %s & %s & %s & %s' % ('Option 2', "{0:.5g}".format(separation_dictionary['option2'][0]), "{0:.5g}".format(separation_dictionary['option2'][1]), "{0:.5g}".format(separation_dictionary['option2'][2]), "{0:.5g}".format(separation_dictionary['option2'][3]))
+        #option_2_entry = '%s & %s & %s & %s & %s' % ('Option 2', "{0:.5g}".format(separation_dictionary['option2'][0]), "{0:.5g}".format(separation_dictionary['option2'][1]), "{0:.5g}".format(separation_dictionary['option2'][2]), "{0:.5g}".format(separation_dictionary['option2'][3]))
         #option_3_entry = '%s & %s & %s & %s & %s' % ('Option 3', "{0:.5g}".format(separation_dictionary['option3'][0]), "{0:.5g}".format(separation_dictionary['option3'][1]), "{0:.5g}".format(separation_dictionary['option3'][2]), "{0:.5g}".format(separation_dictionary['option3'][3]))
         #option_4_entry = '%s & %s & %s & %s & %s' % ('Option 4', "{0:.5g}".format(separation_dictionary['option4'][0]), "{0:.5g}".format(separation_dictionary['option4'][1]), "{0:.5g}".format(separation_dictionary['option4'][2]), "{0:.5g}".format(separation_dictionary['option4'][3]))
         #f.write( content % (option_1_entry, option_2_entry, option_3_entry) )
-        f.write( content % (option_1_entry, option_2_entry) )
+        f.write( content % (option_1_entry) )
     return
 
 def main():
@@ -301,44 +301,26 @@ def main():
     parser = argparse.ArgumentParser(usage)
     parser.add_argument('-d', '--data',        dest='data_flag'  ,      help='1 = include data from plots, 0 = exclude data from plots', default=0, type=int)
     parser.add_argument('-r', '--region', dest='region', help='Option to choose SigRegion or CtrlRegion', default='SigRegion', type=str)
-    parser.add_argument('-l', '--lepsel', dest='lepsel', help='type of lepton selection for trained model (loose, fakeable)', default='loose', type=str)
+    parser.add_argument('-m', '--model_dir', dest='model_dir', help='Option to choose directory containing model. Choose directory from samples_w_DNN', default='', type=str)
     args = parser.parse_args()
 
     data_flag = args.data_flag
     region = args.region
-    leptonsel = args.lepsel
 
-    inputs_directory=''
+    inputs_directory = args.model_dir
 
+    '''
     if region == 'CtrlRegion':
-        if leptonsel == 'loose':
-            inputs_directory = '2019-03-07_3OptionMerge_ttWctrl_loose'
-        if leptonsel == 'fakeable':
-            inputs_directory = '2019-03-07_3OptionMerge_ttWctrl_fakeable'
-        if leptonsel == 'mixed':
-            inputs_directory = '2019-03-13_2OptionMerge_ttWctrl_mixed'
         region = 'ttWctrl'
+        #inputs_directory = '2019-03-19_2OptionMerge_ttWctrl_loose'
+        inputs_directory = '2019-04-05_ttWctrl_StdScalar_M0Std1'
     elif region == 'SigRegion':
-        if leptonsel == 'loose':
-            inputs_directory = '2019-03-08_4OptionMerge_loose'
-        if leptonsel == 'fakeable':
-            inputs_directory = '2019-03-08_4OptionMerge_fakeable'
-        if leptonsel == 'mixed':
-            inputs_directory = '2019-03-13_2OptionMerge_mixed'
+        inputs_directory = '2019-04-05_StdScalar_M0Std1_oldvars_loose'
     elif region == 'JESUp':
-        if leptonsel == 'loose':
-            inputs_directory = '2019-03-07_3OptionMerge_loose_JESUp'
-        if leptonsel == 'fakeable':
-            inputs_directory = '2019-03-07_3OptionMerge_fakeable_JESUp'
-        if leptonsel == 'mixed':
-            inputs_directory = '2019-03-13_2OptionMerge_mixed_JESUp'
+        inputs_directory = '2019-04-05_StdScalar_M0Std1_oldvars_loose_JESUp'
     elif region == 'JESDown':
-        if leptonsel == 'loose':
-            inputs_directory = '2019-03-07_3OptionMerge_loose_JESDown'
-        if leptonsel == 'fakeable':
-            inputs_directory = '2019-03-07_3OptionMerge_fakeable_JESDown'
-        if leptonsel == 'mixed':
-            inputs_directory = '2019-03-13_2OptionMerge_mixed_JESDown'
+        inputs_directory = '2019-04-05_StdScalar_M0Std1_oldvars_loose_JESDown'
+    '''
 
     classifier_samples_dir = os.path.join("samples_w_DNN/",inputs_directory)
 
@@ -382,8 +364,8 @@ def main():
     categories = ['ttHCategory','ttJCategory','ttWCategory','ttZCategory']
 
     separation_dictionary = OrderedDict([
-        ('option1' , []),
-        ('option2' , [])
+        ('option1' , [])
+        #('option2' , [])
         #('option3' , [])
     ])
 
@@ -407,7 +389,7 @@ def main():
         ])
 
         #option_name = ['option1','option2','option3']
-        option_name = ['option1','option2']
+        option_name = ['option1']
 
         #bckg_hists = ROOT.TH1F('bckg_hists','bckg_hists',n_xbins,x_bin_edges_fuckyouroot)
         #sig_hists = ROOT.TH1F('sig_hists','sig_hists',n_xbins,x_bin_edges_fuckyouroot)
@@ -433,8 +415,6 @@ def main():
             histo_TTWW_name = 'histo_%s_events_ttWW_%s' % (cat,option_)
             histo_data_name = 'histo_%s_events_Data_%s' % (cat,option_)
 
-            print 'histo_TTH_hww_name: ', histo_TTH_hww_name
-
             histo_Conv_sample = input_file_Conv.Get(histo_Conv_name)
             histo_EWK_sample = input_file_EWK.Get(histo_EWK_name)
             histo_Fakes_sample = input_file_Fakes.Get(histo_Fakes_name)
@@ -450,8 +430,6 @@ def main():
             histo_TTWW_sample = input_file_TTWW.Get(histo_TTWW_name)
             histo_data_sample = input_file_data.Get(histo_data_name)
 
-            print 'histo_TTH_hww_sample = ', histo_TTH_hww_sample
-
             # Turn this into dictionary
             hist_list = OrderedDict([
             ("Conv" , histo_Conv_sample),
@@ -466,7 +444,8 @@ def main():
             ("ttH_Htautau" , histo_TTH_htt_sample),
             ("ttH_other" , histo_TTH_hot_sample),
             ("ttH_Hmm" , histo_TTH_hmm_sample),
-            ("ttH_HZZ" , histo_TTH_hzz_sample)
+            ("ttH_HZZ" , histo_TTH_hzz_sample),
+            ("Data" , histo_data_sample)
             ])
 
             #nBins = hist_list.get('ttW').GetNbinsX()
