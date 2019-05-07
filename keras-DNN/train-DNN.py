@@ -35,7 +35,7 @@ seed = 7
 np.random.seed(7)
 rng = np.random.RandomState(31337)
 
-def load_data(inputPath,variables,criteria,lepsel):
+def load_data(inputPath,variables,criteria):
     print variables
     my_cols_list=variables+['process', 'key', 'target', 'totalWeight']
     data = pd.DataFrame(columns=my_cols_list)
@@ -45,20 +45,16 @@ def load_data(inputPath,variables,criteria,lepsel):
         print key
         if 'ttH' in key or 'TTH' in key:
             sampleName='ttH'
-            if lepsel == 'loose' or lepsel == 'fakeable':
-                fileName = 'ttHnobb_NoJetNCut'
+            fileName = 'ttHnobb_NoJetNCut'
         if 'ttJ' in key or 'TTJ' in key:
             sampleName='ttJ'
-            if lepsel == 'loose' or lepsel == 'fakeable':
-                fileName='ttJets_NoJetNCut'
+            fileName='ttJets_NoJetNCut'
         if 'ttW' in key or 'TTW' in key:
             sampleName='ttW'
-            if lepsel == 'loose' or lepsel == 'fakeable':
-                fileName='ttWJets_NoJetNCut'
+            fileName='ttWJets_NoJetNCut'
         if 'ttZ' in key or 'TTZ' in key:
             sampleName='ttZ'
-            if lepsel == 'loose' or lepsel == 'fakeable':
-                fileName='ttZJets_NoJetNCut'
+            fileName='ttZJets_NoJetNCut'
         if 'ttH' in key:
                 target=0
         if 'ttJ' in key:
@@ -86,27 +82,6 @@ def load_data(inputPath,variables,criteria,lepsel):
                 chunk_df['key']=key
                 chunk_df['target']=target
                 chunk_df['totalWeight']=chunk_df["EventWeight"]
-
-                # Used to make loose lepton selected training region match fake lepton selected training Region
-                # the same statistics to study impact of loosening cut.
-                # SigRegion: 98722 26356 145168 78431
-                '''if key == 'ttH':
-                    chunk_df = chunk_df.head(98722)
-                if key == 'ttJ':
-                    chunk_df = chunk_df.head(26356)
-                if key == 'ttW':
-                    chunk_df = chunk_df.head(145168)
-                if key == 'ttZ':
-                    chunk_df = chunk_df.head(78431)'''
-                # CtrlRegion: 26969 27860 77217 39034
-                '''if key == 'ttH':
-                    chunk_df = chunk_df.head(26969)
-                if key == 'ttJ':
-                    chunk_df = chunk_df.head(27860)
-                if key == 'ttW':
-                    chunk_df = chunk_df.head(77217)
-                if key == 'ttZ':
-                    chunk_df = chunk_df.head(39034)'''
                 data=data.append(chunk_df, ignore_index=True)
         tfile.Close()
         if len(data) == 0 : continue
@@ -192,26 +167,26 @@ def create_class_weight(labels_dict,mu=0.9):
     return class_weight
 
 def main():
+    print 'Using Keras version: ', keras.__version__
 
     usage = 'usage: %prog [options]'
     parser = argparse.ArgumentParser(usage)
     parser.add_argument('-t', '--train_model', dest='train_model', help='Option to train model or simply make diagnostic plots (0=False, 1=True)', default=0, type=int)
     parser.add_argument('-r', '--region', dest='region', help='Option to choose SigRegion or CtrlRegion', default='SigRegion', type=str)
     parser.add_argument('-w', '--classweights', dest='classweights', help='Option to choose class weights (InverseNEventsTR, InverseSRYields or BalancedWeights)', default='InverseNEventsTR', type=str)
-    parser.add_argument('-l', '--lepsel', dest='lepsel', help='type of lepton selection for trained model (loose, fakeable)', default='loose', type=str)
-
+    parser.add_argument('-s', '--sel', dest='selection', help='Option to choose selection', default='geq4j', type=str)
     args = parser.parse_args()
     do_model_fit = args.train_model
     region = args.region
     classweights_name = args.classweights
-    lepsel = args.lepsel
+    selection = args.selection
     number_of_classes = 4
 
     #classweights_name = 'trial'
 
     # Create instance of output directory where all results are saved.
 
-    output_directory = '2019-04-12_newvars_loosesel_%s_%s/' % (classweights_name,region)
+    output_directory = '2019-05-06_%s_%s_%s/' % (selection,classweights_name,region)
 
     check_dir(output_directory)
 
@@ -220,11 +195,17 @@ def main():
 
     if 'CtrlRegion' == region:
         input_var_jsonFile = open('input_vars_CtrlRegion.json','r')
-        selection_criteria = 'Jet_numLoose==3'
     elif 'SigRegion' == region:
         input_var_jsonFile = open('input_vars_SigRegion.json','r')
+
+    if selection == 'geq4j':
         selection_criteria = 'Jet_numLoose>=4'
-        #selection_criteria = 'Jet_numLoose>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
+    if selection == 'geq3j':
+        selection_criteria = 'Jet_numLoose>=3'
+    if selection == 'eeq3j':
+        selection_criteria = 'Jet_numLoose==3'
+    if selection == 'fullSRsel':
+        selection_criteria = 'Jet_numLoose>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
 
     variable_list = json.load(input_var_jsonFile,encoding="utf-8").items()
     column_headers = []
@@ -242,20 +223,17 @@ def main():
         column_headers.append('Jet_numLoose')
 
     # Create instance of the input files directory
-    if lepsel == 'loose':
-        inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_looselepsel/'
-    elif lepsel == 'fakeable':
-        inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_fakeablelepsel/'
+    inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_looselepsel/'
 
     print 'Getting files from:', inputs_file_path
-    outputdataframe_name = '%s/output_dataframe_%s.csv' %(output_directory,region) #"output_dataframe_NJetgeq4.csv"
+    outputdataframe_name = '%s/output_dataframe_%s_%s.csv' %(output_directory,region,selection) #"output_dataframe_NJetgeq4.csv"
 
     if os.path.isfile(outputdataframe_name):
         data = pandas.read_csv(outputdataframe_name)
         print 'Loading %s . . . . ' % (outputdataframe_name)
     else:
         print 'Creating and loading new data file in %s . . . . ' % (inputs_file_path)
-        data = load_data(inputs_file_path,column_headers,selection_criteria,lepsel)
+        data = load_data(inputs_file_path,column_headers,selection_criteria)
         data.to_csv(outputdataframe_name, index=False)
         data = pandas.read_csv(outputdataframe_name)
 
@@ -275,7 +253,6 @@ def main():
     train_df = data.iloc[:traindataset.shape[0]]
     train_df.drop(['EventWeight'], axis=1, inplace=True)
     train_df.drop(['xsec_rwgt'], axis=1, inplace=True)
-    #train_df.drop(['Jet_numLoose'], axis=1, inplace=True)
 
     train_weights = traindataset['EventWeight'].values * traindataset['xsec_rwgt'].values
     test_weights = valdataset['EventWeight'].values * valdataset['xsec_rwgt'].values
@@ -316,13 +293,6 @@ def main():
     # Yields 2LSS SR HIG 18-019 |      60.08      | 140.25+22.79+17.25 |      151.03      |      87.05       |
     #                                                    =180.29
     ############################
-    #Fakeable lepton TR selection_criteria
-    ############################
-    # # events in TR            |     98722      |      26356       |      145168      |      78431      |
-    # Sum of weights:           |    83.098679    |   495.427460      |    357.781403    |    229.331726    |
-    # Yields 2LSS SR HIG 18-019 |      60.08      | 140.25+22.79+17.25 |      151.03      |      87.05       |
-
-    ############################
     #= Control Region (== 3 Jets)
     ############################
     # Loose lepton TR selection
@@ -331,24 +301,26 @@ def main():
     # Sum of weights            |   24.269867     |    3807.655762     |    102.885391    |     58.825554    |
     # Yields 2LSS ttWctrl       |    14.36        |    120.54 + 9.55   |       75.97      |      38.64       |
     #   AN2018-098-v18
-    ############################
-    # Fakeable lepton TR selection
-    ############################
-    # # events                  |     26969       |      27860         |      77217       |      39034      |
-    # Sum of weights:           |    22.887941    |    500.061249      |    357.781403    |    229.331726    |
-    # Yields 2LSS ttWctrl       |    14.36        |    120.54 + 9.55   |       75.97      |      38.64       |
 
+    # Yields 2LSS SR HIG 18-019 |       60.08        | 140.25+22.79+17.25 |       151.03       |      87.05       |
+    # Yields 2LSS ttWctrl       |       14.36        |    120.54 + 9.55   |        75.97       |      38.64       |
+    # Yields 2LSS >= 3 jets     |       74.44        |        310.38      |       227.00       |     125.69       |
     balancedweights = class_weight.compute_class_weight('balanced', np.unique([0,1,2,3]), Y_train)
 
     if region == 'SigRegion':
         if classweights_name == 'InverseSRYields':
-            tuned_weighted = {0 : 0.0166445, 1 : 0.00554662, 2 : 0.00662120, 3 : 0.0114877}
+            if selection == 'geq4j':
+                tuned_weighted = {0 : 0.0166445, 1 : 0.00554662, 2 : 0.00662120, 3 : 0.0114877}
+            if selection == 'geq3j':
+                tuned_weighted = {0 : 0.01343363782, 1 : 0.00322185707, 2 : 0.00440528634, 3 : 0.00795608242}
         elif classweights_name == 'InverseNEventsTR':
             tuned_weighted = {0 : 0.00000451357, 1 : 0.000000855507, 2 : 0.00000310874, 3 : 0.00000487810}
         elif classweights_name == 'BalancedWeights':
             tuned_weighted = balancedweights
         elif classweights_name == 'InverseSumWeightsTR':
             tuned_weighted = {0 : 0.01059548939, 1 : 0.00013564632, 2 : 0.00483142111, 3 : 0.00814104066}
+        elif classweights_name == 'noWeights':
+            tuned_weighted = {0 : 1.0, 1 : 1.0, 2 : 1.0, 3 : 1.0}
     elif region == 'CtrlRegion':
         if classweights_name == 'InverseSRYields':
             tuned_weighted = { 0 : 0.069637883, 1 : 0.00768698593, 2 : 0.01316309069, 3 : 0.02587991718}
@@ -358,12 +330,12 @@ def main():
             tuned_weighted = balancedweights
         elif classweights_name == 'InverseSumWeightsTR':
             tuned_weighted = {0 : 0.04120335723, 1 : 0.00026262878, 2 : 0.00971955289, 3 : 0.01699941491}
+        elif classweights_name == 'noWeights':
+            tuned_weighted = {0 : 1.0, 1 : 1.0, 2 : 1.0, 3 : 1.0}
 
     #labels_dict = {0: ttH_sumweights, 1:ttJ_sumweights, 2:ttW_sumweights, 3:ttZ_sumweights}
     #labels_dict = create_class_weight(labels_dict)
     #tuned_weighted = labels_dict
-
-    #tuned_weighted = {0 : 1., 1 : 1., 2 : 1., 3 : 1.}
 
     print 'class weights : ', classweights_name
     print 'weights = ', tuned_weighted
@@ -451,7 +423,16 @@ def main():
     # Store model in file
     model_output_name = os.path.join(output_directory,'model.h5')
     model.save(model_output_name)
+    weights_output_name = os.path.join(output_directory,'model_weights.h5')
+    model.save_weights(weights_output_name)
+
+    model_json = model.to_json()
+    model_json_name = os.path.join(output_directory,'model_serialised.json')
+    with open(model_json_name,'w') as json_file:
+        json_file.write(model_json)
+
     model.summary()
+
 
     # Initialise output directory where plotter results will be saved.
     Plotter.output_directory = output_directory
