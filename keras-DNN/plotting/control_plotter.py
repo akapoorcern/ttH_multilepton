@@ -84,7 +84,7 @@ class control_plotter(object):
         return [nbinsx,minX,maxX]
 
 
-    def load_histos(self, input_files_, branches_, treename_):
+    def load_histos(self, input_files_, branches_, treename_,selection):
         #input_hist_dict = {}
         input_hist_dict = OrderedDict([])
         file_index = 0
@@ -107,11 +107,14 @@ class control_plotter(object):
                     tree_.GetEntry(i)
                     nJets_ = tree_.GetBranch('Jet_numLoose').GetLeaf('Jet_numLoose')
                     # Apply selection
-                    selection_criteria = 'Jet_numLoose>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
-                    #selection_criteria = 'Jet_numLoose>=4'
-                    if nJets_.GetValue() < 4:
-                        continue
-                    '''if 'NoJetNCut' in file_.GetName() or 'Train' in file_.GetName():
+                    selection_criteria = 0
+                    if selection == 'eeq3j':
+                        selection_criteria = 1 if nJets_.GetValue() == 3 else 0
+                    if selection == 'geq3j':
+                        selection_criteria = 1 if nJets_.GetValue() >= 3 else 0
+                    if selection == 'geq4j':
+                        selection_criteria = 1 if nJets_.GetValue() >= 4 else 0
+                    if selection == 'tightsel':
                         TrigCut_ = tree_.GetBranch('passTrigCut').GetLeaf('passTrigCut')
                         MllCut_ = tree_.GetBranch('passMassllCut').GetLeaf('passMassllCut')
                         nTausCut_ = tree_.GetBranch('passTauNCut').GetLeaf('passTauNCut')
@@ -120,23 +123,11 @@ class control_plotter(object):
                         TightChargeCut_ = tree_.GetBranch('passTightChargeCut').GetLeaf('passTightChargeCut')
                         LepTightCut_ = tree_.GetBranch('passLepTightNCut').GetLeaf('passLepTightNCut')
                         GenMatchCut_ = tree_.GetBranch('passGenMatchCut').GetLeaf('passGenMatchCut')
-                        if TrigCut_.GetValue() != 1:
-                            continue
-                        if MllCut_.GetValue() != 1:
-                            continue
-                        if nTausCut_.GetValue() != 1:
-                            continue
-                        if ZVetoCut_.GetValue() != 1:
-                            continue
-                        if METLDCut_.GetValue() != 1:
-                            continue
-                        if TightChargeCut_.GetValue() != 1:
-                            continue
-                        if LepTightCut_.GetValue() != 1:
-                            continue
-                        if GenMatchCut_.GetValue() != 1:
-                            continue
-                    '''
+                        njets_criteria = 1 if nJets_.GetValue() >= 3 else 0
+                        selection_criteria = njets_criteria*TrigCut_.GetValue()*MllCut_.GetValue()*nTausCut_.GetValue()*ZVetoCut_.GetValue()*METLDCut_.GetValue()*TightChargeCut_.GetValue()*LepTightCut_.GetValue()*GenMatchCut_.GetValue()
+                    else:
+                        selection_criteria = 1 if nJets_.GetValue() >= 3 else 0
+
                     variable_ = tree_.GetBranch(branch_).GetLeaf(branch_)
                     weight_ = tree_.GetBranch('EventWeight').GetLeaf('EventWeight')
                     htemp.Fill(variable_.GetValue(), weight_.GetValue())
@@ -229,8 +220,10 @@ class control_plotter(object):
         legend = TLegend(0.7,  0.7,  0.9,  0.9)
         #legend.SetNColumns(2)
 
-        input_hist1.Scale(1/input_hist1.Integral())
-        input_hist2.Scale(1/input_hist2.Integral())
+        if input_hist1.Integral() != 0:
+            input_hist1.Scale(1/input_hist1.Integral())
+        if input_hist2.Integral() != 0:
+            input_hist2.Scale(1/input_hist2.Integral())
 
         maxy = input_hist1.GetMaximum()*1.2 if input_hist1.GetMaximum()>input_hist2.GetMaximum() else input_hist2.GetMaximum()*1.2
 

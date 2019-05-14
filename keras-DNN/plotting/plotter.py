@@ -65,7 +65,7 @@ class plotter(object):
         return
 
     def conf_matrix(self, y_true, y_predicted, EventWeights_, norm=' '):
-        y_true = pandas.Series(y_true , name='truth')
+        y_true = pandas.Series(y_true, name='truth')
         y_predicted = pandas.Series(y_predicted, name='prediction')
         EventWeights_ = pandas.Series(EventWeights_, name='eventweights')
         if norm == 'index':
@@ -96,21 +96,59 @@ class plotter(object):
         }
         for ax in (self.ax1,):
             #Shift tick location to bin centre
-            ax.set_ylabel(y_true.name, fontsize = 18)
-            ax.set_xlabel(y_predicted.name, fontsize = 18)
             ax.set_xticks(np.arange(len(self.labelsx))+0.5, minor=False)
             ax.set_yticks(np.arange(len(self.labelsy))+0.5, minor=False)
-            print 'self.labelsx: ', self.labelsx
             new_xlabel = []
             new_ylabel = []
             for xlabel in self.labelsx:
                 new_xlabel.append(label_dict.get(xlabel))
-            print 'self.labelsy[::-1]: ', self.labelsy[::-1]
-            for ylabel in self.labelsy[::-1]:
+            for ylabel in self.labelsy:
                 new_ylabel.append(label_dict.get(ylabel))
             ax.set_xticklabels(new_xlabel, minor=False, ha='right', rotation=45, fontsize=18)
             ax.set_yticklabels(new_ylabel, minor=False, rotation=45, fontsize=18)
         plt.tight_layout()
+        return
+
+
+
+    def ROC_Curve(self, signal_hist, summed_bckg_hist):
+        nBins = signal_hist.GetNbinsX()
+        cut_values = []
+        sig_eff_ROC_values = []
+        bckg_rej_ROC_values = []
+
+        for bin_index in xrange(1,nBins):
+            cut_values.append(signal_hist.GetXaxis().GetBinLowEdge(i))
+
+        for disc_cut in xrange(len(cut_values)):
+            signal_passing_cut = 0
+            cumulative_signal_total = 0
+            bckg_passing_cut = 0
+            cumulative_bckg_total = 0
+
+            for bin_index in xrange(1,nBins):
+                signal_bin_content = signal_hist.GetBinContent()
+                cumulative_signal_total = cumulative_signal_total + signal_bin_content
+                signal_passing_cut = signal_passing_cut + signal_bin_content if signal_hist.GetXaxis().GetBinLowEdge(bin_index) > disc_cut
+                bckg_bin_content = summed_bckg_hist.GetBinContent()
+                cumulative_bckg_total = cumulative_bckg_total + bckg_bin_content
+                bckg_passing_cut = bckg_passing_cut + bckg_bin_content if summed_bckg_hist.GetXaxis().GetBinLowEdge(bin_index) > disc_cut
+
+            true_positive_rate = signal_passing_cut / cumulative_signal_total
+            false_positive_rate = bckg_passing_cut / cumulative_bckg_total
+            bckg_rej = 1 - false_positive_rate
+
+            sig_eff_ROC_values.append(true_positive_rate)
+            bckg_rej_ROC_values.append(bckg_rej)
+
+        print 'sig_eff_ROC_values: ', sig_eff_ROC_values
+        print 'bckg_rej_ROC_values: ', bckg_rej_ROC_values
+
+        #self.fig, self.ax1 = plt.subplots(ncols=1, figsize=(10,10))
+
+        #for sig_eff_index in xrange(len(sig_eff_ROC_values)):
+
+
         return
 
 
@@ -155,7 +193,6 @@ class plotter(object):
         self.ax.grid(which='major', linestyle='-', linewidth='0.2', color='gray')
         self.ax.set_facecolor('white')
 
-        #bin_edges_low_high = np.linspace(0.,1.,nbins+1)
         bin_edges_low_high = np.array([0.,0.0625,0.125,0.1875,0.25,0.3125,0.375,0.4375,0.5,0.5625,0.6125,0.6875,0.75,0.8125,0.875,0.9375,1.0])
 
         for index in xrange(len(y_scores_train)):
@@ -294,7 +331,6 @@ class plotter(object):
         leg.get_frame().set_edgecolor('w')
         frame = leg.get_frame()
         frame.set_facecolor('White')
-
 
         overfitting_plot_file_name = 'overfitting_plot_%s_%s.png' % (node_name,plot_title)
         print 'Saving : %s%s' % (plots_dir, overfitting_plot_file_name)
