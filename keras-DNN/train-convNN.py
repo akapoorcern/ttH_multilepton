@@ -11,6 +11,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import Normalizer
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import roc_curve, roc_auc_score
 from sklearn.utils import class_weight
 from sklearn.metrics import log_loss
 import os
@@ -27,8 +28,7 @@ from keras.layers.core import Flatten
 from keras.optimizers import Adam
 from keras.optimizers import Adadelta
 from keras.optimizers import Adagrad
-from keras.layers import Dropout
-from keras.models import load_model
+from keras.layers import Dropout, Conv1D, MaxPooling1D
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.callbacks import EarlyStopping
 from plotting.plotter import plotter
@@ -94,7 +94,6 @@ def load_data(inputPath,variables,criteria):
         print 'key = ', key
         print "length of nttH = %i, nttJ = %i, nttW = %i, nttZ = %i, TotalWeights = %f" % (nttH, nttJ , nttW, nttZ, data.ix[(data.key.values==key)]["totalWeight"].sum())
         nNW = len(data.ix[(data["totalWeight"].values < 0) & (data.key.values==key) ])
-        #print key, "events with -ve weights", nNW
     print (data.columns.values.tolist())
     n = len(data)
     nttH = len(data.ix[data.target.values == 0])
@@ -133,26 +132,45 @@ def create_model(num_variables=26, optimizer='Adam', init='glorot_normal'):
 
 def baseline_model(num_variables,optimizer):
     model = Sequential()
-    # input_dim = number of variables
-    model.add(Dense(32,input_dim=num_variables,kernel_initializer='glorot_normal',activation='relu'))
-    #model.add(Dense(64,input_dim=num_variables,kernel_initializer='glorot_normal',activation='relu'))
-    for index in xrange(5):
-        model.add(Dense(16,activation='relu'))
-        #model.add(Dense(32,activation='relu'))
-    for index in xrange(5):
-        model.add(Dense(16,activation='relu'))
-        #model.add(Dense(32,activation='relu'))
-    for index in xrange(5):
-        model.add(Dense(8,activation='relu'))
-        #model.add(Dense(32,activation='relu'))
+    train_x_shape_dim2 = num_variables
+    print 'Conv1D input_shape = (%s, %s)' % (train_x_shape_dim2,1)
+    # filters = dimensionality of output space.
+    #           Defines the # different filters in this convolution layer.
+    #           All filters are of same length, defined by kernel size.
+    #
+    # kernel_size = specifies length of 1D convolution window that will slide (convolve) over input features.
+    #
+    # input_shape = number of features per example, feature depth/embedding.
+    #               In this case, each feature is defined by a single number so has depth 1.
+
+    # Outputs will have shape (# examples, # features, # filters)
+    # Filters will have shape (kernel_size, feature_depth, # filters)
+    model.add( Conv1D( filters=64, kernel_size=4, activation='relu', input_shape=(train_x_shape_dim2,1) ) )
+    model.add( Conv1D(64, 4, activation='relu') )
+    # Dropout layer to reduce chance of over-training.
+    model.add(Dropout(0.5))
+    # Pooling: reduce dimensionality of problem.
+    # Max pooling calculates the maximum value for each patch in the fature map output by the Conv1D layer.
+    # Pooling layers will make the network invariant wrt local translations.
+    model.add(MaxPooling1D(pool_size=2))
+    # Additional pooling layer to avoid overfitting
+    #model.add( GlobalAveragePooling1D() )
+    # Now flatten. Connection between the convolution and dense layers.
+    # Converts N-dimensional arrays into a single continuos linear feature vector.
+    model.add(Flatten())
+    # Fully connected layers. Don't have the local limitations of convolution layers (they see the whole 'image').
+    # Combine local features of previous convolutional layers.
+    #for index in xrange(5):
+    model.add(Dense(64,activation='relu'))
+    model.add(Dense(64,activation='relu'))
+    model.add(Dense(64,activation='relu'))
+
     model.add(Dense(4, activation='softmax'))
     model.compile(loss='categorical_crossentropy',optimizer=optimizer,metrics=['acc'])
-
     return model
 
 def check_dir(dir):
     if not os.path.exists(dir):
-        print 'mkdir: ', dir
         os.makedirs(dir)
 
 # Ratio always > 1. mu use in natural log multiplied into ratio. Keep mu above 1 to avoid class weights going negative.
@@ -191,8 +209,9 @@ def main():
 
     # Create instance of output directory where all results are saved.
 
-    #output_directory = '2019-05-19_fullyconnected_64neuronLayers_%s_%s_%s/' % (selection,classweights_name,region)
-    output_directory = '2019-04-26_%s_%s_%s/' % (selection,classweights_name,region)
+    #output_directory = '2019-05-19_convNN_64filters_3FCL_low+highLevelVars_%s_%s_%s/' % (selection,classweights_name,region)
+    output_directory = '2019-05-19_convNN_64filters_3FCL_lowLevelVars_%s_%s_%s/' % (selection,classweights_name,region)
+    #output_directory = 'test_%s_%s_%s/' % (selection,classweights_name,region)
 
     check_dir(output_directory)
 
@@ -202,7 +221,9 @@ def main():
     if 'CtrlRegion' == region:
         input_var_jsonFile = open('input_vars_CtrlRegion.json','r')
     elif 'SigRegion' == region:
-        input_var_jsonFile = open('input_vars_SigRegion.json','r')
+        #input_var_jsonFile = open('input_vars_SigRegion_conv1DNN.json','r')
+        input_var_jsonFile = open('input_vars_SigRegion_conv1DNN_lowLevel.json','r')
+        #input_var_jsonFile = open('input_vars_SigRegion.json','r')
 
     if selection == 'geq4j':
         selection_criteria = 'Jet_numLoose>=4'
@@ -212,6 +233,10 @@ def main():
         selection_criteria = 'Jet_numLoose==3'
     if selection == 'fullSRsel':
         selection_criteria = 'Jet_numLoose>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
+
+
+    # WARNINING !!!!
+    #selection_criteria = 'nEvent<=100000'
 
     variable_list = json.load(input_var_jsonFile,encoding="utf-8").items()
     column_headers = []
@@ -230,7 +255,6 @@ def main():
 
     # Create instance of the input files directory
     inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_looselepsel/'
-    #inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_looselepsel_mergedJES/'
 
     print 'Getting files from:', inputs_file_path
     outputdataframe_name = '%s/output_dataframe_%s_%s.csv' %(output_directory,region,selection) #"output_dataframe_NJetgeq4.csv"
@@ -251,12 +275,11 @@ def main():
     ttJ_sumweights = data.iloc[(data.key.values=='ttJ')]["totalWeight"].sum()
     ttW_sumweights = data.iloc[(data.key.values=='ttW')]["totalWeight"].sum()
     ttZ_sumweights = data.iloc[(data.key.values=='ttZ')]["totalWeight"].sum()
-    print 'ttH_sumweights: %s , ttJ_sumweights: %s , ttW_sumweights: %s, ttZ_sumweights: %s ' % (ttH_sumweights,ttJ_sumweights,ttW_sumweights,ttZ_sumweights)
 
     traindataset, valdataset = train_test_split(data, test_size=0.2)
 
-    print 'train dataset shape: ', traindataset.shape
-    print 'validation dataset shape: ', valdataset.shape
+    print 'train dataset shape [ Nexamples: %s , Nfeatures: %s ]' % (traindataset.shape[0], traindataset.shape[1])
+    print 'validation dataset shape [ Nexamples: %s , Nfeatures: %s ]' % (valdataset.shape[0], valdataset.shape[1])
     train_df = data.iloc[:traindataset.shape[0]]
     train_df.drop(['EventWeight'], axis=1, inplace=True)
     train_df.drop(['xsec_rwgt'], axis=1, inplace=True)
@@ -267,23 +290,23 @@ def main():
         training_columns = column_headers[:-3]
     else:
         training_columns = column_headers[:-2]
-    print 'Use columns = ', training_columns
+
     X_train = traindataset[training_columns].values
     Y_train = traindataset.target.astype(int)
     X_test = valdataset[training_columns].values
     Y_test = valdataset.target.astype(int)
 
-    #scaler = StandardScaler(with_mean=False, with_std=False).fit(X_train)
-    #scaler = StandardScaler().fit(X_train)
-    #X_train = scaler.transform(X_train)
-    #X_test = scaler.transform(X_test)
+    # Need to reshape data to have spatial dimension for conv1d
+    X_train = np.expand_dims(X_train, axis=-1)
+    X_test = np.expand_dims(X_test, axis=-1)
+    print 'Reshaped data to include spatial dimension for conv1d. New shape = ', X_train.shape
 
     num_variables = len(training_columns)
 
     ## Input Variable Correlations
     correlation_plot_file_name = 'correlation_plot.png'
-    Plotter.correlation_matrix(train_df)
-    Plotter.save_plots(dir=plots_dir, filename=correlation_plot_file_name)
+    #Plotter.correlation_matrix(train_df)
+    #Plotter.save_plots(dir=plots_dir, filename=correlation_plot_file_name)
 
     # =============== Weights ==================
     # WARNING! 'sample_weight' will overide 'class_weight'
@@ -340,10 +363,6 @@ def main():
         elif classweights_name == 'noWeights':
             tuned_weighted = {0 : 1.0, 1 : 1.0, 2 : 1.0, 3 : 1.0}
 
-    #labels_dict = {0: ttH_sumweights, 1:ttJ_sumweights, 2:ttW_sumweights, 3:ttZ_sumweights}
-    #labels_dict = create_class_weight(labels_dict)
-    #tuned_weighted = labels_dict
-
     print 'class weights : ', classweights_name
     print 'weights = ', tuned_weighted
 
@@ -357,58 +376,31 @@ def main():
     Y_train = np_utils.to_categorical(encoded_Y)
     Y_test = np_utils.to_categorical(encoded_Y_test)
 
-    print 'num_variables = ',num_variables
+    #print 'num_variables = ',num_variables
     optimizer = 'Adam'
     if do_model_fit == 1:
-        print 'Training new model. . . . '
+
+        # Training new model
         histories = []
         labels = []
         early_stopping_monitor = EarlyStopping(patience=4,monitor='val_loss',verbose=1)
 
-        optimizers = ['Adamax','Adam','Nadam']
-        #epochs = np.array([10,20,30])
-        batchessize = np.array([100,200,500,1000])
-        #init = ['glorot_normal','uniform','normal','glorot_uniform']
-        #learning_rates = [0.0001,0.001,0.01,0.1]
+        # Lists for HP scan
+        #optimizers = ['Adamax','Adam','Nadam']
+        #batchessize = np.array([100,200,500,1000])
 
-        #param_grid = dict(optimizer=optimizers, nb_epoch=epochs, batch_size=batchessize)
-        '''param_grid = dict(batch_size=batchessize)
-        model = KerasClassifier(build_fn=create_model,epochs=10,batch_size=50)
-        grid = GridSearchCV(estimator=model,param_grid=param_grid,n_jobs=-1)
-        grid_result = grid.fit(X_train,Y_train)
-        print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
-        means = grid_result.cv_results_['mean_test_score']
-        stds = grid_result.cv_results_['std_test_score']
-        params = grid_result.cv_results_['params']
-        for mean, stdev, param in zip(means, stds, params):
-            print("%f (%f) with: %r" % (mean, stdev, param))'''
-
-        '''model1 = baseline_model(num_variables)
-        model1.compile(loss='categorical_crossentropy',
-                       optimizer=Adam(lr=0.01),
-                       metrics=['accuracy'])
-        history1 = model1.fit(X_train,Y_train,validation_split=0.010,epochs=10,batch_size=5,verbose=1)
-        histories.append(history1)
-        labels.append('Adam')'''
-
-
-        '''model2 = baseline_model(num_variables)
-        model2.compile(loss='categorical_crossentropy',
-                       optimizer=Adagrad(lr=0.01),
-                       metrics=['accuracy'])
-        history2 = model2.fit(X_train,Y_train,validation_split=0.010,epochs=10,batch_size=5,verbose=1)
-        histories.append(history2)
-        labels.append('Adagrad')'''
-
+        # Define a model
         model3 = baseline_model(num_variables,optimizer)
 
-        #Batch size = number of examples before updating weights (larger = faster training)
+        # Fit the model using training data.
+        # Batch size = number of examples before updating weights (larger = faster training)
         history3 = model3.fit(X_train,Y_train,validation_split=0.2,epochs=100,batch_size=1000,verbose=1,shuffle=True,class_weight=tuned_weighted,callbacks=[early_stopping_monitor])
+
+        # Store history for performance by epoch plot.
         histories.append(history3)
         labels.append(optimizer)
         Plotter.plot_training_progress_acc(histories, labels)
         acc_progress_filename = 'DNN_acc_wrt_epoch.png'
-
         Plotter.save_plots(dir=plots_dir, filename=acc_progress_filename)
 
         # Which model do you want the rest of the plots for?
@@ -420,32 +412,42 @@ def main():
         model = load_trained_model(model_name, num_variables, optimizer)
 
     # Node probabilities for training sample events
-
     result_probs = model.predict(np.array(X_train))
     result_classes = model.predict_classes(np.array(X_train))
 
+    # Node probabilities for testing sample events
     result_probs_test = model.predict(np.array(X_test))
     result_classes_test = model.predict_classes(np.array(X_test))
 
-    # Store model in file
+    # Store model in hdf5 format
     model_output_name = os.path.join(output_directory,'model.h5')
     model.save(model_output_name)
+
+    # Save model weights only seperately as well in hdf5 format
     weights_output_name = os.path.join(output_directory,'model_weights.h5')
     model.save_weights(weights_output_name)
 
+    # Make sure to save model in json format as well
     model_json = model.to_json()
     model_json_name = os.path.join(output_directory,'model_serialised.json')
     with open(model_json_name,'w') as json_file:
         json_file.write(model_json)
 
     model.summary()
+
     model_schematic_name = os.path.join(output_directory,'model_schematic.png')
     plot_model(model, to_file=model_schematic_name, show_shapes=True, show_layer_names=True)
+
     # Initialise output directory where plotter results will be saved.
     Plotter.output_directory = output_directory
 
-    Plotter.overfitting(model, Y_train, Y_test, result_probs, result_probs_test, plots_dir, train_weights, test_weights)
+    # Make overfitting plots
+    #Plotter.overfitting(model, Y_train, Y_test, result_probs, result_probs_test, plots_dir, train_weights, test_weights)
 
+    # Make list of true labels e.g. (0,1,2,3)
+    #if result_probs_test.size < 0:
+    #    print 'Test data predictions size <= 0 ?!'
+    #    exit(0)
     original_encoded_test_Y = []
     for i in xrange(len(result_probs_test)):
         if Y_test[i][0] == 1:
@@ -457,6 +459,9 @@ def main():
         if Y_test[i][3] == 1:
             original_encoded_test_Y.append(3)
 
+    #if result_probs.size < 0:
+    #    print 'Train data predictions size <= 0 ?!'
+    #    exit(0)
     original_encoded_train_Y = []
     for i in xrange(len(result_probs)):
         if Y_train[i][0] == 1:
@@ -468,22 +473,26 @@ def main():
         if Y_train[i][3] == 1:
             original_encoded_train_Y.append(3)
 
+    # Invert LabelEncoder transform back to original truth labels
     result_classes_test = newencoder.inverse_transform(result_classes_test)
     result_classes_train = newencoder.inverse_transform(result_classes)
 
     Plotter.plots_directory = plots_dir
+    print 'Make confusion matrix for train Y predictions'
+    # Create confusion matrices for training and testing performance
+    #Plotter.conf_matrix(original_encoded_train_Y,result_classes_train,train_weights,'index')
+    #Plotter.save_plots(dir=plots_dir, filename='yields_norm_confusion_matrix_TRAIN.png')
 
-    Plotter.conf_matrix(original_encoded_train_Y,result_classes_train,train_weights,'index')
-    Plotter.save_plots(dir=plots_dir, filename='yields_norm_confusion_matrix_TRAIN.png')
+    #Plotter.conf_matrix(original_encoded_test_Y,result_classes_test,test_weights,'index')
+    #Plotter.save_plots(dir=plots_dir, filename='yields_norm_confusion_matrix_TEST.png')
 
-    Plotter.conf_matrix(original_encoded_test_Y,result_classes_test,test_weights,'index')
-    Plotter.save_plots(dir=plots_dir, filename='yields_norm_confusion_matrix_TEST.png')
+    #Plotter.ROC_Curve(Plotter.yscores_train_categorised,Plotter.yscores_test_categorised, train_weights, test_weights)
 
     Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 0 , 'ttHnode')
     Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 1 , 'ttJnode')
     Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 2 , 'ttWnode')
     Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 3 , 'ttZnode')
 
-    Plotter.separation_table(Plotter.output_directory)
+    #Plotter.separation_table(Plotter.output_directory)
 
 main()

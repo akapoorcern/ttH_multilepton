@@ -11,13 +11,8 @@ from array import array
 sys.path.insert(0, '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/')
 from plotting.plotter import plotter
 from ROOT import TFile, TTree, gDirectory
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import GridSearchCV
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import Normalizer
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
+from sklearn.preprocessing import StandardScaler, Normalizer, MinMaxScaler, LabelEncoder
 from sklearn.utils import class_weight
 import os
 from os import environ
@@ -25,15 +20,10 @@ os.environ['KERAS_BACKEND'] = 'tensorflow'
 import keras
 from keras import backend as K
 from keras.utils import np_utils
-from keras.models import Sequential
-from keras.layers.core import Dense
-from keras.layers.core import Activation
-from keras.layers.core import Flatten
-from keras.optimizers import Adam
-from keras.optimizers import Adadelta
-from keras.optimizers import Adagrad
-from keras.layers import Dropout
-from keras.models import load_model
+from keras.models import Sequential, load_model
+from keras.layers.core import Dense, Activation, Flatten
+from keras.optimizers import Adam, Adadelta, Adagrad
+from keras.layers import Dropout, Conv1D, MaxPooling1D
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.callbacks import EarlyStopping
 from root_numpy import root2array, tree2array
@@ -112,20 +102,53 @@ class apply_DNN(object):
         model = Sequential()
         # input_dim = number of variables
         model.add(Dense(32,input_dim=num_variables,kernel_initializer='glorot_normal',activation='relu'))
+        #model.add(Dense(64,input_dim=num_variables,kernel_initializer='glorot_normal',activation='relu'))
         for index in xrange(5):
             model.add(Dense(16,activation='relu'))
+            #model.add(Dense(32,activation='relu'))
         for index in xrange(5):
             model.add(Dense(16,activation='relu'))
+            #model.add(Dense(32,activation='relu'))
         for index in xrange(5):
             model.add(Dense(8,activation='relu'))
+            #model.add(Dense(32,activation='relu'))
         model.add(Dense(4, activation='softmax'))
-        model.compile(loss='categorical_crossentropy',optimizer=optimizer,metrics=["acc"])
+        model.compile(loss='categorical_crossentropy',optimizer=optimizer,metrics=['acc'])
         return model
 
+    def baseline_CNN_model(self, num_variables, optimizer):
+        # Define sequential model
+        model = Sequential()
+        # Get shape of input dataset
+        train_x_shape_dim2 = num_variables
+        print 'Conv1D input_shape = (%s, %s)' % (train_x_shape_dim2,1)
+        # Create desired network architecture
+        model.add( Conv1D( filters=64, kernel_size=4, activation='relu', input_shape=(train_x_shape_dim2,1) ) )
+        model.add( Conv1D(64, 4, activation='relu') )
+        # Dropout layer to reduce chance of over-training.
+        model.add(Dropout(0.5))
+        # reduce dimensionality using Max pooling (characterisic maximum value for each patch)
+        model.add(MaxPooling1D(pool_size=2))
+        # Flattening creates connection between the convolution and dense layers.
+        model.add(Flatten())
+        # Combine local features of previous convolutional layers.
+        model.add(Dense(64,activation='relu'))
+        model.add(Dense(64,activation='relu'))
+        model.add(Dense(64,activation='relu'))
+        model.add(Dense(4, activation='softmax'))
+        model.compile(loss='categorical_crossentropy',optimizer=optimizer,metrics=['acc'])
+        return model
 
     def load_trained_model(self, weights_path, num_variables, optimizer):
         print 'loading weights_path: ', weights_path
         model = self.baseline_model(num_variables, optimizer)
+        model.load_weights(weights_path)
+        from keras.models import load_model
+        return model
+
+    def load_trained_CNN_model(self, weights_path, num_variables, optimizer):
+        print 'loading weights_path: ', weights_path
+        model = self.baseline_CNN_model(num_variables, optimizer)
         model.load_weights(weights_path)
         from keras.models import load_model
         return model

@@ -153,8 +153,6 @@ def rebinHistograms(hist_list, data_hist):
     return hist_list, x_bin_edges_fuckyouroot
 
 
-
-
 # Makes plots of the various categories for the DNN. Each 'category' histogram is a plot of the response on one of the DNN nodes.
 # However, it contains only the events that showed the highest DNN response for said node.
 def make_plot(stacked_hist, category, norm, legend, inputs_directory, separation_, option_, data_hist = None, ratioplot = None):
@@ -308,19 +306,6 @@ def main():
     region = args.region
 
     inputs_directory = args.model_dir
-
-    '''
-    if region == 'CtrlRegion':
-        region = 'ttWctrl'
-        #inputs_directory = '2019-03-19_2OptionMerge_ttWctrl_loose'
-        inputs_directory = '2019-04-05_ttWctrl_StdScalar_M0Std1'
-    elif region == 'SigRegion':
-        inputs_directory = '2019-04-05_StdScalar_M0Std1_oldvars_loose'
-    elif region == 'JESUp':
-        inputs_directory = '2019-04-05_StdScalar_M0Std1_oldvars_loose_JESUp'
-    elif region == 'JESDown':
-        inputs_directory = '2019-04-05_StdScalar_M0Std1_oldvars_loose_JESDown'
-    '''
 
     classifier_samples_dir = os.path.join("samples_w_DNN/",inputs_directory)
 

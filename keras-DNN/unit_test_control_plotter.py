@@ -3,7 +3,7 @@ from collections import OrderedDict
 import os
 def main():
     CPlotter = control_plotter()
-    output_dir = 'invar_TR_SR_ttJ_comp_newsel/'
+    output_dir = 'control_plots_2019-05-09/'
 
     CPlotter.check_dir(output_dir)
     files_list = []
@@ -56,21 +56,35 @@ def main():
     files_SR_ = CPlotter.open_files(files_list_SR)
     files_training_ = CPlotter.open_files(files_list_training)
 
-    '''
+
     branch_list = [
-    'nBJetMedium',
-    'jet1_pt',
-    'jet1_eta',
-    'jet2_pt',
-    'jet2_eta',
-    'jet3_pt',
-    'jet3_eta',
-    'jet4_pt',
-    'jet4_eta',
-    'lep1_conePt',
-    'lep1_eta',
+    #'Jet_numLoose',
+    #'nBJetLoose',
+    #'nBJetMedium',
+    #'jet1_pt',
+    #'jet1_eta',
+    #'jet1_phi',
+    #'jet1_E',
+    #'jet2_pt',
+    #'jet2_eta',
+    #'jet2_phi',
+    #'jet2_E',
+    #'jet3_pt',
+    #'jet3_eta',
+    #'jet3_phi',
+    #'jet3_E',
+    #'jet4_pt',
+    #'jet4_eta',
+    #'jet4_phi',
+    #'jet4_E',
+    #'lep1_conePt',
+    #'lep1_eta',
+    #'lep1_phi',
+    'lep1_E',
     'lep2_conePt',
     'lep2_eta',
+    'lep2_phi',
+    'lep2_E',
     'resTop_BDT',
     'Hj_tagger_resTop',
     'metLD',
@@ -84,15 +98,8 @@ def main():
     'mbb',
     'n_presel_ele',
     'n_presel_mu',
-    ]
-    '''
-
-    branch_list = [
-    "Jet_numLoose",
-    "nBJetLoose",
-    "PFMET",
-    "Dilep_pdgId",
-    "lep1_charge"
+    'Dilep_pdgId',
+    'lep1_charge'
     ]
 
     #files_histname_dict = CPlotter.load_histos(files_,branch_list,'syncTree')
@@ -138,10 +145,10 @@ def main():
     for branch_index in xrange(len(branch_list)):
         branch_to_draw = []
         branch_to_draw.append(branch_list[branch_index])
-        files_histname_dict = CPlotter.load_histos(files_, branch_to_draw,'syncTree')
+        files_histname_dict = CPlotter.load_histos(files_, branch_to_draw,'syncTree','geq3j')
 
-        files_histname_dict_SR = CPlotter.load_histos(files_SR_, branch_to_draw,'syncTree')
-        files_histname_dict_training = CPlotter.load_histos(files_training_, branch_to_draw,'syncTree')
+        files_histname_dict_SR = CPlotter.load_histos(files_SR_, branch_to_draw,'syncTree','geq3j')
+        files_histname_dict_training = CPlotter.load_histos(files_training_, branch_to_draw,'syncTree','geq3j')
 
         # Finish building histogram names (check 'load_histograms' in plotting class).
         file_ttH_training_Jet_numLoose_key = file_ttH_training_keyname[0] + '_' + branch_list[branch_index] + '_loose_TrainingRegion'
