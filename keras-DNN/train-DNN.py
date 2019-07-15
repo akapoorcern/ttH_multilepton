@@ -47,16 +47,20 @@ def load_data(inputPath,variables,criteria):
         print key
         if 'ttH' in key or 'TTH' in key:
             sampleName='ttH'
-            fileName = 'ttHnobb_NoJetNCut'
+            #fileName = 'ttHnobb_NoJetNCut'
+            fileName = 'ttHnobb_DiLepRegion'
         if 'ttJ' in key or 'TTJ' in key:
             sampleName='ttJ'
-            fileName='ttJets_NoJetNCut'
+            #fileName='ttJets_NoJetNCut'
+            fileName='ttJets_DiLepRegion'
         if 'ttW' in key or 'TTW' in key:
             sampleName='ttW'
-            fileName='ttWJets_NoJetNCut'
+            #fileName='ttWJets_NoJetNCut'
+            fileName='ttWJets_DiLepRegion'
         if 'ttZ' in key or 'TTZ' in key:
             sampleName='ttZ'
-            fileName='ttZJets_NoJetNCut'
+            #fileName='ttZJets_NoJetNCut'
+            fileName='ttZJets_DiLepRegion'
         if 'ttH' in key:
                 target=0
         if 'ttJ' in key:
@@ -191,27 +195,25 @@ def main():
 
     # Create instance of output directory where all results are saved.
 
-    #output_directory = '2019-05-19_fullyconnected_64neuronLayers_%s_%s_%s/' % (selection,classweights_name,region)
-    output_directory = '2019-04-26_%s_%s_%s/' % (selection,classweights_name,region)
+    output_directory = '2019-07-03_DNN_newfiles_%s_%s_%s/' % (selection,classweights_name,region)
 
     check_dir(output_directory)
 
     # Create plots subdirectory
     plots_dir = os.path.join(output_directory,'plots/')
 
-    if 'CtrlRegion' == region:
-        input_var_jsonFile = open('input_vars_CtrlRegion.json','r')
-    elif 'SigRegion' == region:
-        input_var_jsonFile = open('input_vars_SigRegion.json','r')
+    input_var_jsonFile = open('input_vars_SigRegion.json','r')
+    #input_var_jsonFile = open('LOWLEVEL_invars_conv1DNN.json','r')
+    #input_var_jsonFile = open('HIGHLEVEL_invars_conv1DNN.json','r')
 
     if selection == 'geq4j':
-        selection_criteria = 'Jet_numLoose>=4'
+        selection_criteria = 'n_presel_jet>=4'
     if selection == 'geq3j':
-        selection_criteria = 'Jet_numLoose>=3'
+        selection_criteria = 'n_presel_jet>=3'
     if selection == 'eeq3j':
-        selection_criteria = 'Jet_numLoose==3'
+        selection_criteria = 'n_presel_jet==3'
     if selection == 'fullSRsel':
-        selection_criteria = 'Jet_numLoose>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
+        selection_criteria = 'n_presel_jet>=4 && passTrigCut==1 && passMassllCut==1 && passTauNCut==1 && passZvetoCut==1 && passMetLDCut==1 && passTightChargeCut==1 && passLepTightNCut==1 && passGenMatchCut==1'
 
     variable_list = json.load(input_var_jsonFile,encoding="utf-8").items()
     column_headers = []
@@ -225,12 +227,9 @@ def main():
         column_headers.append(key)
     column_headers.append('EventWeight')
     column_headers.append('xsec_rwgt')
-    if region == 'CtrlRegion':
-        column_headers.append('Jet_numLoose')
 
     # Create instance of the input files directory
-    inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_looselepsel/'
-    #inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/Training_samples_looselepsel_mergedJES/'
+    inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/TrainMVA_looseWithTH_20190628/'
 
     print 'Getting files from:', inputs_file_path
     outputdataframe_name = '%s/output_dataframe_%s_%s.csv' %(output_directory,region,selection) #"output_dataframe_NJetgeq4.csv"
@@ -273,11 +272,6 @@ def main():
     X_test = valdataset[training_columns].values
     Y_test = valdataset.target.astype(int)
 
-    #scaler = StandardScaler(with_mean=False, with_std=False).fit(X_train)
-    #scaler = StandardScaler().fit(X_train)
-    #X_train = scaler.transform(X_train)
-    #X_test = scaler.transform(X_test)
-
     num_variables = len(training_columns)
 
     ## Input Variable Correlations
@@ -312,7 +306,7 @@ def main():
     # Yields 2LSS SR HIG 18-019 |       60.08        | 140.25+22.79+17.25 |       151.03       |      87.05       |
     # Yields 2LSS ttWctrl       |       14.36        |    120.54 + 9.55   |        75.97       |      38.64       |
     # Yields 2LSS >= 3 jets     |       74.44        |        310.38      |       227.00       |     125.69       |
-    balancedweights = class_weight.compute_class_weight('balanced', np.unique([0,1,2,3]), Y_train)
+    #balancedweights = class_weight.compute_class_weight('balanced', np.unique([0,1,2,3]), Y_train)
 
     if region == 'SigRegion':
         if classweights_name == 'InverseSRYields':
@@ -340,9 +334,6 @@ def main():
         elif classweights_name == 'noWeights':
             tuned_weighted = {0 : 1.0, 1 : 1.0, 2 : 1.0, 3 : 1.0}
 
-    #labels_dict = {0: ttH_sumweights, 1:ttJ_sumweights, 2:ttW_sumweights, 3:ttZ_sumweights}
-    #labels_dict = create_class_weight(labels_dict)
-    #tuned_weighted = labels_dict
 
     print 'class weights : ', classweights_name
     print 'weights = ', tuned_weighted
@@ -363,7 +354,7 @@ def main():
         print 'Training new model. . . . '
         histories = []
         labels = []
-        early_stopping_monitor = EarlyStopping(patience=4,monitor='val_loss',verbose=1)
+        early_stopping_monitor = EarlyStopping(patience=50,monitor='val_loss',verbose=1)
 
         optimizers = ['Adamax','Adam','Nadam']
         #epochs = np.array([10,20,30])
@@ -403,7 +394,7 @@ def main():
         model3 = baseline_model(num_variables,optimizer)
 
         #Batch size = number of examples before updating weights (larger = faster training)
-        history3 = model3.fit(X_train,Y_train,validation_split=0.2,epochs=100,batch_size=1000,verbose=1,shuffle=True,class_weight=tuned_weighted,callbacks=[early_stopping_monitor])
+        history3 = model3.fit(X_train,Y_train,validation_split=0.2,epochs=200,batch_size=1000,verbose=1,shuffle=True,class_weight=tuned_weighted,callbacks=[early_stopping_monitor])
         histories.append(history3)
         labels.append(optimizer)
         Plotter.plot_training_progress_acc(histories, labels)
@@ -440,11 +431,12 @@ def main():
 
     model.summary()
     model_schematic_name = os.path.join(output_directory,'model_schematic.png')
-    plot_model(model, to_file=model_schematic_name, show_shapes=True, show_layer_names=True)
+    #plot_model(model, to_file=model_schematic_name, show_shapes=True, show_layer_names=True)
+
     # Initialise output directory where plotter results will be saved.
     Plotter.output_directory = output_directory
 
-    Plotter.overfitting(model, Y_train, Y_test, result_probs, result_probs_test, plots_dir, train_weights, test_weights)
+    #Plotter.overfitting(model, Y_train, Y_test, result_probs, result_probs_test, plots_dir, train_weights, test_weights)
 
     original_encoded_test_Y = []
     for i in xrange(len(result_probs_test)):
@@ -473,17 +465,17 @@ def main():
 
     Plotter.plots_directory = plots_dir
 
-    Plotter.conf_matrix(original_encoded_train_Y,result_classes_train,train_weights,'index')
-    Plotter.save_plots(dir=plots_dir, filename='yields_norm_confusion_matrix_TRAIN.png')
+    # Create confusion matrices for training and testing performance
+    #Plotter.conf_matrix(original_encoded_train_Y,result_classes_train,train_weights,'index')
+    #Plotter.save_plots(dir=plots_dir, filename='yields_norm_confusion_matrix_TRAIN.png')
+    #Plotter.conf_matrix(original_encoded_test_Y,result_classes_test,test_weights,'index')
+    #Plotter.save_plots(dir=plots_dir, filename='yields_norm_confusion_matrix_TEST.png')
 
-    Plotter.conf_matrix(original_encoded_test_Y,result_classes_test,test_weights,'index')
-    Plotter.save_plots(dir=plots_dir, filename='yields_norm_confusion_matrix_TEST.png')
+    #Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 0 , 'ttHnode')
+    #Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 1 , 'ttJnode')
+    #Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 2 , 'ttWnode')
+    #Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 3 , 'ttZnode')
 
-    Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 0 , 'ttHnode')
-    Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 1 , 'ttJnode')
-    Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 2 , 'ttWnode')
-    Plotter.ROC_sklearn(original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, 3 , 'ttZnode')
-
-    Plotter.separation_table(Plotter.output_directory)
+    #Plotter.separation_table(Plotter.output_directory)
 
 main()
