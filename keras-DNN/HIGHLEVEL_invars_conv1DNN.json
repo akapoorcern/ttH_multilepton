@@ -1,0 +1,20 @@
+{
+  "Jet_numLoose" : "\"F\"",
+  "nBJetLoose" : "\"F\"",
+  "nBJetMedium" : "\"F\"",
+  "Dilep_pdgId":"\"F\"",
+  "lep1_charge":"\"F\"",
+  "resTop_BDT" : "\"F\"",
+  "Hj_tagger_resTop": "\"F\"",
+  "metLD":"\"F\"",
+  "maxeta":"\"F\"",
+  "massL":"\"F\"",
+  "mindr_lep1_jet":"\"F\"",
+  "mindr_lep2_jet":"\"F\"",
+  "avg_dr_jet":"\"F\"",
+  "mT_lep1":"\"F\"",
+  "mT_lep2":"\"F\"",
+  "mbb":"\"F\"",
+  "n_presel_ele":"\"F\"",
+  "n_presel_mu":"\"F\""
+}
