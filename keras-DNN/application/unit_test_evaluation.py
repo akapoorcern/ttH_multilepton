@@ -35,41 +35,31 @@ def main():
     parser.add_argument('-r', '--region', dest='region', help='Option to choose SigRegion or CtrlRegion', default='SigRegion', type=str)
     parser.add_argument('-j', '--JES', dest='JES', help='Option to choose whether to run on JES Syst samples (0=Nominal, 1=JESUp, 2=JESDown)', default=0, type=int)
     parser.add_argument('-s', '--sel', dest='selection', help='Option to choose selection', default='geq4j', type=str)
+    parser.add_argument('-n', '--net', dest='network_type', help='Option to choose network type', default='DNN', type=str)
 
     args = parser.parse_args()
     processes = args.processName
     region = args.region
     JES_flag = args.JES
     selection = args.selection
+    network_type = args.network_type
 
     print 'region = ', region
     print 'JES_flag = ', JES_flag
 
-    outputname = '2019_04_26_%s' % (selection)
-    #outputname = 'test'
+    outputname = '2019-06-18_%s_HLF+LLF_%s_InverseSRYields_DiLepRegion' % (network_type,selection)
 
     input_var_jsonFile = ''
-    if region == 'CtrlRegion':
-        outputname = outputname + '_ttWctrl'
-        if JES_flag==1:
-            outputname = outputname+'_JESUp'
-        if JES_flag==2:
-            outputname = outputname+'_JESDown'
-        region = 'ttWctrl'
-        input_var_jsonFile = open('../input_vars_CtrlRegion.json','r')
-    elif region == 'SigRegion':
-        if JES_flag==1:
-            outputname = outputname+'_JESUp'
-        if JES_flag==2:
-            outputname = outputname+'_JESDown'
-        input_var_jsonFile = open('../input_vars_SigRegion.json','r')
-    elif region == 'DiLepRegion':
-        if JES_flag==1:
-            outputname = outputname+'_JESUp'
-        if JES_flag==2:
-            outputname = outputname+'_JESDown'
-        input_var_jsonFile = open('../input_vars_SigRegion.json','r')
 
+    if JES_flag==1:
+        outputname = outputname+'_JESUp'
+    if JES_flag==2:
+        outputname = outputname+'_JESDown'
+    if network_type == 'DNN':
+        input_var_jsonFile = open('../input_vars_SigRegion.json','r')
+    elif network_type == 'CNN':
+        #input_var_jsonFile = open('../input_vars_SigRegion_conv1DNN.json','r')
+        input_var_jsonFile = open('../input_vars_SigRegion_conv1DNN_lowLevel.json','r')
 
     variable_list = json.load(input_var_jsonFile,encoding="utf-8").items()
     column_headers = []
@@ -124,28 +114,31 @@ def main():
         training_columns = column_headers[:-1]
 
     num_variables = len(training_columns)
+    print 'num_variables: ', num_variables
     optimizer = 'Adam'
 
     print 'region = ', region
     input_models_path = ''
+
     # Want to be able to run on
-    if region == 'SigRegion':
-        input_models_path = ['2019-04-26_geq4j_InverseSRYields_SigRegion']
-    elif region == 'ttWctrl':
-        input_models_path = ['2019-04-26_eeq3j_InverseSRYields_CtrlRegion']
-    elif region == 'DiLepRegion':
-        input_models_path = ['2019-04-26_geq3j_InverseSRYields_SigRegion']
+    if network_type == 'DNN':
+        input_models_path = ['2019-06-18_DNN_HLF+LLF_geq3j_InverseSRYields_SigRegion']
+    elif network_type == 'CNN':
+        input_models_path = ['2019-05-19_convNN_64filters_3FCL_lowLevelVars_geq3j_InverseSRYields_SigRegion']
 
     model_name_1 = os.path.join('../',input_models_path[0],'model.h5')
-    model_1 = DNN_applier.load_trained_model(model_name_1, num_variables, optimizer)
-
+    if network_type == 'DNN':
+        model_1 = DNN_applier.load_trained_model(model_name_1, num_variables, optimizer)
+    if network_type == 'CNN':
+        model_1 = DNN_applier.load_trained_CNN_model(model_name_1, num_variables, optimizer)
 
     Plotter = plotter()
 
     true_process = []
+    model1_probs_ = []
+    CNN_probs_ = []
     model1_pred_process = []
-    model2_pred_process = []
-    model3_pred_process = []
+    CNN_pred_process = []
     EventWeights_ = []
 
     for process in processes:
@@ -194,31 +187,27 @@ def main():
             print 'Saving new data .csv file at %s . . . . ' % (dataframe_name)
             data.to_csv(dataframe_name, index=False)
 
-
-        #Evweights = data['EventWeight']
-        #xsec_rwgt = data['xsec_rwgt']
         nEvent = data['nEvent']
 
         print 'Use columns = ', training_columns
         print 'num_variables = ', num_variables
+
         #print data
         X_test = data.iloc[:,0:num_variables]
         X_test = X_test.values
-
-        #scaler = StandardScaler(with_mean=False, with_std=False).fit(X_test)
-        #scaler = StandardScaler().fit(X_test)
-        #scaler = Normalizer('l2').fit(X_test)
-        #scaler = Normalizer('l1').fit(X_test)
-        #X_test = scaler.transform(X_test)
+        if network_type == 'CNN':
+            X_test = np.expand_dims(X_test, axis=-1)
+            print 'Reshaped data to include spatial dimension for CNN. New shape = ', X_test.shape
 
         result_probs_test = model_1.predict_proba(np.array(X_test))
+        result_probs_ = model_1.predict(np.array(X_test))
 
         # create dictionary where the value is the array of probabilities for the four categories
         # and the key is the event number.
         eventnum_resultsprob_dict = {}
         for index in range(result_probs_test.shape[0]):
             eventnum_resultsprob_dict[nEvent[index]] = result_probs_test[index]
-
+            model1_probs_.append(result_probs_[index])
 
         inputlist = DNN_applier.getEOSlslist(directory=inputs_file_path+current_sample_name+".root")
         current_file = str(inputlist[0])
@@ -292,12 +281,14 @@ def main():
 
             if 'ttH_' in process:
                 true_process.append(0)
-            if 'Conv' in process or 'Fakes' in process or 'Flips' in process:
+            elif 'Conv' in process or 'Fakes' in process or 'Flips' in process:
                 true_process.append(1)
-            if 'ttW' in process:
+            elif 'ttW' in process:
                 true_process.append(2)
-            if 'ttZ' in process:
+            elif 'ttZ' in process:
                 true_process.append(3)
+            else:
+                true_process.append(4)
 
             EventWeights_.append(EventWeight_)
 
@@ -347,12 +338,19 @@ def main():
         output_file.Close()
         print 'Closed'
 
+
     plots_dir = os.path.join(samples_final_path_dir,'plots/')
+    Plotter.plots_directory = plots_dir
 
     Plotter.conf_matrix(true_process,model1_pred_process,EventWeights_,'')
     Plotter.save_plots(dir=plots_dir, filename='yields_non_norm_confusion_matrix_APPL.png')
     Plotter.conf_matrix(true_process,model1_pred_process,EventWeights_,'index')
     Plotter.save_plots(dir=plots_dir, filename='yields_norm_confusion_matrix_APPL.png')
+
+    Plotter.ROC_sklearn(true_process, model1_probs_, [], [], 0 , 'ttHnode')
+    Plotter.ROC_sklearn(true_process, model1_probs_, [], [], 1 , 'ttJnode')
+    Plotter.ROC_sklearn(true_process, model1_probs_, [], [], 2 , 'ttWnode')
+    Plotter.ROC_sklearn(true_process, model1_probs_, [], [], 3 , 'ttZnode')
 
     exit(0)
 
