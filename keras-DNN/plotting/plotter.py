@@ -67,7 +67,8 @@ class plotter(object):
             ax.set_xticks(np.arange(len(self.labels))+0.5, minor=False)
             ax.set_yticks(np.arange(len(self.labels))+0.5, minor=False)
             ax.set_xticklabels(self.labels, minor=False, ha='right', rotation=45)
-            ax.set_yticklabels(np.flipud(self.labels), minor=False, rotation=45)
+            #ax.set_yticklabels(np.flipud(self.labels), minor=False, rotation=45)
+            ax.set_yticklabels(self.labels, minor=False, rotation=45)
 
         plt.tight_layout()
 
@@ -117,51 +118,49 @@ class plotter(object):
         return
 
 
-    def ROC_sklearn(self, original_encoded_train_Y, result_probs, original_encoded_test_Y, result_probs_test, encoded_signal, pltname=''):
+    def ROC_sklearn(self, original_encoded_train_Y, result_probs_train, original_encoded_test_Y, result_probs_test, encoded_signal, pltname=''):
         # Test sklearn ROC and AUC
         self.fig, self.ax1 = plt.subplots(ncols=1, figsize=(10,10))
-        # Set value in list to 1 for signal and 0 for any background.
-        original_ttH_entries_train =[]
-        original_ttH_entries_test =[]
-        result_classes_train_binary = []
-        result_classes_test_binary = []
 
-        # loop over all training events
+        # Set value in list to 1 for signal and 0 for any background.
+        SorB_class_train = []
+        SorB_class_test = []
+        output_probs_train = []
+        output_probs_test = []
+
+        # Loop over all training events
         for i in xrange(0,len(original_encoded_train_Y)):
             # If training event truth value is target for this node assign as signal
             # else assign as background.
             if original_encoded_train_Y[i] == encoded_signal:
-                original_ttH_entries_train.append(1)
+                SorB_class_train.append(1)
             else:
-                original_ttH_entries_train.append(0)
-            result_classes_train_binary.append(result_probs[i][encoded_signal])
-        # loop over all testing events
+                SorB_class_train.append(0)
+            output_probs_train.append(result_probs_train[i][encoded_signal])
+        # Loop over all testing events
         for i in xrange(0,len(original_encoded_test_Y)):
             if original_encoded_test_Y[i] == encoded_signal:
-                original_ttH_entries_test.append(1)
+                SorB_class_test.append(1)
             else:
-                original_ttH_entries_test.append(0)
-            result_classes_test_binary.append(result_probs_test[i][encoded_signal])
+                SorB_class_test.append(0)
+            output_probs_test.append(result_probs_test[i][encoded_signal])
 
         if len(original_encoded_test_Y) == 0:
             labels = ['SR applied']
         else:
             labels = ['TR train','TR test']
 
-        if len(original_ttH_entries_train) > 0:
-            print 'len original_ttH_entries_train: ', len(original_ttH_entries_train)
-            print 'shape result_classes_train_binary: ', len(result_classes_train_binary)
-            fpr, tpr, thresholds = roc_curve(original_ttH_entries_train, result_classes_train_binary)
-            auc_train_ttHnode_score = roc_auc_score(original_ttH_entries_train, result_classes_train_binary)
-            # plot the roc curve for the model
-            plt.plot(fpr, tpr, marker='.', markersize=8, label='%s (area = %0.2f)' % (labels[0],auc_train_ttHnode_score))
+        if len(SorB_class_train) > 0:
+            fpr, tpr, thresholds = roc_curve(SorB_class_train, output_probs_train)
+            auc_train_node_score = roc_auc_score(SorB_class_train, output_probs_train)
+            # Plot the roc curve for the model
+            plt.plot(fpr, tpr, marker='.', markersize=8, label='%s (area = %0.2f)' % (labels[0],auc_train_node_score))
 
-        if len(original_ttH_entries_test) > 0:
-            print 'len original_ttH_entries_test: ', len(original_ttH_entries_test)
-            print 'shape result_classes_test_binary: ', len(result_classes_test_binary)
-            fpr, tpr, thresholds = roc_curve(original_ttH_entries_test, result_classes_test_binary)
-            auc_test_ttHnode_score = roc_auc_score(original_ttH_entries_test, result_classes_test_binary)
-            plt.plot(fpr, tpr, marker='.', markersize=8, label='%s (area = %0.2f)' % (labels[1],auc_test_ttHnode_score))
+        if len(SorB_class_test) > 0:
+            fpr, tpr, thresholds = roc_curve(SorB_class_test, output_probs_test)
+            auc_test_node_score = roc_auc_score(SorB_class_test, output_probs_test)
+            # Plot the roc curve for the model
+            plt.plot(fpr, tpr, marker='.', markersize=8, label='%s (area = %0.2f)' % (labels[1],auc_test_node_score))
 
         plt.plot([0, 1], [0, 1], linestyle='--', markersize=8,)
         plt.rcParams.update({'font.size': 22})
@@ -172,7 +171,6 @@ class plotter(object):
         plt.tight_layout()
         # save the plot
         save_name = pltname
-        #plt.savefig(save_name, format='png')
         self.save_plots(dir=self.plots_directory, filename=save_name)
         return
 
@@ -356,7 +354,6 @@ class plotter(object):
             node_counter = node_counter + 1
 
         return
-
 
     def GetSeparation(self, hist_sig, hist_bckg):
 
