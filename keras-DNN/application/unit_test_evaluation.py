@@ -10,7 +10,7 @@ import sys
 from array import array
 sys.path.insert(0, '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/')
 from plotting.plotter import plotter
-from ROOT import TFile, TTree, gDirectory
+from ROOT import TFile, TTree, gDirectory, gPad
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
@@ -26,28 +26,24 @@ def main():
     print ''
     DNN_applier = apply_DNN()
 
-    number_of_classes = 4
-
     usage = 'usage: %prog [options]'
     parser = argparse.ArgumentParser(usage)
 
     parser.add_argument('-p', '--processName', dest='processName', help='Process name. List of options in keys of process_filename dictionary', default=[], type=str, nargs='+')
-    parser.add_argument('-r', '--region', dest='region', help='Option to choose SigRegion or CtrlRegion', default='SigRegion', type=str)
+    parser.add_argument('-r', '--region', dest='region', help='Option to choose e.g. DiLepRegion', default='DiLepRegion', type=str)
     parser.add_argument('-j', '--JES', dest='JES', help='Option to choose whether to run on JES Syst samples (0=Nominal, 1=JESUp, 2=JESDown)', default=0, type=int)
-    parser.add_argument('-s', '--sel', dest='selection', help='Option to choose selection', default='geq4j', type=str)
-    parser.add_argument('-n', '--net', dest='network_type', help='Option to choose network type', default='DNN', type=str)
+    parser.add_argument('-s', '--sel', dest='selection', help='Option to choose selection', default='tH', type=str)
 
     args = parser.parse_args()
     processes = args.processName
     region = args.region
     JES_flag = args.JES
     selection = args.selection
-    network_type = args.network_type
+    nClasses = 5
 
-    print 'region = ', region
-    print 'JES_flag = ', JES_flag
+    print '<unit_test_evaluation> Succesfully parsed arguments: processName= [%s], region= %s, JES_flag= %s , selection= %s' %(processes, region, JES_flag, selection)
 
-    outputname = '2019-06-18_%s_HLF+LLF_%s_InverseSRYields_DiLepRegion' % (network_type,selection)
+    outputname = '2019-10-10_%s' % (selection)
 
     input_var_jsonFile = ''
 
@@ -55,24 +51,16 @@ def main():
         outputname = outputname+'_JESUp'
     if JES_flag==2:
         outputname = outputname+'_JESDown'
-    if network_type == 'DNN':
-        input_var_jsonFile = open('../input_vars_SigRegion.json','r')
-    elif network_type == 'CNN':
-        #input_var_jsonFile = open('../input_vars_SigRegion_conv1DNN.json','r')
-        input_var_jsonFile = open('../input_vars_SigRegion_conv1DNN_lowLevel.json','r')
 
+    # Open and load input variable .json
+
+    input_var_jsonFile = open('../input_vars_SigRegion_wFwdJet.json','r')
     variable_list = json.load(input_var_jsonFile,encoding="utf-8").items()
+
+    # Append variables to a list of column headers for .csv file later
     column_headers = []
     for key,var in variable_list:
-        if 'hadTop_BDT' in key:
-            key = 'hadTop_BDT'
-        if 'Hj1_BDT' in key:
-            key = 'Hj1_BDT'
-        if 'Hj_tagger_hadTop' in key:
-            key = 'Hj_tagger_hadTop'
         column_headers.append(key)
-    if region == 'ttWctrl':
-        column_headers.append('Jet_numLoose')
     column_headers.append('nEvent')
 
     if JES_flag == 0:
@@ -82,6 +70,7 @@ def main():
     elif JES_flag == 2:
         JESname = 'JESDown'
 
+    # Dictionary of filenames to be run over along with their keys.
     process_filename = {
     'ttH_HWW' : ('TTH_hww_'+JESname+region),
     'ttH_Hmm' : ('TTH_hmm_'+JESname+region),
@@ -107,61 +96,53 @@ def main():
     'Data' : ('Data_'+JESname+region)
     }
 
-    print 'column_headers: ', column_headers
-    if region == 'ttWctrl':
-        training_columns = column_headers[:-2]
-    else:
-        training_columns = column_headers[:-1]
-
+    # Remove 'nEvent' from columns that will be used during in training
+    training_columns = column_headers[:-1]
     num_variables = len(training_columns)
-    print 'num_variables: ', num_variables
-    optimizer = 'Adam'
 
-    print 'region = ', region
+    # Name of directory that contains trained MVA model to apply.
     input_models_path = ''
 
-    # Want to be able to run on
-    if network_type == 'DNN':
-        input_models_path = ['2019-06-18_DNN_HLF+LLF_geq3j_InverseSRYields_SigRegion']
-    elif network_type == 'CNN':
-        input_models_path = ['2019-05-19_convNN_64filters_3FCL_lowLevelVars_geq3j_InverseSRYields_SigRegion']
+    if selection == 'tH':
+        input_models_path = ['2019-10-04_Object3Mom_tH_tunedweights']
 
+    # Load trained model
+    optimizer = 'Adam'
     model_name_1 = os.path.join('../',input_models_path[0],'model.h5')
-    if network_type == 'DNN':
-        model_1 = DNN_applier.load_trained_model(model_name_1, num_variables, optimizer)
-    if network_type == 'CNN':
-        model_1 = DNN_applier.load_trained_CNN_model(model_name_1, num_variables, optimizer)
+    model_1 = DNN_applier.load_trained_model(model_name_1, num_variables, optimizer, nClasses)
 
+    # Make instance of plotter class
     Plotter = plotter()
 
+    # Lists for all events in all files. Used to make diagnostic plots of networks performance over all samples.
     true_process = []
     model1_probs_ = []
-    CNN_probs_ = []
     model1_pred_process = []
-    CNN_pred_process = []
     EventWeights_ = []
 
+    # Now loop over all samples
     for process in processes:
-        print 'process: ', process
+        print '<unit_test_evaluation> Process: ', process
         current_sample_name = process_filename.get(process)
+
+        # Use JES flag to decide if we are running on a JES varied sample or not.
         if JES_flag==1:
-            inputs_file_path = '/b/binghuan/Rootplas/rootplas_20190227/%s/%s%s/' % (region,'JESUp',region)
+            inputs_file_path = '/b/binghuan/Rootplas/Rootplas_WithTH_20190629/%s%s/' % ('JESUp',region)
         elif JES_flag==2:
-            inputs_file_path = '/b/binghuan/Rootplas/rootplas_20190227/%s/%s%s/' % (region,'JESDown',region)
+            inputs_file_path = '/b/binghuan/Rootplas/Rootplas_WithTH_20190629/%s%s/' % ('JESDown',region)
         else:
-            inputs_file_path = '/b/binghuan/Rootplas/rootplas_20190227/%s/%s/' % (region,region)
+            inputs_file_path = '/b/binghuan/Rootplas/Rootplas_WithTH_20190629/%s/' % (region)
 
-        print 'inputs_file_path = ', inputs_file_path
+        print '<unit_test_evaluation> Input file directory: ', inputs_file_path
 
+        # Make final output directory
         samples_dir_w_appended_DNN = 'samples_w_DNN'
         if not os.path.exists(samples_dir_w_appended_DNN):
             os.makedirs(samples_dir_w_appended_DNN)
-
         samples_final_path_dir = os.path.join(samples_dir_w_appended_DNN,outputname)
         if not os.path.exists(samples_final_path_dir):
             os.makedirs(samples_final_path_dir)
 
-        print samples_final_path_dir
         if JES_flag == 1:
             JES_label = 'JESUp'
         elif JES_flag == 2:
@@ -171,76 +152,88 @@ def main():
 
         dataframe_name = '%s/%s_dataframe_%s_%s.csv' %(samples_final_path_dir,process,region,JES_label)
         if os.path.isfile(dataframe_name):
-            print 'Loading %s . . . . ' % dataframe_name
+            print '<unit_test_evaluation> Loading %s . . . . ' % dataframe_name
             data = pandas.read_csv(dataframe_name)
         else:
-            print 'Loading new data file from %s . . . . ' % (inputs_file_path)
-            if 'SigRegion' in region or selection == 'geq4j':
-                data = DNN_applier.load_data(inputs_file_path,column_headers,'Jet_numLoose>=4',process,process_filename.get(process))
-            elif 'DiLepRegion' in region or selection == 'geq3j':
-                data = DNN_applier.load_data(inputs_file_path,column_headers,'Jet_numLoose>=3',process,process_filename.get(process))
-            elif region == 'ttWctrl' or selection == 'eeq3j':
-                data = DNN_applier.load_data(inputs_file_path,column_headers,'Jet_numLoose==3',process,process_filename.get(process))
+            print '<unit_test_evaluation> Making *new* data file from %s . . . . ' % (inputs_file_path)
+            print '<unit_test_evaluation> Applying selection ', selection
+            data = DNN_applier.load_data(inputs_file_path,column_headers,'',process,process_filename.get(process))
             if len(data) == 0 :
-                print 'No data! Next file.'
+                print '<unit_test_evaluation> No data! Next file.'
                 continue
             print 'Saving new data .csv file at %s . . . . ' % (dataframe_name)
             data.to_csv(dataframe_name, index=False)
 
         nEvent = data['nEvent']
 
-        print 'Use columns = ', training_columns
-        print 'num_variables = ', num_variables
-
-        #print data
+        print '<unit_test_evaluation> Used input features for network evaluation: ', training_columns
         X_test = data.iloc[:,0:num_variables]
         X_test = X_test.values
-        if network_type == 'CNN':
-            X_test = np.expand_dims(X_test, axis=-1)
-            print 'Reshaped data to include spatial dimension for CNN. New shape = ', X_test.shape
+        print '<unit_test_evaluation> X_test.shape: ', X_test.shape
 
         result_probs_test = model_1.predict_proba(np.array(X_test))
         result_probs_ = model_1.predict(np.array(X_test))
 
-        # create dictionary where the value is the array of probabilities for the four categories
+        # Create dictionary where the value is the array of probabilities for the four categories
         # and the key is the event number.
         eventnum_resultsprob_dict = {}
         for index in range(result_probs_test.shape[0]):
             eventnum_resultsprob_dict[nEvent[index]] = result_probs_test[index]
             model1_probs_.append(result_probs_[index])
 
+        print '<unit_test_evaluation> Length of eventnum-DNN probabaility dictionary: ' , len(eventnum_resultsprob_dict)
+        print '<unit_test_evaluation> # events in .csv dataset: ' , len(nEvent)
+
         inputlist = DNN_applier.getEOSlslist(directory=inputs_file_path+current_sample_name+".root")
+        print '<unit_test_evaluation> Inputs list: ', inputlist
         current_file = str(inputlist[0])
+        print '<unit_test_evaluation> Input file: ', current_file
 
         # Open files and load ttrees
         data_file = TFile.Open(current_file)
         data_tree = data_file.Get("syncTree")
 
-        output_file_name = '%s/%s.root' % (samples_final_path_dir,process_filename.get(process))
-        output_file = TFile.Open(output_file_name,'RECREATE')
-        output_tree = data_tree.CopyTree("")
-        output_tree.SetName("output_tree")
-        nEvents_check = output_tree.BuildIndex("nEvent","run")
+        # Check if input file is zombie
+        if data_file.IsZombie():
+            raise IOError('missing file')
 
-        # DNN variables
-        eval_ttHnode_all = array('f',[0.])
-        eval_ttJnode_all = array('f',[0.])
-        eval_ttWnode_all = array('f',[0.])
-        eval_ttZnode_all = array('f',[0.])
+        output_file_name = '%s/%s.root' % (samples_final_path_dir,process_filename.get(process))
+        print '<unit_test_evaluation> Creating new output .root file'
+        output_file = TFile.Open(output_file_name,'RECREATE')
+
+        # CloneTree(nentries) - here copying none of the actually entries
+        output_tree = data_tree.CloneTree(0)
+        output_tree.SetName("output_tree")
+
+        # Turn off all branches except ones you need if you want to speed up run time?
+        output_tree.SetBranchStatus('*',1)
+
+        # Append DNN Branches to new TTree
+        # Add branches for values from highest output node and sentinel values for other nodes i.e. 'categorised'
         eval_ttHnode_cat = array('f',[0.])
         eval_ttJnode_cat = array('f',[0.])
         eval_ttWnode_cat = array('f',[0.])
         eval_ttZnode_cat = array('f',[0.])
-        # DNN Branches
+        eval_tHQnode_cat = array('f',[0.])
         ttH_branch_cat = output_tree.Branch('DNN_ttHnode_cat', eval_ttHnode_cat, 'DNN_ttHnode_cat/F')
         ttJ_branch_cat = output_tree.Branch('DNN_ttJnode_cat', eval_ttJnode_cat, 'DNN_ttJnode_cat/F')
         ttW_branch_cat = output_tree.Branch('DNN_ttWnode_cat', eval_ttWnode_cat, 'DNN_ttWnode_cat/F')
         ttZ_branch_cat = output_tree.Branch('DNN_ttZnode_cat', eval_ttZnode_cat, 'DNN_ttZnode_cat/F')
+        tHQ_branch_cat = output_tree.Branch('DNN_tHQnode_cat', eval_tHQnode_cat, 'DNN_tHQnode_cat/F')
+
+        # un-categorised DNN variables
+        eval_ttHnode_all = array('f',[0.])
+        eval_ttJnode_all = array('f',[0.])
+        eval_ttWnode_all = array('f',[0.])
+        eval_ttZnode_all = array('f',[0.])
+        eval_tHQnode_all = array('f',[0.])
         ttH_branch_all = output_tree.Branch('DNN_ttHnode_all', eval_ttHnode_all, 'DNN_ttHnode_all/F')
         ttJ_branch_all = output_tree.Branch('DNN_ttJnode_all', eval_ttJnode_all, 'DNN_ttJnode_all/F')
         ttW_branch_all = output_tree.Branch('DNN_ttWnode_all', eval_ttWnode_all, 'DNN_ttWnode_all/F')
         ttZ_branch_all = output_tree.Branch('DNN_ttZnode_all', eval_ttZnode_all, 'DNN_ttZnode_all/F')
+        tHQ_branch_all = output_tree.Branch('DNN_tHQnode_all', eval_tHQnode_all, 'DNN_tHQnode_all/F')
 
+        # Now add branches conatining the max value for each event and the category for each event
         eval_maxval = array('f',[0.])
         DNNCat = array('f',[0.])
         DNNmaxval_branch = output_tree.Branch('DNN_maxval', eval_maxval, 'DNN_maxval/F')
@@ -250,34 +243,70 @@ def main():
         histoname_type = 'Category'
 
         histo_ttHclassified_events_title = 'ttH %s Events: %s Sample' % (histoname_type,sample_name)
-        histo_ttHclassified_events_name_option1 = 'histo_ttH%s_events_%s_option1' % (histoname_type,sample_name)
-        histo_ttHclassified_events_option1 = ROOT.TH1D(histo_ttHclassified_events_name_option1,histo_ttHclassified_events_title,200,0,1.)
+        histo_ttHclassified_events_name = 'histo_ttH%s_events_%s' % (histoname_type,sample_name)
+        histo_ttHclassified_events = ROOT.TH1D(histo_ttHclassified_events_name,histo_ttHclassified_events_title,200,0,1.)
         histo_ttJclassified_events_title = 'ttJ %s Events: %s Sample' % (histoname_type,sample_name)
-        histo_ttJclassified_events_name_option1 = 'histo_ttJ%s_events_%s_option1' % (histoname_type,sample_name)
-        histo_ttJclassified_events_option1 = ROOT.TH1D(histo_ttJclassified_events_name_option1,histo_ttJclassified_events_title,200,0,1.)
+        histo_ttJclassified_events_name = 'histo_ttJ%s_events_%s' % (histoname_type,sample_name)
+        histo_ttJclassified_events = ROOT.TH1D(histo_ttJclassified_events_name,histo_ttJclassified_events_title,200,0,1.)
         histo_ttWclassified_events_title = 'ttW %s Events: %s Sample' % (histoname_type,sample_name)
-        histo_ttWclassified_events_name_option1 = 'histo_ttW%s_events_%s_option1' % (histoname_type,sample_name)
-        histo_ttWclassified_events_option1 = ROOT.TH1D(histo_ttWclassified_events_name_option1,histo_ttWclassified_events_title,200,0,1.)
+        histo_ttWclassified_events_name = 'histo_ttW%s_events_%s' % (histoname_type,sample_name)
+        histo_ttWclassified_events = ROOT.TH1D(histo_ttWclassified_events_name,histo_ttWclassified_events_title,200,0,1.)
         histo_ttZclassified_events_title = 'ttZ %s Events: %s Sample' % (histoname_type,sample_name)
-        histo_ttZclassified_events_name_option1 = 'histo_ttZ%s_events_%s_option1' % (histoname_type,sample_name)
-        histo_ttZclassified_events_option1 = ROOT.TH1D(histo_ttZclassified_events_name_option1,histo_ttZclassified_events_title,200,0,1.)
+        histo_ttZclassified_events_name = 'histo_ttZ%s_events_%s' % (histoname_type,sample_name)
+        histo_ttZclassified_events = ROOT.TH1D(histo_ttZclassified_events_name,histo_ttZclassified_events_title,200,0,1.)
+        histo_tHQclassified_events_title = 'tHQ %s Events: %s Sample' % (histoname_type,sample_name)
+        histo_tHQclassified_events_name = 'histo_tHQ%s_events_%s' % (histoname_type,sample_name)
+        histo_tHQclassified_events = ROOT.TH1D(histo_tHQclassified_events_name,histo_tHQclassified_events_title,200,0,1.)
 
         temp_percentage_done = 0
-
+        uniqueEventID = []
         #Loop over ttree
+        print '<unit_test_evaluation> data_tree # Entries: ', data_tree.GetEntries()
+        print '<unit_test_evaluation> output_tree # Entries: ', output_tree.GetEntries()
         for i in range(data_tree.GetEntries()):
+            eval_ttHnode_cat[0]= -1.
+            eval_ttJnode_cat[0]= -1.
+            eval_ttWnode_cat[0]= -1.
+            eval_ttZnode_cat[0]= -1.
+            eval_tHQnode_cat[0]= -1.
+            eval_ttHnode_all[0]= -1.
+            eval_ttJnode_all[0]= -1.
+            eval_ttWnode_all[0]= -1.
+            eval_ttZnode_all[0]= -1.
+            eval_tHQnode_all[0]= -1.
+            eval_maxval[0]= -1.
+            DNNCat[0] = -1.
+
             percentage_done = int(100*float(i)/float(data_tree.GetEntries()))
             if percentage_done % 10 == 0:
                 if percentage_done != temp_percentage_done:
                     print percentage_done
                     temp_percentage_done = percentage_done
             data_tree.GetEntry(i)
+
             Eventnum_ = array('d',[0])
             Eventnum_ = data_tree.nEvent
             EventWeight_ = array('d',[0])
             EventWeight_ = data_tree.EventWeight
-            xsec_rwgt_ = array('d',[0])
-            xsec_rwgt_ = data_tree.xsec_rwgt
+            n_presel_jet  = array('d',[0])
+            n_presel_jet = data_tree.n_presel_jet
+            is_tH_like_and_not_ttH_like = array('d',[0])
+            is_tH_like_and_not_ttH_like = output_tree.is_tH_like_and_not_ttH_like
+
+            #uniqueEventID = Eventnum_*runNumber*LumiBlock
+            if Eventnum_ in uniqueEventID:
+                print 'Eventnum_ : %s already exists ' % Eventnum_
+                continue
+            else:
+                uniqueEventID.append(Eventnum_)
+
+
+            if selection == 'tH':
+                if is_tH_like_and_not_ttH_like != 0 and is_tH_like_and_not_ttH_like != 1 && n_presel_jet>=3:
+                #if is_tH_like_and_not_ttH_like != 0:
+                    continue
+            else:
+                print 'NO selection applied!'
 
             if 'ttH_' in process:
                 true_process.append(0)
@@ -287,57 +316,100 @@ def main():
                 true_process.append(2)
             elif 'ttZ' in process:
                 true_process.append(3)
-            else:
+            elif 'tHq' in process or 'tHW' in process:
                 true_process.append(4)
+            else:
+                true_process.append(5)
 
             EventWeights_.append(EventWeight_)
 
+            evaluated_node_values = []
+
+            # Get the value for event on each of the DNN nodes
             evaluated_node_values = DNN_applier.evaluate_model(eventnum_resultsprob_dict,Eventnum_)
-            event_classification = evaluated_node_values.index(max(evaluated_node_values))
+            # Get the maximum output value
+            maxval = max(evaluated_node_values)
+            # Find the max value in and return its position (i.e. node classification)
+            event_classification = evaluated_node_values.index(maxval)
+            # Append classification value to list of predictions
             model1_pred_process.append(event_classification)
-            categorised_values = DNN_applier.event_categorised_max_value(event_classification, evaluated_node_values)
 
             eval_ttHnode_all[0] = evaluated_node_values[0]
             eval_ttJnode_all[0] = evaluated_node_values[1]
             eval_ttWnode_all[0] = evaluated_node_values[2]
             eval_ttZnode_all[0] = evaluated_node_values[3]
-            eval_ttHnode_cat[0] = categorised_values[0]
-            eval_ttJnode_cat[0] = categorised_values[1]
-            eval_ttWnode_cat[0] = categorised_values[2]
-            eval_ttZnode_cat[0] = categorised_values[3]
-            DNNCat[0] = event_classification
+            eval_tHQnode_all[0] = evaluated_node_values[4]
+
+            DNNCat[0] = float(event_classification)
             eval_maxval[0] = evaluated_node_values[event_classification]
 
             if event_classification == 0:
-                histo_ttHclassified_events_option1.Fill(eval_maxval[0],EventWeight_)
+                histo_ttHclassified_events.Fill(evaluated_node_values[0],EventWeight_)
             elif event_classification == 1:
-                histo_ttJclassified_events_option1.Fill(eval_maxval[0],EventWeight_)
+                histo_ttJclassified_events.Fill(evaluated_node_values[1],EventWeight_)
             elif event_classification == 2:
-                histo_ttWclassified_events_option1.Fill(eval_maxval[0],EventWeight_)
+                histo_ttWclassified_events.Fill(evaluated_node_values[2],EventWeight_)
             elif event_classification == 3:
-                histo_ttZclassified_events_option1.Fill(eval_maxval[0],EventWeight_)
+                histo_ttZclassified_events.Fill(evaluated_node_values[3],EventWeight_)
+            elif event_classification == 4:
+                histo_tHQclassified_events.Fill(evaluated_node_values[4],EventWeight_)
+            else:
+                histo_ttHclassified_events.Fill(-1.,EventWeight_)
+                histo_ttJclassified_events.Fill(-1.,EventWeight_)
+                histo_ttWclassified_events.Fill(-1.,EventWeight_)
+                histo_ttZclassified_events.Fill(-1.,EventWeight_)
+                print '<unit_test_evaluation> NO event_classification for histograms!?'
+                continue
 
-            ttH_branch_cat.Fill()
-            ttJ_branch_cat.Fill()
-            ttW_branch_cat.Fill()
-            ttZ_branch_cat.Fill()
-            ttH_branch_all.Fill()
-            ttJ_branch_all.Fill()
-            ttW_branch_all.Fill()
-            ttZ_branch_all.Fill()
-            DNNmaxval_branch.Fill()
-            if eval_maxval < 0.1:
-                print 'eval_maxval = ', eval_maxval
-            DNNCat_branch.Fill()
+            if event_classification == 0:
+                eval_ttHnode_cat[0] = evaluated_node_values[0]
+                eval_ttJnode_cat[0] = -1.
+                eval_ttWnode_cat[0] = -1.
+                eval_ttZnode_cat[0] = -1.
+                eval_tHQnode_cat[0] = -1.
+            elif event_classification == 1:
+                eval_ttHnode_cat[0] = -1.
+                eval_ttJnode_cat[0] = evaluated_node_values[1]
+                eval_ttWnode_cat[0] = -1.
+                eval_ttZnode_cat[0] = -1.
+                eval_tHQnode_cat[0] = -1.
+            elif event_classification == 2:
+                eval_ttHnode_cat[0] = -1.
+                eval_ttJnode_cat[0] = -1.
+                eval_ttWnode_cat[0] = evaluated_node_values[2]
+                eval_ttZnode_cat[0] = -1.
+                eval_tHQnode_cat[0] = -1.
+            elif event_classification == 3:
+                eval_ttHnode_cat[0] = -1.
+                eval_ttJnode_cat[0] = -1.
+                eval_ttWnode_cat[0] = -1.
+                eval_ttZnode_cat[0] = evaluated_node_values[3]
+                eval_tHQnode_cat[0] = -1.
+            elif event_classification == 4:
+                eval_ttHnode_cat[0] = -1.
+                eval_ttJnode_cat[0] = -1.
+                eval_ttWnode_cat[0] = -1.
+                eval_ttZnode_cat[0] = -1.
+                eval_tHQnode_cat[0] = evaluated_node_values[4]
+            else:
+                eval_ttHnode_cat[0] = -1.
+                eval_ttJnode_cat[0] = -1.
+                eval_ttWnode_cat[0] = -1.
+                eval_ttZnode_cat[0] = -1.
+                eval_tHQnode_cat[0] = -1.
+                print '<unit_test_evaluation> NO event_classification for branches!?'
+                continue
+            output_tree.Fill()
+            print 'Event num: %s , evaluated_node_values: %s ' % ( Eventnum_ , evaluated_node_values)
 
-        print 'Writing to output file : %s ' % (output_file_name)
+        print '<unit_test_evaluation> Clear # event - DNN result dictionary'
+        eventnum_resultsprob_dict.clear()
+        print '<unit_test_evaluation> Write output file : %s ' % (output_file_name)
         output_file.Write()
-        print 'Delete syncTree'
-        gDirectory.Delete("syncTree;*")
-        print 'Close file'
+        print '<unit_test_evaluation> Close output file'
         output_file.Close()
-        print 'Closed'
-
+        print '<unit_test_evaluation> Close input file'
+        data_file.Close()
 
     plots_dir = os.path.join(samples_final_path_dir,'plots/')
     Plotter.plots_directory = plots_dir
@@ -351,6 +423,7 @@ def main():
     Plotter.ROC_sklearn(true_process, model1_probs_, [], [], 1 , 'ttJnode')
     Plotter.ROC_sklearn(true_process, model1_probs_, [], [], 2 , 'ttWnode')
     Plotter.ROC_sklearn(true_process, model1_probs_, [], [], 3 , 'ttZnode')
+    Plotter.ROC_sklearn(true_process, model1_probs_, [], [], 4 , 'tHQnode')
 
     exit(0)
 

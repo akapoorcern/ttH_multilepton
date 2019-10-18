@@ -1,1 +1,1 @@
-python unit_test_evaluation.py -p ttH_HWW ttH_Hmm ttH_Htautau ttH_HZZ ttH_other tHq_Htautau tHq_HZZ tHq_HWW tHW_HWW tHW_Htautau tHW_HZZ ttWW ttW ttZ EWK Fakes Flips Rares Data Conv FakeSub -r DiLepRegion -j 0 -s geq3
+time python unit_test_evaluation.py -p ttH_HWW ttH_Hmm ttH_Htautau ttH_HZZ ttH_other tHq_Htautau tHq_HZZ tHq_HWW tHW_HWW tHW_Htautau tHW_HZZ ttWW ttW ttZ EWK Fakes Flips Rares Conv FakeSub Data -r DiLepRegion -j 0 -s tH
