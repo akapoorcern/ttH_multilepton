@@ -16,6 +16,7 @@ from array import array
 from subprocess import call
 from os.path import isfile
 from collections import OrderedDict
+import commands
 
 class control_plotter(object):
 
@@ -34,32 +35,25 @@ class control_plotter(object):
             print 'Creating directory ',dir
             os.makedirs(dir)
 
-    def getEOSlsfile(self, filepath, mask='', prepend='root://eosuser.cern.ch/'):
-        from subprocess import Popen, PIPE
-
-        eos_cmd = '/afs/cern.ch/project/eos/installation/0.3.15/bin/eos.select'
-        eos_file = '/eos/user/%s ' % (filepath)
-        print 'eos_file: ', eos_file
-        data = Popen([eos_cmd, prepend, ' ls ', eos_file], stdout=PIPE)
-        out,err = data.communicate()
-
+    def getEOSlsfile(self, directory, mask='', prepend='root://eosuser.cern.ch/'):
+        eos_dir = '/eos/user/%s ' % (directory)
+        eos_cmd = 'eos ' + prepend + ' ls ' + eos_dir
+        out = commands.getoutput(eos_cmd)
         full_list = []
-
         ## if input file was single root file:
-        if filepath.endswith('.root'):
+        if directory.endswith('.root'):
             if len(out.split('\n')[0]) > 0:
-                return [os.path.join(prepend,eos_file).replace(" ","")]
-
+                return [os.path.join(prepend,eos_dir).replace(" ","")]
         ## instead of only the file name append the string to open the file in ROOT
         for line in out.split('\n'):
+            print 'line: ', line
             if len(line.split()) == 0: continue
-            full_list.append(os.path.join(prepend,eos_file,line).replace(" ",""))
-        print 'full_list: ', full_list
+            full_list.append(os.path.join(prepend,eos_dir,line).replace(" ",""))
         ## strip the list of files if required
         if mask != '':
             stripped_list = [x for x in full_list if mask in x]
             return stripped_list
-
+        print 'full files list from eos: ', full_list
         ## return
         return full_list
 
@@ -141,19 +135,20 @@ class control_plotter(object):
                 binning_ = self.define_binning(branch_)
                 htemp = TH1F(branch_,branch_,binning_[0],binning_[1],binning_[2])
                 htemp.SetMinimum(0.)
-                if 'Data' in file_.GetName():
-                    maxentries = 1000
+                if 'Data' in file_.GetName() or 'ttJets' in file_.GetName():
+                    maxentries = 10000
                 else:
-                    maxentries = tree_.GetEntries()
+                    maxentries = 10000
+                    #maxentries = tree_.GetEntries()
                 print '<load_histos> # Entries = ', tree_.GetEntries()
                 # Turn off all branches and only turn on the ones you want to use.
                 # This will make the scrip run a lot faster.
                 tree_.SetBranchStatus("*",0)
                 tree_.SetBranchStatus("n_presel_jet",1)
-                if selection == 'tH':
-                    tree_.SetBranchStatus("is_tH_like_and_not_ttH_like",1)
+                tree_.SetBranchStatus("is_tH_like_and_not_ttH_like",1)
                 tree_.SetBranchStatus(branch_,1)
                 tree_.SetBranchStatus('EventWeight',1)
+
                 for i in range(tree_.GetEntries()):
                     percentage_done = int(100*float(i)/float(tree_.GetEntries()))
                     if percentage_done % 10 == 0:
@@ -161,33 +156,29 @@ class control_plotter(object):
                             temp_percentage_done = percentage_done
                             print '%.2f percent done' % (temp_percentage_done)
                     tree_.GetEntry(i)
-                    nJets_ = tree_.GetBranch('n_presel_jet').GetLeaf('n_presel_jet')
                     # Apply selection
                     selection_criteria = 0
-                    if selection == 'tH':
-                        is_tH_like_and_not_ttH_like_ = tree_.GetBranch('is_tH_like_and_not_ttH_like').GetLeaf('is_tH_like_and_not_ttH_like')
-                        selection_criteria = 1 if is_tH_like_and_not_ttH_like_==0 and is_tH_like_and_not_ttH_like_==1 and nJets_.GetValue() >= 3 else 0
-                    elif selection == 'geq3j':
-                        selection_criteria = 1 if nJets_.GetValue() >= 3 else 0
-
+                    nJets_ = tree_.GetBranch('n_presel_jet').GetLeaf('n_presel_jet')
+                    is_tH_like_and_not_ttH_like_ = tree_.GetBranch('is_tH_like_and_not_ttH_like').GetLeaf('is_tH_like_and_not_ttH_like')
+                    selection_criteria = 1 if ((tree_.is_tH_like_and_not_ttH_like==0 or tree_.is_tH_like_and_not_ttH_like==1) and tree_.n_presel_jet >= 3) else 0
                     if selection_criteria == 0:
                         continue
-
                     variable_ = tree_.GetBranch(branch_).GetLeaf(branch_)
                     weight_ = tree_.GetBranch('EventWeight').GetLeaf('EventWeight')
                     htemp.Fill(variable_.GetValue(), weight_.GetValue())
+                    #weight_ = 1
+                    #htemp.Fill(variable_.GetValue(), weight_)
+
                 keyname_file = file_.GetName().split('/')[-1:]
                 keyname = keyname_file[0].split('.')[:-1]
                 keyname = keyname[0] + '_' + branch_
                 keyname = keyname + '_DiLepRegion'
+                print 'filling input_hist_dict with key %s' % (keyname)
                 input_hist_dict[keyname] = htemp
                 del htemp
             del tree_
             del file_
-        #pickle_filename = '%s_hist_dict: ' % (file_.GetName())
-        #output = open(pickle_filename, 'wb')
-        #pickle.dump(input_hist_dict, output)
-        #output.close()
+
         return input_hist_dict
 
     def make_hist(self, input_hist_1, input_hist_2, input_hist_3, process, variable_name):
@@ -278,26 +269,24 @@ class control_plotter(object):
         input_hist1.SetLineColor(1)
         input_hist1.SetFillColor(1)
         input_hist1.SetFillStyle(3002)
-        legend.AddEntry(input_hist1,title_hist1,'p')
-
-        input_hist1.Draw('HIST')
         input_hist1.SetTitle(title_hist1)
         input_hist1.GetYaxis().SetTitle('Events')
         input_hist1.GetXaxis().SetTitle(variable_name)
         input_hist1.SetMaximum(maxy)
+        input_hist1.Draw('HIST')
+        legend.AddEntry(input_hist1,title_hist1,'l')
 
         input_hist2.SetMarkerColor(2)
         input_hist2.SetMarkerStyle(20)
         input_hist2.SetLineColor(2)
         input_hist2.SetFillColor(2)
         input_hist2.SetFillStyle(3002)
-        legend.AddEntry(input_hist2,title_hist2,'p')
-
-        input_hist2.Draw('HISTSAMEEP')
         input_hist2.SetTitle(title_hist2)
         input_hist2.GetYaxis().SetTitle('Events')
         input_hist2.GetXaxis().SetTitle(variable_name)
         input_hist2.SetMaximum(maxy)
+        input_hist2.Draw('HISTSAMEEP')
+        legend.AddEntry(input_hist2,title_hist2,'p')
 
         legend.Draw('SAME')
         c1.Update()

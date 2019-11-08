@@ -16,7 +16,7 @@ class plotter(object):
         self.output_directory = ''
         #self.bin_edges_low_high = np.array([0.,0.0625,0.125,0.1875,0.25,0.3125,0.375,0.4375,0.5,0.5625,0.6125,0.6875,0.75,0.8125,0.875,0.9375,1.0])
         self.nbins = np.linspace(0.0,1.0,num=50)
-        w, h = 5, 5
+        w, h = 4, 4
         self.yscores_train_categorised = [[0 for x in range(w)] for y in range(h)]
         self.yscores_test_categorised = [[0 for x in range(w)] for y in range(h)]
         self.yscores_train_non_categorised = [[0 for x in range(w)] for y in range(h)]
@@ -40,8 +40,6 @@ class plotter(object):
             history1 = histories[i]
             label_name_train = '%s train' % (labels[i])
             label_name_test = '%s test' % (labels[i])
-            #plt.plot(history1.history['acc'], label=label_name_train)
-            #plt.plot(history1.history['val_acc'], label=label_name_test)
             plt.plot(history1.history['loss'], label=label_name_train)
             plt.plot(history1.history['val_loss'], label=label_name_test)
 
@@ -87,7 +85,7 @@ class plotter(object):
         else:
             self.matrix = pandas.crosstab(y_true,y_predicted,EventWeights_,aggfunc=sum)
             vmax = 150
-        
+
         self.labelsx = self.matrix.columns
         self.labelsy = self.matrix.index
         self.fig, self.ax1 = plt.subplots(ncols=1, figsize=(10,10))
@@ -98,10 +96,9 @@ class plotter(object):
         sns.heatmap(self.matrix, **opts)
         label_dict = {
             0 : 'ttH',
-            1 : 'ttJ',
+            1 : 'Other',
             2 : 'ttW',
-            3 : 'ttZ',
-            4 : 'tHQ'
+            3 : 'tHQ'
         }
         for ax in (self.ax1,):
             #Shift tick location to bin centre
@@ -129,7 +126,6 @@ class plotter(object):
         SorB_class_test = []
         output_probs_train = []
         output_probs_test = []
-
         # Loop over all training events
         for i in xrange(0,len(original_encoded_train_Y)):
             # If training events truth value is target for the node assigned as signal by the variable encoded_signal append a 1
@@ -177,187 +173,6 @@ class plotter(object):
         # save the plot
         save_name = pltname
         self.save_plots(dir=self.plots_directory, filename=save_name)
-        return
-
-    def ROC_Curve(self, yscores_train_, yscores_test_, training_EventWeights_, testing_EventWeights_):
-
-        node_counter = 0
-
-        for y_scores_train,y_scores_test in zip(yscores_train_,yscores_test_):
-            if node_counter == 0:
-                node = 'ttH'
-            if node_counter == 1:
-                node = 'ttJ'
-            if node_counter == 2:
-                node = 'ttW'
-            if node_counter == 3:
-                node = 'ttZ'
-            nBins = len(self.nbins)
-            cut_values = []
-
-            train_sig_eff_ROC_values = []
-            train_bckg_eff_ROC_values = []
-            test_sig_eff_ROC_values = []
-            test_bckg_eff_ROC_values = []
-
-            for index in xrange(len(y_scores_train)):
-                y_train = y_scores_train[index]
-                width = np.diff(self.nbins)
-                histo_train_, bin_edges = np.histogram(y_train, bins=self.nbins)
-                #histo_train_, bin_edges = np.histogram(y_train, bins=self.nbins, weights=training_EventWeights_)
-                dx_scale_train =(bin_edges[len(bin_edges)-1] - bin_edges[0]) / (len(bin_edges)-1)
-                if np.sum(histo_train_, dtype=np.float32) <= 0:
-                    if index == 0:
-                        histo_train_ttH = histo_train_
-                    if index == 1:
-                        histo_train_ttJ = histo_train_
-                    if index == 2:
-                        histo_train_ttW = histo_train_
-                    if index == 3:
-                        histo_train_ttZ = histo_train_
-                else:
-                    histo_train_ = histo_train_ / np.sum(histo_train_, dtype=np.float32) / dx_scale_train
-                    if index == 0:
-                        histo_train_ttH = histo_train_ / np.sum(histo_train_, dtype=np.float32)
-                    if index == 1:
-                        histo_train_ttJ = histo_train_ / np.sum(histo_train_, dtype=np.float32)
-                    if index == 2:
-                        histo_train_ttW = histo_train_ / np.sum(histo_train_, dtype=np.float32)
-                    if index == 3:
-                        histo_train_ttZ = histo_train_ / np.sum(histo_train_, dtype=np.float32)
-
-            for index in xrange(len(y_scores_test)):
-                y_test = y_scores_test[index]
-                width = np.diff(self.nbins)
-                histo_test_, bin_edges = np.histogram(y_test, bins=self.nbins)
-                #histo_test_, bin_edges = np.histogram(y_test, bins=self.nbins, weights=testing_EventWeights_)
-                dx_scale_test =(bin_edges[len(bin_edges)-1] - bin_edges[0]) / (len(bin_edges)-1)
-                if np.sum(histo_test_, dtype=np.float32) <= 0:
-                    if index == 0:
-                        histo_test_ttH = histo_test_
-                    if index == 1:
-                        histo_test_ttJ = histo_test_
-                    if index == 2:
-                        histo_test_ttW = histo_test_
-                    if index == 3:
-                        histo_test_ttZ = histo_test_
-                else:
-                    histo_test_ = histo_test_ / np.sum(histo_test_, dtype=np.float32) / dx_scale_test
-                    if index == 0:
-                        histo_test_ttH = histo_test_ / np.sum(histo_test_, dtype=np.float32)
-                    if index == 1:
-                        histo_test_ttJ = histo_test_ / np.sum(histo_test_, dtype=np.float32)
-                    if index == 2:
-                        histo_test_ttW = histo_test_ / np.sum(histo_test_, dtype=np.float32)
-                    if index == 3:
-                        histo_test_ttZ = histo_test_ / np.sum(histo_test_, dtype=np.float32)
-
-            for cut_index in xrange(nBins):
-                disc_cut = self.nbins[cut_index]
-
-                ttH_train_passing_cut = 0
-                ttJ_train_passing_cut = 0
-                ttW_train_passing_cut = 0
-                ttZ_train_passing_cut = 0
-                cumulative_ttH_train_total = 0
-                cumulative_ttJ_train_total = 0
-                cumulative_ttW_train_total = 0
-                cumulative_ttZ_train_total = 0
-
-                ttH_test_passing_cut = 0
-                ttJ_test_passing_cut = 0
-                ttW_test_passing_cut = 0
-                ttZ_test_passing_cut = 0
-                cumulative_ttH_test_total = 0
-                cumulative_ttJ_test_total = 0
-                cumulative_ttW_test_total = 0
-                cumulative_ttZ_test_total = 0
-
-                for bin_index in xrange(0,nBins-1):
-                    ttH_train_bin_content = histo_train_ttH[bin_index]
-                    ttJ_train_bin_content = histo_train_ttJ[bin_index]
-                    ttW_train_bin_content = histo_train_ttW[bin_index]
-                    ttZ_train_bin_content = histo_train_ttZ[bin_index]
-                    cumulative_ttH_train_total = cumulative_ttH_train_total + ttH_train_bin_content
-                    cumulative_ttJ_train_total = cumulative_ttJ_train_total + ttJ_train_bin_content
-                    cumulative_ttW_train_total = cumulative_ttW_train_total + ttW_train_bin_content
-                    cumulative_ttZ_train_total = cumulative_ttZ_train_total + ttZ_train_bin_content
-                    ttH_train_passing_cut = (ttH_train_passing_cut + ttH_train_bin_content) if self.nbins[bin_index] <= disc_cut else ttH_train_passing_cut
-                    ttJ_train_passing_cut = (ttJ_train_passing_cut + ttJ_train_bin_content) if self.nbins[bin_index] <= disc_cut else ttJ_train_passing_cut
-                    ttW_train_passing_cut = (ttW_train_passing_cut + ttW_train_bin_content) if self.nbins[bin_index] <= disc_cut else ttW_train_passing_cut
-                    ttZ_train_passing_cut = (ttZ_train_passing_cut + ttZ_train_bin_content) if self.nbins[bin_index] <= disc_cut else ttZ_train_passing_cut
-
-                    ttH_test_bin_content = histo_test_ttH[bin_index]
-                    ttJ_test_bin_content = histo_test_ttJ[bin_index]
-                    ttW_test_bin_content = histo_test_ttW[bin_index]
-                    ttZ_test_bin_content = histo_test_ttZ[bin_index]
-                    cumulative_ttH_test_total = cumulative_ttH_test_total + ttH_test_bin_content
-                    cumulative_ttJ_test_total = cumulative_ttJ_test_total + ttJ_test_bin_content
-                    cumulative_ttW_test_total = cumulative_ttW_test_total + ttW_test_bin_content
-                    cumulative_ttZ_test_total = cumulative_ttZ_test_total + ttZ_test_bin_content
-                    ttH_test_passing_cut = (ttH_test_passing_cut + ttH_test_bin_content) if self.nbins[bin_index] <= disc_cut else ttH_test_passing_cut
-                    ttJ_test_passing_cut = (ttJ_test_passing_cut + ttJ_test_bin_content) if self.nbins[bin_index] <= disc_cut else ttJ_test_passing_cut
-                    ttW_test_passing_cut = (ttW_test_passing_cut + ttW_test_bin_content) if self.nbins[bin_index] <= disc_cut else ttW_test_passing_cut
-                    ttZ_test_passing_cut = (ttZ_test_passing_cut + ttZ_test_bin_content) if self.nbins[bin_index] <= disc_cut else ttZ_test_passing_cut
-
-                if node == 'ttH':
-                    if cumulative_ttH_train_total != 0:
-                        train_true_positive_rate = ttH_train_passing_cut / cumulative_ttH_train_total
-                    if (cumulative_ttJ_train_total+cumulative_ttW_train_total+cumulative_ttZ_train_total) != 0:
-                        train_false_positive_rate = (ttJ_train_passing_cut+ttW_train_passing_cut+ttZ_train_passing_cut) / (cumulative_ttJ_train_total+cumulative_ttW_train_total+cumulative_ttZ_train_total)
-                    if cumulative_ttH_test_total != 0:
-                        test_true_positive_rate = ttH_test_passing_cut / cumulative_ttH_test_total
-                    if (cumulative_ttJ_test_total+cumulative_ttW_test_total+cumulative_ttZ_test_total) !=0:
-                        test_false_positive_rate = (ttJ_test_passing_cut+ttW_test_passing_cut+ttZ_test_passing_cut) / (cumulative_ttJ_test_total+cumulative_ttW_test_total+cumulative_ttZ_test_total)
-                if node == 'ttJ':
-                    if cumulative_ttJ_train_total !=0:
-                        train_true_positive_rate = ttJ_train_passing_cut / cumulative_ttJ_train_total
-                    if (cumulative_ttH_train_total+cumulative_ttW_train_total+cumulative_ttZ_train_total) !=0:
-                        train_false_positive_rate = (ttH_train_passing_cut+ttW_train_passing_cut+ttZ_train_passing_cut) / (cumulative_ttH_train_total+cumulative_ttW_train_total+cumulative_ttZ_train_total)
-                    if cumulative_ttJ_test_total != 0 :
-                        test_true_positive_rate = ttJ_test_passing_cut / cumulative_ttJ_test_total
-                    if (cumulative_ttH_test_total+cumulative_ttW_test_total+cumulative_ttZ_test_total) != 0:
-                        test_false_positive_rate = (ttH_test_passing_cut+ttW_test_passing_cut+ttZ_test_passing_cut) / (cumulative_ttH_test_total+cumulative_ttW_test_total+cumulative_ttZ_test_total)
-                if node == 'ttW':
-                    if cumulative_ttW_train_total != 0:
-                        train_true_positive_rate = ttW_train_passing_cut / cumulative_ttW_train_total
-                    if (cumulative_ttJ_train_total+cumulative_ttH_train_total+cumulative_ttZ_train_total) !=0:
-                        train_false_positive_rate = (ttJ_train_passing_cut+ttH_train_passing_cut+ttZ_train_passing_cut) / (cumulative_ttJ_train_total+cumulative_ttH_train_total+cumulative_ttZ_train_total)
-                    if cumulative_ttW_test_total !=0:
-                        test_true_positive_rate = ttW_test_passing_cut / cumulative_ttW_test_total
-                    if (cumulative_ttJ_test_total+cumulative_ttH_test_total+cumulative_ttZ_test_total) !=0:
-                        test_false_positive_rate = (ttJ_test_passing_cut+ttH_test_passing_cut+ttZ_test_passing_cut) / (cumulative_ttJ_test_total+cumulative_ttH_test_total+cumulative_ttZ_test_total)
-                if node == 'ttZ':
-                    if cumulative_ttZ_train_total !=0:
-                        train_true_positive_rate = ttZ_train_passing_cut / cumulative_ttZ_train_total
-                    if (cumulative_ttJ_train_total+cumulative_ttW_train_total+cumulative_ttH_train_total) !=0:
-                        train_false_positive_rate = (ttJ_train_passing_cut+ttW_train_passing_cut+ttH_train_passing_cut) / (cumulative_ttJ_train_total+cumulative_ttW_train_total+cumulative_ttH_train_total)
-                    if cumulative_ttZ_test_total !=0:
-                        test_true_positive_rate = ttZ_test_passing_cut / cumulative_ttZ_test_total
-                    if (cumulative_ttJ_test_total+cumulative_ttW_test_total+cumulative_ttH_test_total) != 0:
-                        test_false_positive_rate = (ttJ_test_passing_cut+ttW_test_passing_cut+ttH_test_passing_cut) / (cumulative_ttJ_test_total+cumulative_ttW_test_total+cumulative_ttH_test_total)
-
-                train_sig_eff_ROC_values.append(train_true_positive_rate)
-                train_bckg_eff_ROC_values.append(train_false_positive_rate)
-                test_sig_eff_ROC_values.append(test_true_positive_rate)
-                test_bckg_eff_ROC_values.append(test_false_positive_rate)
-
-
-            self.fig, self.ax1 = plt.subplots(ncols=1, figsize=(10,10))
-            plt.plot(train_sig_eff_ROC_values, train_bckg_eff_ROC_values , label='train')
-            plt.plot(test_sig_eff_ROC_values, test_bckg_eff_ROC_values , label='test')
-            x=np.linspace(0,1,50)
-            plt.plot(x, x, '-.k')
-            title = node + '_ROC'
-            plt.title(title)
-            plt.ylabel('Sig. Eff.')
-            plt.xlabel('Bckg. Eff.')
-            plt.legend(loc='upper left')
-            roc_title = title + '.png'
-            plt.tight_layout()
-            self.save_plots(dir=self.plots_directory, filename=roc_title)
-            node_counter = node_counter + 1
-
         return
 
     def GetSeparation(self, hist_sig, hist_bckg):
@@ -420,12 +235,10 @@ class plotter(object):
             if index == 0:
                 histo_train_ttH = histo_train_ / np.sum(histo_train_, dtype=np.float32)
             if index == 1:
-                histo_train_ttJ = histo_train_ / np.sum(histo_train_, dtype=np.float32)
+                histo_train_Other = histo_train_ / np.sum(histo_train_, dtype=np.float32)
             if index == 2:
                 histo_train_ttW = histo_train_ / np.sum(histo_train_, dtype=np.float32)
             if index == 3:
-                histo_train_ttZ = histo_train_ / np.sum(histo_train_, dtype=np.float32)
-            if index == 4:
                 histo_train_tHQ = histo_train_ / np.sum(histo_train_, dtype=np.float32)
 
             testlabel = label + ' test'
@@ -440,12 +253,10 @@ class plotter(object):
                 if index == 0:
                     histo_test_ttH = histo_test_
                 if index == 1:
-                    histo_test_ttJ = histo_test_
+                    histo_test_Other = histo_test_
                 if index == 2:
                     histo_test_ttW = histo_test_
                 if index == 3:
-                    histo_test_ttZ = histo_test_
-                if index == 4:
                     histo_test_tHQ = histo_test_
             else:
                 err = np.sqrt(histo_test_/np.sum(histo_test_, dtype=np.float32))
@@ -454,166 +265,109 @@ class plotter(object):
                 if index == 0:
                     histo_test_ttH = histo_test_ / np.sum(histo_test_, dtype=np.float32)
                 if index == 1:
-                    histo_test_ttJ = histo_test_ / np.sum(histo_test_, dtype=np.float32)
+                    histo_test_Other = histo_test_ / np.sum(histo_test_, dtype=np.float32)
                 if index == 2:
                     histo_test_ttW = histo_test_ / np.sum(histo_test_, dtype=np.float32)
                 if index == 3:
-                    histo_test_ttZ = histo_test_ / np.sum(histo_test_, dtype=np.float32)
-                if index == 4:
                     histo_test_tHQ = histo_test_ / np.sum(histo_test_, dtype=np.float32)
 
         if 'ttH' in node_name:
-            train_ttHvttJSep = "{0:.5g}".format(self.GetSeparation(histo_train_ttH,histo_train_ttJ))
+            train_ttHvOtherSep = "{0:.5g}".format(self.GetSeparation(histo_train_ttH,histo_train_Other))
             train_ttHvttWSep = "{0:.5g}".format(self.GetSeparation(histo_train_ttH,histo_train_ttW))
-            train_ttHvttZSep = "{0:.5g}".format(self.GetSeparation(histo_train_ttH,histo_train_ttZ))
             train_ttHvtHQSep = "{0:.5g}".format(self.GetSeparation(histo_train_ttH,histo_train_tHQ))
 
-            test_ttHvttJSep = "{0:.5g}".format(self.GetSeparation(histo_test_ttH,histo_test_ttJ))
+            test_ttHvOtherSep = "{0:.5g}".format(self.GetSeparation(histo_test_ttH,histo_test_Other))
             test_ttHvttWSep = "{0:.5g}".format(self.GetSeparation(histo_test_ttH,histo_test_ttW))
-            test_ttHvttZSep = "{0:.5g}".format(self.GetSeparation(histo_test_ttH,histo_test_ttZ))
             test_ttHvtHQSep = "{0:.5g}".format(self.GetSeparation(histo_test_ttH,histo_test_tHQ))
 
-            ttH_v_ttJ_train_sep = 'ttH vs ttJ train Sep.: %s' % ( train_ttHvttJSep )
-            self.ax.annotate(ttH_v_ttJ_train_sep,  xy=(0.7, 2.5), xytext=(0.7, 2.5), fontsize=9)
+            ttH_v_Other_train_sep = 'ttH vs Other train Sep.: %s' % ( train_ttHvOtherSep )
+            self.ax.annotate(ttH_v_Other_train_sep,  xy=(0.7, 2.5), xytext=(0.7, 2.5), fontsize=9)
             ttH_v_ttW_train_sep = 'ttH vs ttW train Sep.: %s' % ( train_ttHvttWSep )
             self.ax.annotate(ttH_v_ttW_train_sep,  xy=(0.7, 2.25), xytext=(0.7, 2.25), fontsize=9)
-            ttH_v_ttZ_train_sep = 'ttH vs ttZ train Sep.: %s' % ( train_ttHvttZSep )
-            self.ax.annotate(ttH_v_ttZ_train_sep,  xy=(0.7, 2.), xytext=(0.7, 2.), fontsize=9)
             ttH_v_tHQ_train_sep = 'ttH vs tHQ train Sep.: %s' % ( train_ttHvtHQSep )
             self.ax.annotate(ttH_v_tHQ_train_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)
 
-            ttH_v_ttJ_test_sep = 'ttH vs ttJ test Sep.: %s' % ( test_ttHvttJSep )
-            self.ax.annotate(ttH_v_ttJ_test_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.5), fontsize=9)
+            ttH_v_Other_test_sep = 'ttH vs Other test Sep.: %s' % ( test_ttHvOtherSep )
+            self.ax.annotate(ttH_v_Other_test_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.5), fontsize=9)
             ttH_v_ttW_test_sep = 'ttH vs ttW test Sep.: %s' % ( test_ttHvttWSep )
             self.ax.annotate(ttH_v_ttW_test_sep,  xy=(0.7, 1.5), xytext=(0.7, 1.25), fontsize=9)
-            ttH_v_ttZ_test_sep = 'ttH vs ttZ test Sep.: %s' % ( test_ttHvttZSep )
-            self.ax.annotate(ttH_v_ttZ_test_sep,  xy=(0.7, 1.25), xytext=(0.7, 1.), fontsize=9)
             ttH_v_tHQ_test_sep = 'ttH vs tHQ test Sep.: %s' % ( test_ttHvtHQSep )
             self.ax.annotate(ttH_v_tHQ_test_sep,  xy=(0.7, 1.), xytext=(0.7, .75), fontsize=9)
-            separations_forTable = r'''\textbackslash & %s & %s & %s & %s''' % (test_ttHvttJSep, test_ttHvttWSep, test_ttHvttZSep, ttH_v_tHQ_test_sep)
-        if 'ttJ' in node_name:
-            train_ttJvttH = "{0:.5g}".format(self.GetSeparation(histo_train_ttJ,histo_train_ttH))
-            train_ttJvttW = "{0:.5g}".format(self.GetSeparation(histo_train_ttJ,histo_train_ttW))
-            train_ttJvttZ = "{0:.5g}".format(self.GetSeparation(histo_train_ttJ,histo_train_ttZ))
-            train_ttJvtHQ = "{0:.5g}".format(self.GetSeparation(histo_train_ttJ,histo_train_tHQ))
+            separations_forTable = r'''\textbackslash & %s & %s & %s ''' % (test_ttHvOtherSep, test_ttHvttWSep, ttH_v_tHQ_test_sep)
+        if 'Other' in node_name:
+            train_OthervttH = "{0:.5g}".format(self.GetSeparation(histo_train_Other,histo_train_ttH))
+            train_OthervttW = "{0:.5g}".format(self.GetSeparation(histo_train_Other,histo_train_ttW))
+            train_OthervtHQ = "{0:.5g}".format(self.GetSeparation(histo_train_Other,histo_train_tHQ))
 
-            test_ttJvttH = "{0:.5g}".format(self.GetSeparation(histo_test_ttJ,histo_test_ttH))
-            test_ttJvttW = "{0:.5g}".format(self.GetSeparation(histo_test_ttJ,histo_test_ttW))
-            test_ttJvttZ = "{0:.5g}".format(self.GetSeparation(histo_test_ttJ,histo_test_ttZ))
-            test_ttJvtHQ = "{0:.5g}".format(self.GetSeparation(histo_test_ttJ,histo_test_tHQ))
+            test_OthervttH = "{0:.5g}".format(self.GetSeparation(histo_test_Other,histo_test_ttH))
+            test_OthervttW = "{0:.5g}".format(self.GetSeparation(histo_test_Other,histo_test_ttW))
+            test_OthervtHQ = "{0:.5g}".format(self.GetSeparation(histo_test_Other,histo_test_tHQ))
 
-            ttJ_v_ttH_train_sep = 'ttJ vs ttH train Sep.: %s' % ( train_ttJvttH )
-            self.ax.annotate(ttJ_v_ttH_train_sep,  xy=(0.7, 2.5), xytext=(0.7, 2.5), fontsize=9)
-            ttJ_v_ttW_train_sep = 'ttJ vs ttW train Sep.: %s' % ( train_ttJvttW )
-            self.ax.annotate(ttJ_v_ttW_train_sep,  xy=(0.7, 2.25), xytext=(0.7, 2.25), fontsize=9)
-            ttJ_v_ttZ_train_sep = 'ttJ vs ttZ train Sep.: %s' % ( train_ttJvttZ )
-            self.ax.annotate(ttJ_v_ttZ_train_sep,  xy=(0.7, 2.), xytext=(0.7, 2.), fontsize=9)
-            ttJ_v_tHQ_train_sep = 'ttJ vs tHQ train Sep.: %s' % ( train_ttJvtHQ )
-            self.ax.annotate(ttJ_v_tHQ_train_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)
+            Other_v_ttH_train_sep = 'Other vs ttH train Sep.: %s' % ( train_OthervttH )
+            self.ax.annotate(Other_v_ttH_train_sep,  xy=(0.7, 2.5), xytext=(0.7, 2.5), fontsize=9)
+            Other_v_ttW_train_sep = 'Other vs ttW train Sep.: %s' % ( train_OthervttW )
+            self.ax.annotate(Other_v_ttW_train_sep,  xy=(0.7, 2.25), xytext=(0.7, 2.25), fontsize=9)
+            Other_v_tHQ_train_sep = 'Other vs tHQ train Sep.: %s' % ( train_OthervtHQ )
+            self.ax.annotate(Other_v_tHQ_train_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)
 
-            ttJ_v_ttH_test_sep = 'ttJ vs ttH test Sep.: %s' % ( test_ttJvttH )
-            self.ax.annotate(ttJ_v_ttH_test_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)
-            ttJ_v_ttW_test_sep = 'ttJ vs ttW test Sep.: %s' % ( test_ttJvttW )
-            self.ax.annotate(ttJ_v_ttW_test_sep,  xy=(0.7, 1.5), xytext=(0.7, 1.5), fontsize=9)
-            ttJ_v_ttZ_test_sep = 'ttJ vs ttZ test Sep.: %s' % ( test_ttJvttZ )
-            self.ax.annotate(ttJ_v_ttZ_test_sep,  xy=(0.7, 1.25), xytext=(0.7, 1.25), fontsize=9)
-            ttJ_v_tHQ_test_sep = 'ttJ vs tHQ test Sep.: %s' % ( test_ttJvtHQ )
-            self.ax.annotate(ttJ_v_tHQ_test_sep,  xy=(0.7, 1.), xytext=(0.7, 1.), fontsize=9)
+            Other_v_ttH_test_sep = 'Other vs ttH test Sep.: %s' % ( test_OthervttH )
+            self.ax.annotate(Other_v_ttH_test_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)
+            Other_v_ttW_test_sep = 'Other vs ttW test Sep.: %s' % ( test_OthervttW )
+            self.ax.annotate(Other_v_ttW_test_sep,  xy=(0.7, 1.5), xytext=(0.7, 1.5), fontsize=9)
+            Other_v_tHQ_test_sep = 'Other vs tHQ test Sep.: %s' % ( test_OthervtHQ )
+            self.ax.annotate(Other_v_tHQ_test_sep,  xy=(0.7, 1.), xytext=(0.7, 1.), fontsize=9)
 
-            separations_forTable = r'''%s & \textbackslash & %s & %s & %s''' % (test_ttJvttH,test_ttJvttW,test_ttJvttZ,ttJ_v_tHQ_test_sep)
+            separations_forTable = r'''%s & \textbackslash & %s & %s''' % (test_OthervttH,test_OthervttW,Other_v_tHQ_test_sep)
 
         if 'ttW' in node_name:
             train_ttWvttH = "{0:.5g}".format(self.GetSeparation(histo_train_ttW,histo_train_ttH))
-            train_ttWvttJ = "{0:.5g}".format(self.GetSeparation(histo_train_ttW,histo_train_ttJ))
-            train_ttWvttZ = "{0:.5g}".format(self.GetSeparation(histo_train_ttW,histo_train_ttZ))
+            train_ttWvOther = "{0:.5g}".format(self.GetSeparation(histo_train_ttW,histo_train_Other))
             train_ttWvtHQ = "{0:.5g}".format(self.GetSeparation(histo_train_ttW,histo_train_tHQ))
 
             test_ttWvttH = "{0:.5g}".format(self.GetSeparation(histo_test_ttW,histo_test_ttH))
-            test_ttWvttJ = "{0:.5g}".format(self.GetSeparation(histo_test_ttW,histo_test_ttJ))
-            test_ttWvttZ = "{0:.5g}".format(self.GetSeparation(histo_test_ttW,histo_test_ttZ))
+            test_ttWvOther = "{0:.5g}".format(self.GetSeparation(histo_test_ttW,histo_test_Other))
             test_ttWvtHQ = "{0:.5g}".format(self.GetSeparation(histo_test_ttW,histo_test_tHQ))
 
             ttW_v_ttH_train_sep = 'ttW vs ttH train Sep.: %s' % ( train_ttWvttH )
             self.ax.annotate(ttW_v_ttH_train_sep,  xy=(0.7, 2.5), xytext=(0.7, 2.5), fontsize=9)
-            ttW_v_ttJ_train_sep = 'ttW vs ttJ train Sep.: %s' % ( train_ttWvttJ )
-            self.ax.annotate(ttW_v_ttJ_train_sep,  xy=(0.7, 2.25), xytext=(0.7, 2.25), fontsize=9)
-            ttW_v_ttZ_train_sep = 'ttW vs ttW train Sep.: %s' % ( train_ttWvttZ )
-            self.ax.annotate(ttW_v_ttZ_train_sep,  xy=(0.7, 2.), xytext=(0.7, 2.), fontsize=9)
+            ttW_v_Other_train_sep = 'ttW vs Other train Sep.: %s' % ( train_ttWvOther )
+            self.ax.annotate(ttW_v_Other_train_sep,  xy=(0.7, 2.25), xytext=(0.7, 2.25), fontsize=9)
             ttW_v_tHQ_train_sep = 'ttW vs ttW train Sep.: %s' % ( train_ttWvtHQ )
             self.ax.annotate(ttW_v_tHQ_train_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)
 
             ttW_v_ttH_test_sep = 'ttW vs ttH test Sep.: %s' % ( test_ttWvttH )
             self.ax.annotate(ttW_v_ttH_test_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)
-            ttW_v_ttJ_test_sep = 'ttW vs ttJ test Sep.: %s' % ( test_ttWvttJ )
-            self.ax.annotate(ttW_v_ttJ_test_sep,  xy=(0.7, 1.5), xytext=(0.7, 1.5), fontsize=9)
-            ttW_v_ttZ_test_sep = 'ttW vs ttZ test Sep.: %s' % ( test_ttWvttZ )
-            self.ax.annotate(ttW_v_ttZ_test_sep,  xy=(0.7, 1.25), xytext=(0.7, 1.25), fontsize=9)
+            ttW_v_Other_test_sep = 'ttW vs Other test Sep.: %s' % ( test_ttWvOther )
+            self.ax.annotate(ttW_v_Other_test_sep,  xy=(0.7, 1.5), xytext=(0.7, 1.5), fontsize=9)
             ttW_v_tHQ_test_sep = 'ttW vs tHQ test Sep.: %s' % ( test_ttWvtHQ )
             self.ax.annotate(ttW_v_tHQ_test_sep,  xy=(0.7, 1.), xytext=(0.7, 1.), fontsize=9)
 
-            separations_forTable = r'''%s & %s & \textbackslash & %s & %s''' % (test_ttWvttH,test_ttWvttJ,test_ttWvttZ,ttW_v_tHQ_test_sep)
-
-        if 'ttZ' in node_name:
-            train_ttZvttH = "{0:.5g}".format(self.GetSeparation(histo_train_ttZ,histo_train_ttH))
-            train_ttZvttJ = "{0:.5g}".format(self.GetSeparation(histo_train_ttZ,histo_train_ttJ))
-            train_ttZvttW = "{0:.5g}".format(self.GetSeparation(histo_train_ttZ,histo_train_ttW))
-            train_ttZvtHQ = "{0:.5g}".format(self.GetSeparation(histo_train_ttZ,histo_train_tHQ))
-
-            test_ttZvttH = "{0:.5g}".format(self.GetSeparation(histo_test_ttZ,histo_test_ttH))
-            test_ttZvttJ = "{0:.5g}".format(self.GetSeparation(histo_test_ttZ,histo_test_ttJ))
-            test_ttZvttW = "{0:.5g}".format(self.GetSeparation(histo_test_ttZ,histo_test_ttW))
-            test_ttZvtHQ = "{0:.5g}".format(self.GetSeparation(histo_test_ttZ,histo_test_tHQ))
-
-            ttZ_v_ttH_train_sep = 'ttZ vs ttH train Sep.: %s' % ( train_ttZvttH )
-            self.ax.annotate(ttZ_v_ttH_train_sep,  xy=(0.7, 2.5), xytext=(0.7, 2.5), fontsize=9)
-            ttZ_v_ttJ_train_sep = 'ttZ vs ttJ train Sep.: %s' % ( train_ttZvttJ )
-            self.ax.annotate(ttZ_v_ttJ_train_sep,  xy=(0.7, 2.25), xytext=(0.7, 2.25), fontsize=9)
-            ttZ_v_ttW_train_sep = 'ttZ vs ttW train Sep.: %s' % ( train_ttZvttW )
-            self.ax.annotate(ttZ_v_ttW_train_sep,  xy=(0.7, 2.), xytext=(0.7, 2.), fontsize=9)
-            ttZ_v_tHQ_train_sep = 'ttZ vs tHQ train Sep.: %s' % ( train_ttZvtHQ )
-            self.ax.annotate(ttZ_v_tHQ_train_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)
-
-            ttZ_v_ttH_test_sep = 'ttZ vs ttH test Sep.: %s' % ( test_ttZvttH )
-            self.ax.annotate(ttZ_v_ttH_test_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)
-            ttZ_v_ttJ_test_sep = 'ttZ vs ttJ test Sep.: %s' % ( test_ttZvttJ )
-            self.ax.annotate(ttZ_v_ttJ_test_sep,  xy=(0.7, 1.5), xytext=(0.7, 1.5), fontsize=9)
-            ttZ_v_ttW_test_sep = 'ttZ vs ttW test Sep.: %s' % ( test_ttZvttW )
-            self.ax.annotate(ttZ_v_ttW_test_sep,  xy=(0.7, 1.25), xytext=(0.7, 1.25), fontsize=9)
-            ttZ_v_tHQ_test_sep = 'ttZ vs tHQ test Sep.: %s' % ( test_ttZvtHQ )
-            self.ax.annotate(ttZ_v_tHQ_test_sep,  xy=(0.7, 1.), xytext=(0.7, 1.), fontsize=9)
-
-            separations_forTable = r'''%s & %s & %s & \textbackslash & %s ''' % (test_ttZvttH,test_ttZvttJ,test_ttZvttW,ttZ_v_tHQ_test_sep)
+            separations_forTable = r'''%s & %s & \textbackslash & %s''' % (test_ttWvttH,test_ttWvOther,ttW_v_tHQ_test_sep)
 
         if 'tHQ' in node_name:
             train_tHQvttH = "{0:.5g}".format(self.GetSeparation(histo_train_tHQ,histo_train_ttH))
-            train_tHQvttJ = "{0:.5g}".format(self.GetSeparation(histo_train_tHQ,histo_train_ttJ))
+            train_tHQvOther = "{0:.5g}".format(self.GetSeparation(histo_train_tHQ,histo_train_Other))
             train_tHQvttW = "{0:.5g}".format(self.GetSeparation(histo_train_tHQ,histo_train_ttW))
-            train_tHQvttZ = "{0:.5g}".format(self.GetSeparation(histo_train_tHQ,histo_train_ttZ))
 
             test_tHQvttH = "{0:.5g}".format(self.GetSeparation(histo_test_tHQ,histo_test_ttH))
-            test_tHQvttJ = "{0:.5g}".format(self.GetSeparation(histo_test_tHQ,histo_test_ttJ))
+            test_tHQvOther = "{0:.5g}".format(self.GetSeparation(histo_test_tHQ,histo_test_Other))
             test_tHQvttW = "{0:.5g}".format(self.GetSeparation(histo_test_tHQ,histo_test_ttW))
-            test_tHQvttZ = "{0:.5g}".format(self.GetSeparation(histo_test_tHQ,histo_test_ttZ))
 
             tHQ_v_ttH_train_sep = 'tHQ vs ttH train Sep.: %s' % ( train_tHQvttH )
             self.ax.annotate(tHQ_v_ttH_train_sep,  xy=(0.7, 2.5), xytext=(0.7, 2.5), fontsize=9)
-            tHQ_v_ttJ_train_sep = 'tHQ vs ttJ train Sep.: %s' % ( train_tHQvttJ )
-            self.ax.annotate(tHQ_v_ttJ_train_sep,  xy=(0.7, 2.25), xytext=(0.7, 2.25), fontsize=9)
+            tHQ_v_Other_train_sep = 'tHQ vs Other train Sep.: %s' % ( train_tHQvOther )
+            self.ax.annotate(tHQ_v_Other_train_sep,  xy=(0.7, 2.25), xytext=(0.7, 2.25), fontsize=9)
             tHQ_v_ttW_train_sep = 'tHQ vs ttW train Sep.: %s' % ( train_tHQvttW )
             self.ax.annotate(tHQ_v_ttW_train_sep,  xy=(0.7, 2.), xytext=(0.7, 2.), fontsize=9)
-            tHQ_v_ttZ_train_sep = 'tHQ vs ttZ train Sep.: %s' % ( train_tHQvttZ )
-            self.ax.annotate(tHQ_v_ttZ_train_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)
 
             tHQ_v_ttH_test_sep = 'tHQ vs ttH test Sep.: %s' % ( test_tHQvttH )
             self.ax.annotate(tHQ_v_ttH_test_sep,  xy=(0.7, 1.75), xytext=(0.7, 1.75), fontsize=9)
-            tHQ_v_ttJ_test_sep = 'tHQ vs ttJ test Sep.: %s' % ( test_tHQvttJ )
-            self.ax.annotate(tHQ_v_ttJ_test_sep,  xy=(0.7, 1.5), xytext=(0.7, 1.5), fontsize=9)
+            tHQ_v_Other_test_sep = 'tHQ vs Other test Sep.: %s' % ( test_tHQvOther )
+            self.ax.annotate(tHQ_v_Other_test_sep,  xy=(0.7, 1.5), xytext=(0.7, 1.5), fontsize=9)
             tHQ_v_ttW_test_sep = 'tHQ vs ttW test Sep.: %s' % ( test_tHQvttW )
             self.ax.annotate(tHQ_v_ttW_test_sep,  xy=(0.7, 1.25), xytext=(0.7, 1.25), fontsize=9)
-            tHQ_v_ttZ_test_sep = 'tHQ vs ttZ test Sep.: %s' % ( test_tHQvttZ )
-            self.ax.annotate(tHQ_v_ttZ_test_sep,  xy=(0.7, 1.), xytext=(0.7, 1.), fontsize=9)
 
-            separations_forTable = r'''%s & %s & %s & %s & \textbackslash ''' % (test_tHQvttH,test_tHQvttJ,test_tHQvttW,tHQ_v_ttZ_test_sep)
+            separations_forTable = r'''%s & %s & %s & \textbackslash ''' % (test_tHQvttH,test_tHQvOther,test_tHQvttW)
 
 
         title_ = '%s %s node' % (plot_title,node_name)
@@ -640,11 +394,11 @@ class plotter(object):
 \begin{center}
 \begin{table}
 \begin{tabular}{| c | c | c | c | c |} \hline
-Node \textbackslash Background & ttH & ttJ & ttW & ttZ \\ \hline
+Node \textbackslash Background & ttH & Other & ttW & tHQ \\ \hline
 ttH & %s \\
-ttJ & %s \\
+Other & %s \\
 ttW & %s \\
-ttZ & %s \\ \hline
+tHQ & %s \\ \hline
 \end{tabular}
 \caption{Separation power on each output node. The separation is given with respect to the `signal' process the node is trained to separate (one node per row) and the background processes for that node (one background per column).}
 \end{table}
@@ -663,321 +417,219 @@ ttZ & %s \\ \hline
         model = estimator
         data_type = type(model)
 
-
         #Arrays to store all ttH values
         y_scores_train_ttH_sample_ttHnode = []
-        y_scores_train_ttJ_sample_ttHnode = []
+        y_scores_train_Other_sample_ttHnode = []
         y_scores_train_ttW_sample_ttHnode = []
-        y_scores_train_ttZ_sample_ttHnode = []
         y_scores_train_tHQ_sample_ttHnode = []
 
         # Arrays to store ttH categorised event values
         y_scores_train_ttH_sample_ttH_categorised = []
-        y_scores_train_ttJ_sample_ttH_categorised = []
+        y_scores_train_Other_sample_ttH_categorised = []
         y_scores_train_ttW_sample_ttH_categorised = []
-        y_scores_train_ttZ_sample_ttH_categorised = []
         y_scores_train_tHQ_sample_ttH_categorised = []
 
-        # Arrays to store all ttJ node values
-        y_scores_train_ttH_sample_ttJnode = []
-        y_scores_train_ttJ_sample_ttJnode = []
-        y_scores_train_ttW_sample_ttJnode = []
-        y_scores_train_ttZ_sample_ttJnode = []
-        y_scores_train_tHQ_sample_ttJnode = []
+        # Arrays to store all Other node values
+        y_scores_train_ttH_sample_Othernode = []
+        y_scores_train_Other_sample_Othernode = []
+        y_scores_train_ttW_sample_Othernode = []
+        y_scores_train_tHQ_sample_Othernode = []
 
-        # Arrays to store ttJ categorised event values
-        y_scores_train_ttH_sample_ttJ_categorised = []
-        y_scores_train_ttJ_sample_ttJ_categorised = []
-        y_scores_train_ttW_sample_ttJ_categorised = []
-        y_scores_train_ttZ_sample_ttJ_categorised = []
-        y_scores_train_tHQ_sample_ttJ_categorised = []
+        # Arrays to store Other categorised event values
+        y_scores_train_ttH_sample_Other_categorised = []
+        y_scores_train_Other_sample_Other_categorised = []
+        y_scores_train_ttW_sample_Other_categorised = []
+        y_scores_train_tHQ_sample_Other_categorised = []
 
         # Arrays to store all ttW node values
         y_scores_train_ttH_sample_ttWnode = []
-        y_scores_train_ttJ_sample_ttWnode = []
+        y_scores_train_Other_sample_ttWnode = []
         y_scores_train_ttW_sample_ttWnode = []
-        y_scores_train_ttZ_sample_ttWnode = []
         y_scores_train_tHQ_sample_ttWnode = []
 
         # Arrays to store ttW categorised events
         y_scores_train_ttH_sample_ttW_categorised = []
-        y_scores_train_ttJ_sample_ttW_categorised = []
+        y_scores_train_Other_sample_ttW_categorised = []
         y_scores_train_ttW_sample_ttW_categorised = []
-        y_scores_train_ttZ_sample_ttW_categorised = []
         y_scores_train_tHQ_sample_ttW_categorised = []
-
-        # Arrays to store all ttZ node values
-        y_scores_train_ttH_sample_ttZnode = []
-        y_scores_train_ttJ_sample_ttZnode = []
-        y_scores_train_ttW_sample_ttZnode = []
-        y_scores_train_ttZ_sample_ttZnode = []
-        y_scores_train_tHQ_sample_ttZnode = []
-
-        # Arrays to store ttZ categorised events
-        y_scores_train_ttH_sample_ttZ_categorised = []
-        y_scores_train_ttJ_sample_ttZ_categorised = []
-        y_scores_train_ttW_sample_ttZ_categorised = []
-        y_scores_train_ttZ_sample_ttZ_categorised = []
-        y_scores_train_tHQ_sample_ttZ_categorised = []
 
         # Arrays to store all tHQ node values
         y_scores_train_ttH_sample_tHQnode = []
-        y_scores_train_ttJ_sample_tHQnode = []
+        y_scores_train_Other_sample_tHQnode = []
         y_scores_train_ttW_sample_tHQnode = []
-        y_scores_train_ttZ_sample_tHQnode = []
         y_scores_train_tHQ_sample_tHQnode = []
 
         # Arrays to store tHQ categorised events
         y_scores_train_ttH_sample_tHQ_categorised = []
-        y_scores_train_ttJ_sample_tHQ_categorised = []
+        y_scores_train_Other_sample_tHQ_categorised = []
         y_scores_train_ttW_sample_tHQ_categorised = []
-        y_scores_train_ttZ_sample_tHQ_categorised = []
         y_scores_train_tHQ_sample_tHQ_categorised = []
 
         for i in xrange(len(result_probs)):
             train_event_weight = train_weights[i]
             if Y_train[i][0] == 1:
                 y_scores_train_ttH_sample_ttHnode.append(result_probs[i][0])
-                y_scores_train_ttH_sample_ttJnode.append(result_probs[i][1])
+                y_scores_train_ttH_sample_Othernode.append(result_probs[i][1])
                 y_scores_train_ttH_sample_ttWnode.append(result_probs[i][2])
-                y_scores_train_ttH_sample_ttZnode.append(result_probs[i][3])
-                y_scores_train_ttH_sample_tHQnode.append(result_probs[i][4])
+                y_scores_train_ttH_sample_tHQnode.append(result_probs[i][3])
                 # Get index of maximum argument.
                 if np.argmax(result_probs[i]) == 0:
                     y_scores_train_ttH_sample_ttH_categorised.append(result_probs[i][0])
                 if np.argmax(result_probs[i]) == 1:
-                    y_scores_train_ttH_sample_ttJ_categorised.append(result_probs[i][1])
+                    y_scores_train_ttH_sample_Other_categorised.append(result_probs[i][1])
                 if np.argmax(result_probs[i]) == 2:
                     y_scores_train_ttH_sample_ttW_categorised.append(result_probs[i][2])
                 if np.argmax(result_probs[i]) == 3:
-                    y_scores_train_ttH_sample_ttZ_categorised.append(result_probs[i][3])
-                if np.argmax(result_probs[i]) == 4:
-                    y_scores_train_ttH_sample_tHQ_categorised.append(result_probs[i][4])
+                    y_scores_train_ttH_sample_tHQ_categorised.append(result_probs[i][3])
             if Y_train[i][1] == 1:
-                y_scores_train_ttJ_sample_ttHnode.append(result_probs[i][0])
-                y_scores_train_ttJ_sample_ttJnode.append(result_probs[i][1])
-                y_scores_train_ttJ_sample_ttWnode.append(result_probs[i][2])
-                y_scores_train_ttJ_sample_ttZnode.append(result_probs[i][3])
-                y_scores_train_ttJ_sample_tHQnode.append(result_probs[i][4])
+                y_scores_train_Other_sample_ttHnode.append(result_probs[i][0])
+                y_scores_train_Other_sample_Othernode.append(result_probs[i][1])
+                y_scores_train_Other_sample_ttWnode.append(result_probs[i][2])
+                y_scores_train_Other_sample_tHQnode.append(result_probs[i][3])
                 if np.argmax(result_probs[i]) == 0:
-                    y_scores_train_ttJ_sample_ttH_categorised.append(result_probs[i][0])
+                    y_scores_train_Other_sample_ttH_categorised.append(result_probs[i][0])
                 if np.argmax(result_probs[i]) == 1:
-                    y_scores_train_ttJ_sample_ttJ_categorised.append(result_probs[i][1])
+                    y_scores_train_Other_sample_Other_categorised.append(result_probs[i][1])
                 if np.argmax(result_probs[i]) == 2:
-                    y_scores_train_ttJ_sample_ttW_categorised.append(result_probs[i][2])
+                    y_scores_train_Other_sample_ttW_categorised.append(result_probs[i][2])
                 if np.argmax(result_probs[i]) == 3:
-                    y_scores_train_ttJ_sample_ttZ_categorised.append(result_probs[i][3])
-                if np.argmax(result_probs[i]) == 4:
-                    y_scores_train_ttJ_sample_tHQ_categorised.append(result_probs[i][4])
+                    y_scores_train_Other_sample_tHQ_categorised.append(result_probs[i][3])
             if Y_train[i][2] == 1:
                 y_scores_train_ttW_sample_ttHnode.append(result_probs[i][0])
-                y_scores_train_ttW_sample_ttJnode.append(result_probs[i][1])
+                y_scores_train_ttW_sample_Othernode.append(result_probs[i][1])
                 y_scores_train_ttW_sample_ttWnode.append(result_probs[i][2])
-                y_scores_train_ttW_sample_ttZnode.append(result_probs[i][3])
-                y_scores_train_ttW_sample_tHQnode.append(result_probs[i][4])
+                y_scores_train_ttW_sample_tHQnode.append(result_probs[i][3])
                 if np.argmax(result_probs[i]) == 0:
                     y_scores_train_ttW_sample_ttH_categorised.append(result_probs[i][0])
                 if np.argmax(result_probs[i]) == 1:
-                    y_scores_train_ttW_sample_ttJ_categorised.append(result_probs[i][1])
+                    y_scores_train_ttW_sample_Other_categorised.append(result_probs[i][1])
                 if np.argmax(result_probs[i]) == 2:
                     y_scores_train_ttW_sample_ttW_categorised.append(result_probs[i][2])
                 if np.argmax(result_probs[i]) == 3:
-                    y_scores_train_ttW_sample_ttZ_categorised.append(result_probs[i][3])
-                if np.argmax(result_probs[i]) == 4:
-                    y_scores_train_ttW_sample_tHQ_categorised.append(result_probs[i][4])
+                    y_scores_train_ttW_sample_tHQ_categorised.append(result_probs[i][3])
             if Y_train[i][3] == 1:
-                y_scores_train_ttZ_sample_ttHnode.append(result_probs[i][0])
-                y_scores_train_ttZ_sample_ttJnode.append(result_probs[i][1])
-                y_scores_train_ttZ_sample_ttWnode.append(result_probs[i][2])
-                y_scores_train_ttZ_sample_ttZnode.append(result_probs[i][3])
-                y_scores_train_ttZ_sample_tHQnode.append(result_probs[i][4])
-                if np.argmax(result_probs[i]) == 0:
-                    y_scores_train_ttZ_sample_ttH_categorised.append(result_probs[i][0])
-                if np.argmax(result_probs[i]) == 1:
-                    y_scores_train_ttZ_sample_ttJ_categorised.append(result_probs[i][1])
-                if np.argmax(result_probs[i]) == 2:
-                    y_scores_train_ttZ_sample_ttW_categorised.append(result_probs[i][2])
-                if np.argmax(result_probs[i]) == 3:
-                    y_scores_train_ttZ_sample_ttZ_categorised.append(result_probs[i][3])
-                if np.argmax(result_probs[i]) == 4:
-                    y_scores_train_ttZ_sample_tHQ_categorised.append(result_probs[i][4])
-
-            if Y_train[i][4] == 1:
                 y_scores_train_tHQ_sample_ttHnode.append(result_probs[i][0])
-                y_scores_train_tHQ_sample_ttJnode.append(result_probs[i][1])
+                y_scores_train_tHQ_sample_Othernode.append(result_probs[i][1])
                 y_scores_train_tHQ_sample_ttWnode.append(result_probs[i][2])
-                y_scores_train_tHQ_sample_ttZnode.append(result_probs[i][3])
-                y_scores_train_tHQ_sample_tHQnode.append(result_probs[i][4])
+                y_scores_train_tHQ_sample_tHQnode.append(result_probs[i][3])
                 if np.argmax(result_probs[i]) == 0:
                     y_scores_train_tHQ_sample_ttH_categorised.append(result_probs[i][0])
                 if np.argmax(result_probs[i]) == 1:
-                    y_scores_train_tHQ_sample_ttJ_categorised.append(result_probs[i][1])
+                    y_scores_train_tHQ_sample_Other_categorised.append(result_probs[i][1])
                 if np.argmax(result_probs[i]) == 2:
                     y_scores_train_tHQ_sample_ttW_categorised.append(result_probs[i][2])
                 if np.argmax(result_probs[i]) == 3:
-                    y_scores_train_tHQ_sample_ttZ_categorised.append(result_probs[i][3])
-                if np.argmax(result_probs[i]) == 4:
-                    y_scores_train_tHQ_sample_tHQ_categorised.append(result_probs[i][4])
+                    y_scores_train_tHQ_sample_tHQ_categorised.append(result_probs[i][3])
+
 
         #Arrays to store all ttH values
         y_scores_test_ttH_sample_ttHnode = []
-        y_scores_test_ttJ_sample_ttHnode = []
+        y_scores_test_Other_sample_ttHnode = []
         y_scores_test_ttW_sample_ttHnode = []
-        y_scores_test_ttZ_sample_ttHnode = []
         y_scores_test_tHQ_sample_ttHnode = []
 
         # Arrays to store ttH categorised event values
         y_scores_test_ttH_sample_ttH_categorised = []
-        y_scores_test_ttJ_sample_ttH_categorised = []
+        y_scores_test_Other_sample_ttH_categorised = []
         y_scores_test_ttW_sample_ttH_categorised = []
-        y_scores_test_ttZ_sample_ttH_categorised = []
         y_scores_test_tHQ_sample_ttH_categorised = []
 
-        # Arrays to store all ttJ node values
-        y_scores_test_ttH_sample_ttJnode = []
-        y_scores_test_ttJ_sample_ttJnode = []
-        y_scores_test_ttW_sample_ttJnode = []
-        y_scores_test_ttZ_sample_ttJnode = []
-        y_scores_test_tHQ_sample_ttJnode = []
+        # Arrays to store all Other node values
+        y_scores_test_ttH_sample_Othernode = []
+        y_scores_test_Other_sample_Othernode = []
+        y_scores_test_ttW_sample_Othernode = []
+        y_scores_test_tHQ_sample_Othernode = []
 
-        # Arrays to store ttJ categorised event values
-        y_scores_test_ttH_sample_ttJ_categorised = []
-        y_scores_test_ttJ_sample_ttJ_categorised = []
-        y_scores_test_ttW_sample_ttJ_categorised = []
-        y_scores_test_ttZ_sample_ttJ_categorised = []
-        y_scores_test_tHQ_sample_ttJ_categorised = []
+        # Arrays to store Other categorised event values
+        y_scores_test_ttH_sample_Other_categorised = []
+        y_scores_test_Other_sample_Other_categorised = []
+        y_scores_test_ttW_sample_Other_categorised = []
+        y_scores_test_tHQ_sample_Other_categorised = []
 
         # Arrays to store all ttW node values
         y_scores_test_ttH_sample_ttWnode = []
-        y_scores_test_ttJ_sample_ttWnode = []
+        y_scores_test_Other_sample_ttWnode = []
         y_scores_test_ttW_sample_ttWnode = []
-        y_scores_test_ttZ_sample_ttWnode = []
         y_scores_test_tHQ_sample_ttWnode = []
 
         # Arrays to store ttW categorised events
         y_scores_test_ttH_sample_ttW_categorised = []
-        y_scores_test_ttJ_sample_ttW_categorised = []
+        y_scores_test_Other_sample_ttW_categorised = []
         y_scores_test_ttW_sample_ttW_categorised = []
-        y_scores_test_ttZ_sample_ttW_categorised = []
         y_scores_test_tHQ_sample_ttW_categorised = []
-
-        # Arrays to store all ttZ node values
-        y_scores_test_ttH_sample_ttZnode = []
-        y_scores_test_ttJ_sample_ttZnode = []
-        y_scores_test_ttW_sample_ttZnode = []
-        y_scores_test_ttZ_sample_ttZnode = []
-        y_scores_test_tHQ_sample_ttZnode = []
-
-        # Arrays to store ttZ categorised events
-        y_scores_test_ttH_sample_ttZ_categorised = []
-        y_scores_test_ttJ_sample_ttZ_categorised = []
-        y_scores_test_ttW_sample_ttZ_categorised = []
-        y_scores_test_ttZ_sample_ttZ_categorised = []
-        y_scores_test_tHQ_sample_ttZ_categorised = []
 
         # Arrays to store all tHQ node values
         y_scores_test_ttH_sample_tHQnode = []
-        y_scores_test_ttJ_sample_tHQnode = []
+        y_scores_test_Other_sample_tHQnode = []
         y_scores_test_ttW_sample_tHQnode = []
-        y_scores_test_ttZ_sample_tHQnode = []
         y_scores_test_tHQ_sample_tHQnode = []
 
         # Arrays to store tHQ categorised events
         y_scores_test_ttH_sample_tHQ_categorised = []
-        y_scores_test_ttJ_sample_tHQ_categorised = []
+        y_scores_test_Other_sample_tHQ_categorised = []
         y_scores_test_ttW_sample_tHQ_categorised = []
-        y_scores_test_ttZ_sample_tHQ_categorised = []
         y_scores_test_tHQ_sample_tHQ_categorised = []
 
         for i in xrange(len(result_probs_test)):
             test_event_weight = test_weights[i]
             if Y_test[i][0] == 1:
                 y_scores_test_ttH_sample_ttHnode.append(result_probs_test[i][0])
-                y_scores_test_ttH_sample_ttJnode.append(result_probs_test[i][1])
+                y_scores_test_ttH_sample_Othernode.append(result_probs_test[i][1])
                 y_scores_test_ttH_sample_ttWnode.append(result_probs_test[i][2])
-                y_scores_test_ttH_sample_ttZnode.append(result_probs_test[i][3])
-                y_scores_test_ttH_sample_tHQnode.append(result_probs_test[i][4])
+                y_scores_test_ttH_sample_tHQnode.append(result_probs_test[i][3])
                 if np.argmax(result_probs_test[i]) == 0:
                     y_scores_test_ttH_sample_ttH_categorised.append(result_probs_test[i][0])
                 if np.argmax(result_probs_test[i]) == 1:
-                    y_scores_test_ttH_sample_ttJ_categorised.append(result_probs_test[i][1])
+                    y_scores_test_ttH_sample_Other_categorised.append(result_probs_test[i][1])
                 if np.argmax(result_probs_test[i]) == 2:
                     y_scores_test_ttH_sample_ttW_categorised.append(result_probs_test[i][2])
                 if np.argmax(result_probs_test[i]) == 3:
-                    y_scores_test_ttH_sample_ttZ_categorised.append(result_probs_test[i][3])
-                if np.argmax(result_probs_test[i]) == 4:
-                    y_scores_test_ttH_sample_tHQ_categorised.append(result_probs_test[i][4])
+                    y_scores_test_ttH_sample_tHQ_categorised.append(result_probs_test[i][3])
             if Y_test[i][1] == 1:
-                y_scores_test_ttJ_sample_ttHnode.append(result_probs_test[i][0])
-                y_scores_test_ttJ_sample_ttJnode.append(result_probs_test[i][1])
-                y_scores_test_ttJ_sample_ttWnode.append(result_probs_test[i][2])
-                y_scores_test_ttJ_sample_ttZnode.append(result_probs_test[i][3])
-                y_scores_test_ttJ_sample_tHQnode.append(result_probs_test[i][4])
+                y_scores_test_Other_sample_ttHnode.append(result_probs_test[i][0])
+                y_scores_test_Other_sample_Othernode.append(result_probs_test[i][1])
+                y_scores_test_Other_sample_ttWnode.append(result_probs_test[i][2])
+                y_scores_test_Other_sample_tHQnode.append(result_probs_test[i][3])
                 if np.argmax(result_probs_test[i]) == 0:
-                    y_scores_test_ttJ_sample_ttH_categorised.append(result_probs_test[i][0])
+                    y_scores_test_Other_sample_ttH_categorised.append(result_probs_test[i][0])
                 if np.argmax(result_probs_test[i]) == 1:
-                    y_scores_test_ttJ_sample_ttJ_categorised.append(result_probs_test[i][1])
+                    y_scores_test_Other_sample_Other_categorised.append(result_probs_test[i][1])
                 if np.argmax(result_probs_test[i]) == 2:
-                    y_scores_test_ttJ_sample_ttW_categorised.append(result_probs_test[i][2])
+                    y_scores_test_Other_sample_ttW_categorised.append(result_probs_test[i][2])
                 if np.argmax(result_probs_test[i]) == 3:
-                    y_scores_test_ttJ_sample_ttZ_categorised.append(result_probs_test[i][3])
-                if np.argmax(result_probs_test[i]) == 4:
-                    y_scores_test_ttJ_sample_tHQ_categorised.append(result_probs_test[i][4])
+                    y_scores_test_Other_sample_tHQ_categorised.append(result_probs_test[i][3])
             if Y_test[i][2] == 1:
                 y_scores_test_ttW_sample_ttHnode.append(result_probs_test[i][0])
-                y_scores_test_ttW_sample_ttJnode.append(result_probs_test[i][1])
+                y_scores_test_ttW_sample_Othernode.append(result_probs_test[i][1])
                 y_scores_test_ttW_sample_ttWnode.append(result_probs_test[i][2])
-                y_scores_test_ttW_sample_ttZnode.append(result_probs_test[i][3])
-                y_scores_test_ttW_sample_tHQnode.append(result_probs_test[i][4])
+                y_scores_test_ttW_sample_tHQnode.append(result_probs_test[i][3])
                 if np.argmax(result_probs_test[i]) == 0:
                     y_scores_test_ttW_sample_ttH_categorised.append(result_probs_test[i][0])
                 if np.argmax(result_probs_test[i]) == 1:
-                    y_scores_test_ttW_sample_ttJ_categorised.append(result_probs_test[i][1])
+                    y_scores_test_ttW_sample_Other_categorised.append(result_probs_test[i][1])
                 if np.argmax(result_probs_test[i]) == 2:
                     y_scores_test_ttW_sample_ttW_categorised.append(result_probs_test[i][2])
                 if np.argmax(result_probs_test[i]) == 3:
-                    y_scores_test_ttW_sample_ttZ_categorised.append(result_probs_test[i][3])
-                if np.argmax(result_probs_test[i]) == 4:
-                    y_scores_test_ttW_sample_tHQ_categorised.append(result_probs_test[i][4])
+                    y_scores_test_ttW_sample_tHQ_categorised.append(result_probs_test[i][3])
             if Y_test[i][3] == 1:
-                y_scores_test_ttZ_sample_ttHnode.append(result_probs_test[i][0])
-                y_scores_test_ttZ_sample_ttJnode.append(result_probs_test[i][1])
-                y_scores_test_ttZ_sample_ttWnode.append(result_probs_test[i][2])
-                y_scores_test_ttZ_sample_ttZnode.append(result_probs_test[i][3])
-                y_scores_test_ttZ_sample_tHQnode.append(result_probs_test[i][4])
-                if np.argmax(result_probs_test[i]) == 0:
-                    y_scores_test_ttZ_sample_ttH_categorised.append(result_probs_test[i][0])
-                if np.argmax(result_probs_test[i]) == 1:
-                    y_scores_test_ttZ_sample_ttJ_categorised.append(result_probs_test[i][1])
-                if np.argmax(result_probs_test[i]) == 2:
-                    y_scores_test_ttZ_sample_ttW_categorised.append(result_probs_test[i][2])
-                if np.argmax(result_probs_test[i]) == 3:
-                    y_scores_test_ttZ_sample_ttZ_categorised.append(result_probs_test[i][3])
-                if np.argmax(result_probs_test[i]) == 4:
-                    y_scores_test_ttZ_sample_tHQ_categorised.append(result_probs_test[i][4])
-
-            if Y_test[i][4] == 1:
                 y_scores_test_tHQ_sample_ttHnode.append(result_probs_test[i][0])
-                y_scores_test_tHQ_sample_ttJnode.append(result_probs_test[i][1])
+                y_scores_test_tHQ_sample_Othernode.append(result_probs_test[i][1])
                 y_scores_test_tHQ_sample_ttWnode.append(result_probs_test[i][2])
-                y_scores_test_tHQ_sample_ttZnode.append(result_probs_test[i][3])
-                y_scores_test_tHQ_sample_tHQnode.append(result_probs_test[i][4])
+                y_scores_test_tHQ_sample_tHQnode.append(result_probs_test[i][3])
                 if np.argmax(result_probs_test[i]) == 0:
                     y_scores_test_tHQ_sample_ttH_categorised.append(result_probs_test[i][0])
                 if np.argmax(result_probs_test[i]) == 1:
-                    y_scores_test_tHQ_sample_ttJ_categorised.append(result_probs_test[i][1])
+                    y_scores_test_tHQ_sample_Other_categorised.append(result_probs_test[i][1])
                 if np.argmax(result_probs_test[i]) == 2:
                     y_scores_test_tHQ_sample_ttW_categorised.append(result_probs_test[i][2])
                 if np.argmax(result_probs_test[i]) == 3:
-                    y_scores_test_tHQ_sample_ttZ_categorised.append(result_probs_test[i][3])
-                if np.argmax(result_probs_test[i]) == 4:
-                    y_scores_test_tHQ_sample_tHQ_categorised.append(result_probs_test[i][4])
+                    y_scores_test_tHQ_sample_tHQ_categorised.append(result_probs_test[i][3])
 
         # Create 2D lists (dimension 4x4) to hold max DNN discriminator values for each sample. One for train data, one for test data.
         #
-        #               ttH sample | ttJ sample | ttW sample | ttZ sample | tHQ sample
+        #               ttH sample | Other sample | ttW sample | ttZ sample | tHQ sample
         # ttH category
-        # ttJ category
+        # Other category
         # ttW category
         # ttZ category
         # tHQ category
@@ -985,33 +637,29 @@ ttZ & %s \\ \hline
         #w, h = 4, 4
         #y_scores_train = [[0 for x in range(w)] for y in range(h)]
         #y_scores_test = [[0 for x in range(w)] for y in range(h)]
-        self.yscores_train_categorised[0] = [y_scores_train_ttH_sample_ttH_categorised, y_scores_train_ttJ_sample_ttH_categorised, y_scores_train_ttW_sample_ttH_categorised, y_scores_train_ttZ_sample_ttH_categorised, y_scores_train_tHQ_sample_ttH_categorised]
-        self.yscores_train_categorised[1] = [y_scores_train_ttH_sample_ttJ_categorised, y_scores_train_ttJ_sample_ttJ_categorised, y_scores_train_ttW_sample_ttJ_categorised, y_scores_train_ttZ_sample_ttJ_categorised, y_scores_train_tHQ_sample_ttJ_categorised]
-        self.yscores_train_categorised[2] = [y_scores_train_ttH_sample_ttW_categorised, y_scores_train_ttJ_sample_ttW_categorised, y_scores_train_ttW_sample_ttW_categorised, y_scores_train_ttZ_sample_ttW_categorised, y_scores_train_tHQ_sample_ttW_categorised]
-        self.yscores_train_categorised[3] = [y_scores_train_ttH_sample_ttZ_categorised, y_scores_train_ttJ_sample_ttZ_categorised, y_scores_train_ttW_sample_ttZ_categorised, y_scores_train_ttZ_sample_ttZ_categorised, y_scores_train_tHQ_sample_ttZ_categorised]
-        self.yscores_train_categorised[4] = [y_scores_train_ttH_sample_tHQ_categorised, y_scores_train_ttJ_sample_tHQ_categorised, y_scores_train_ttW_sample_tHQ_categorised, y_scores_train_ttZ_sample_tHQ_categorised, y_scores_train_tHQ_sample_tHQ_categorised]
+        self.yscores_train_categorised[0] = [y_scores_train_ttH_sample_ttH_categorised, y_scores_train_Other_sample_ttH_categorised, y_scores_train_ttW_sample_ttH_categorised, y_scores_train_tHQ_sample_ttH_categorised]
+        self.yscores_train_categorised[1] = [y_scores_train_ttH_sample_Other_categorised, y_scores_train_Other_sample_Other_categorised, y_scores_train_ttW_sample_Other_categorised, y_scores_train_tHQ_sample_Other_categorised]
+        self.yscores_train_categorised[2] = [y_scores_train_ttH_sample_ttW_categorised, y_scores_train_Other_sample_ttW_categorised, y_scores_train_ttW_sample_ttW_categorised, y_scores_train_tHQ_sample_ttW_categorised]
+        self.yscores_train_categorised[3] = [y_scores_train_ttH_sample_tHQ_categorised, y_scores_train_Other_sample_tHQ_categorised, y_scores_train_ttW_sample_tHQ_categorised, y_scores_train_tHQ_sample_tHQ_categorised]
 
-        self.yscores_test_categorised[0] = [y_scores_test_ttH_sample_ttH_categorised, y_scores_test_ttJ_sample_ttH_categorised, y_scores_test_ttW_sample_ttH_categorised, y_scores_test_ttZ_sample_ttH_categorised, y_scores_test_tHQ_sample_ttH_categorised]
-        self.yscores_test_categorised[1] = [y_scores_test_ttH_sample_ttJ_categorised, y_scores_test_ttJ_sample_ttJ_categorised, y_scores_test_ttW_sample_ttJ_categorised, y_scores_test_ttZ_sample_ttJ_categorised, y_scores_test_tHQ_sample_ttJ_categorised]
-        self.yscores_test_categorised[2] = [y_scores_test_ttH_sample_ttW_categorised, y_scores_test_ttJ_sample_ttW_categorised, y_scores_test_ttW_sample_ttW_categorised, y_scores_test_ttZ_sample_ttW_categorised, y_scores_test_tHQ_sample_ttW_categorised]
-        self.yscores_test_categorised[3] = [y_scores_test_ttH_sample_ttZ_categorised, y_scores_test_ttJ_sample_ttZ_categorised, y_scores_test_ttW_sample_ttZ_categorised, y_scores_test_ttZ_sample_ttZ_categorised, y_scores_test_tHQ_sample_ttZ_categorised]
-        self.yscores_test_categorised[4] = [y_scores_test_ttH_sample_tHQ_categorised, y_scores_test_ttJ_sample_tHQ_categorised, y_scores_test_ttW_sample_tHQ_categorised, y_scores_test_ttZ_sample_tHQ_categorised, y_scores_test_tHQ_sample_tHQ_categorised]
+        self.yscores_test_categorised[0] = [y_scores_test_ttH_sample_ttH_categorised, y_scores_test_Other_sample_ttH_categorised, y_scores_test_ttW_sample_ttH_categorised, y_scores_test_tHQ_sample_ttH_categorised]
+        self.yscores_test_categorised[1] = [y_scores_test_ttH_sample_Other_categorised, y_scores_test_Other_sample_Other_categorised, y_scores_test_ttW_sample_Other_categorised, y_scores_test_tHQ_sample_Other_categorised]
+        self.yscores_test_categorised[2] = [y_scores_test_ttH_sample_ttW_categorised, y_scores_test_Other_sample_ttW_categorised, y_scores_test_ttW_sample_ttW_categorised, y_scores_test_tHQ_sample_ttW_categorised]
+        self.yscores_test_categorised[3] = [y_scores_test_ttH_sample_tHQ_categorised, y_scores_test_Other_sample_tHQ_categorised, y_scores_test_ttW_sample_tHQ_categorised, y_scores_test_tHQ_sample_tHQ_categorised]
 
         #y_scores_train_nonCat = [[0 for x in range(w)] for y in range(h)]
         #y_scores_test_nonCat = [[0 for x in range(w)] for y in range(h)]
-        self.yscores_train_non_categorised[0] = [y_scores_train_ttH_sample_ttHnode, y_scores_train_ttJ_sample_ttHnode, y_scores_train_ttW_sample_ttHnode, y_scores_train_ttZ_sample_ttHnode, y_scores_train_tHQ_sample_ttHnode]
-        self.yscores_train_non_categorised[1] = [y_scores_train_ttH_sample_ttJnode, y_scores_train_ttJ_sample_ttJnode, y_scores_train_ttW_sample_ttJnode, y_scores_train_ttZ_sample_ttJnode, y_scores_train_tHQ_sample_ttJnode]
-        self.yscores_train_non_categorised[2] = [y_scores_train_ttH_sample_ttWnode, y_scores_train_ttJ_sample_ttWnode, y_scores_train_ttW_sample_ttWnode, y_scores_train_ttZ_sample_ttWnode, y_scores_train_tHQ_sample_ttWnode]
-        self.yscores_train_non_categorised[3] = [y_scores_train_ttH_sample_ttZnode, y_scores_train_ttJ_sample_ttZnode, y_scores_train_ttW_sample_ttZnode, y_scores_train_ttZ_sample_ttZnode, y_scores_train_tHQ_sample_ttZnode]
-        self.yscores_train_non_categorised[4] = [y_scores_train_ttH_sample_tHQnode, y_scores_train_ttJ_sample_tHQnode, y_scores_train_ttW_sample_tHQnode, y_scores_train_ttZ_sample_tHQnode, y_scores_train_tHQ_sample_tHQnode]
+        self.yscores_train_non_categorised[0] = [y_scores_train_ttH_sample_ttHnode, y_scores_train_Other_sample_ttHnode, y_scores_train_ttW_sample_ttHnode, y_scores_train_tHQ_sample_ttHnode]
+        self.yscores_train_non_categorised[1] = [y_scores_train_ttH_sample_Othernode, y_scores_train_Other_sample_Othernode, y_scores_train_ttW_sample_Othernode, y_scores_train_tHQ_sample_Othernode]
+        self.yscores_train_non_categorised[2] = [y_scores_train_ttH_sample_ttWnode, y_scores_train_Other_sample_ttWnode, y_scores_train_ttW_sample_ttWnode, y_scores_train_tHQ_sample_ttWnode]
+        self.yscores_train_non_categorised[3] = [y_scores_train_ttH_sample_tHQnode, y_scores_train_Other_sample_tHQnode, y_scores_train_ttW_sample_tHQnode, y_scores_train_tHQ_sample_tHQnode]
 
-        self.yscores_test_non_categorised[0] = [y_scores_test_ttH_sample_ttHnode, y_scores_test_ttJ_sample_ttHnode, y_scores_test_ttW_sample_ttHnode, y_scores_test_ttZ_sample_ttHnode, y_scores_test_tHQ_sample_ttHnode]
-        self.yscores_test_non_categorised[1] = [y_scores_test_ttH_sample_ttJnode, y_scores_test_ttJ_sample_ttJnode, y_scores_test_ttW_sample_ttJnode, y_scores_test_ttZ_sample_ttJnode, y_scores_test_tHQ_sample_ttJnode]
-        self.yscores_test_non_categorised[2] = [y_scores_test_ttH_sample_ttWnode, y_scores_test_ttJ_sample_ttWnode, y_scores_test_ttW_sample_ttWnode, y_scores_test_ttZ_sample_ttWnode, y_scores_test_tHQ_sample_ttWnode]
-        self.yscores_test_non_categorised[3] = [y_scores_test_ttH_sample_ttZnode, y_scores_test_ttJ_sample_ttZnode, y_scores_test_ttW_sample_ttZnode, y_scores_test_ttZ_sample_ttZnode, y_scores_test_tHQ_sample_ttZnode]
-        self.yscores_test_non_categorised[4] = [y_scores_test_ttH_sample_tHQnode, y_scores_test_ttJ_sample_tHQnode, y_scores_test_ttW_sample_tHQnode, y_scores_test_ttZ_sample_tHQnode, y_scores_test_tHQ_sample_tHQnode]
+        self.yscores_test_non_categorised[0] = [y_scores_test_ttH_sample_ttHnode, y_scores_test_Other_sample_ttHnode, y_scores_test_ttW_sample_ttHnode, y_scores_test_tHQ_sample_ttHnode]
+        self.yscores_test_non_categorised[1] = [y_scores_test_ttH_sample_Othernode, y_scores_test_Other_sample_Othernode, y_scores_test_ttW_sample_Othernode, y_scores_test_tHQ_sample_Othernode]
+        self.yscores_test_non_categorised[2] = [y_scores_test_ttH_sample_ttWnode, y_scores_test_Other_sample_ttWnode, y_scores_test_ttW_sample_ttWnode, y_scores_test_tHQ_sample_ttWnode]
+        self.yscores_test_non_categorised[3] = [y_scores_test_ttH_sample_tHQnode, y_scores_test_Other_sample_tHQnode, y_scores_test_ttW_sample_tHQnode, y_scores_test_tHQ_sample_tHQnode]
 
-        node_name = ['ttH','ttJ','ttW','ttZ','tHQ']
+        node_name = ['ttH','Other','ttW','tHQ']
         counter = 0
         for y_scorestrain,y_scorestest in zip(self.yscores_train_categorised,self.yscores_test_categorised):
             colours = ['r','steelblue','g','Fuchsia','darkgoldenrod']
