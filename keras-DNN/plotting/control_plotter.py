@@ -136,10 +136,11 @@ class control_plotter(object):
                 htemp = TH1F(branch_,branch_,binning_[0],binning_[1],binning_[2])
                 htemp.SetMinimum(0.)
                 if 'Data' in file_.GetName() or 'ttJets' in file_.GetName():
-                    maxentries = 10000
+                    #maxentries = 10000
+                    maxentries = tree_.GetEntries()
                 else:
-                    maxentries = 10000
-                    #maxentries = tree_.GetEntries()
+                    #maxentries = 10000
+                    maxentries = tree_.GetEntries()
                 print '<load_histos> # Entries = ', tree_.GetEntries()
                 # Turn off all branches and only turn on the ones you want to use.
                 # This will make the scrip run a lot faster.
@@ -160,7 +161,7 @@ class control_plotter(object):
                     selection_criteria = 0
                     nJets_ = tree_.GetBranch('n_presel_jet').GetLeaf('n_presel_jet')
                     is_tH_like_and_not_ttH_like_ = tree_.GetBranch('is_tH_like_and_not_ttH_like').GetLeaf('is_tH_like_and_not_ttH_like')
-                    selection_criteria = 1 if ((tree_.is_tH_like_and_not_ttH_like==0 or tree_.is_tH_like_and_not_ttH_like==1) and tree_.n_presel_jet >= 3) else 0
+                    selection_criteria = 1 if ((tree_.is_tH_like_and_not_ttH_like==0 or tree_.is_tH_like_and_not_ttH_like==1)) else 0 #and tree_.n_presel_jet >= 3) else 0
                     if selection_criteria == 0:
                         continue
                     variable_ = tree_.GetBranch(branch_).GetLeaf(branch_)

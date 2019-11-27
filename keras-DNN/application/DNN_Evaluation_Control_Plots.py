@@ -78,8 +78,9 @@ def GetDataOverMC(stack_mc, histo_data):
     DOverMC.SetLineColor(1)
     return DOverMC
 
-
-def rebinHistograms(hist_list, data_hist):
+#def rebinHistograms(hist_list, data_hist):
+def rebinHistograms(hist_list):
+    print 'hist_list.get(ttW): ', hist_list.get('ttW')
 
     nBins = hist_list.get('ttW').GetNbinsX()
 
@@ -90,16 +91,12 @@ def rebinHistograms(hist_list, data_hist):
     combined_sig_hist_values = []
     combined_bckg_hist = ROOT.TH1F('bckg_hists','bckg_hists',nBins,0,1)
     combined_sig_hist = ROOT.TH1F('sig_hists','sig_hists',nBins,0,1)
-
     for x_bin_index in xrange(0,nBins):
         tmp_bin_content_ttHww = hist_list.get('ttH_HWW').GetBinContent(x_bin_index)
-        tmp_bin_content_ttHtt = hist_list.get('ttH_Htautau').GetBinContent(x_bin_index)
-        tmp_bin_content_ttHot = hist_list.get('ttH_other').GetBinContent(x_bin_index)
-        tmp_bin_content_ttHmm = hist_list.get('ttH_Hmm').GetBinContent(x_bin_index)
-        tmp_bin_content_ttHzz = hist_list.get('ttH_HZZ').GetBinContent(x_bin_index)
-        tmp_bin_content_conv = hist_list.get('Conv').GetBinContent(x_bin_index)
+
         for hist_key, hist in hist_list.iteritems():
-            print 'hist_key: %s, hist: %s' % (hist_key, hist)
+            print 'hist_key: ',hist_key
+            print 'hist: ',hist
             if 'Data' in hist_key: continue
             elif 'ttH_' in hist_key:
                 cumulative_sig_entries = cumulative_sig_entries + hist.GetBinContent(x_bin_index)
@@ -142,7 +139,15 @@ def rebinHistograms(hist_list, data_hist):
 
     new_hists = {}
 
+    print 'hist_list:'
+    print hist_list
+
     for hist_key, hist in hist_list.iteritems():
+        print 'hist_key: ', hist_key
+        print 'n_xbins: ', n_xbins
+        print 'hist.GetName(): ', hist.GetName()
+        print 'x_bin_edges_fuckyouroot: ', x_bin_edges_fuckyouroot
+
         #if hist.Integral() == 0:
         #    continue
         hist_list[hist_key] = hist.Rebin(n_xbins, hist.GetName(), x_bin_edges_fuckyouroot)
@@ -208,10 +213,10 @@ def make_plot(stacked_hist, category, norm, legend, inputs_directory, separation
         latex_title = "#it{prefit: ttH Category}"
     elif 'ttWCategory' in category:
         latex_title = "#it{prefit: ttW Category}"
-    elif 'ttJCategory' in category:
-        latex_title = "#it{prefit: ttJ Category}"
-    elif 'ttZCategory' in category:
-        latex_title = "#it{prefit: ttZ Category}"
+    elif 'OtherCategory' in category:
+        latex_title = "#it{prefit: Other Category}"
+    elif 'tHqCategory' in category:
+        latex_title = "#it{prefit: tHq Category}"
 
     l1.DrawLatex(0.15,0.8,latex_title)
 
@@ -298,7 +303,7 @@ def main():
     usage = 'usage: %prog [options]'
     parser = argparse.ArgumentParser(usage)
     parser.add_argument('-d', '--data',        dest='data_flag'  ,      help='1 = include data from plots, 0 = exclude data from plots', default=0, type=int)
-    parser.add_argument('-r', '--region', dest='region', help='Option to choose SigRegion or CtrlRegion', default='SigRegion', type=str)
+    parser.add_argument('-r', '--region', dest='region', help='Option to choose DiLepRegion', default='DiLepRegion', type=str)
     parser.add_argument('-m', '--model_dir', dest='model_dir', help='Option to choose directory containing model. Choose directory from samples_w_DNN', default='', type=str)
     args = parser.parse_args()
 
@@ -311,11 +316,11 @@ def main():
 
     print 'Reading samples from: ', classifier_samples_dir
 
-    sample_name = ['Conv','EWK','Fakes','Flips','Rares','TTH_hww','TTH_htt','TTH_hot','TTW','TTZ','TTWW','TTH_hmm','Data','TTH_hzz']
-    channel_name = ['']
+    #sample_name = ['Convs','EWK','Fakes','Flips','Rares','TTH_hww','TTH_htt','TTH_hzz','TTW','TTZ','TTWW','TTH_hmm','Data','TTH_hzz']
+    sample_name = ['Convs','EWK','Fakes','Flips','Rares','TTH_hww','TTH_htt','TTW','TTZ','TTWW','TTH_hmm','TTH_hzz','THQ_hww','THQ_htt','THQ_hzz']
+    channel_name = ['2017samples_tH_tunedweights_tH']
 
     input_name_Conv = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[0],region)
-    print 'input_name_Conv: ', input_name_Conv
     input_file_Conv = TFile.Open(input_name_Conv)
     input_name_EWK = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[1],region)
     input_file_EWK = TFile.Open(input_name_EWK)
@@ -329,29 +334,29 @@ def main():
     input_file_TTH_hww = TFile.Open(input_name_TTH_hww)
     input_name_TTH_htt = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[6],region)
     input_file_TTH_htt = TFile.Open(input_name_TTH_htt)
-    input_name_TTH_hot = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[7],region)
-    input_file_TTH_hot = TFile.Open(input_name_TTH_hot)
-    input_name_TTW = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[8],region)
+    input_name_TTW = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[7],region)
     input_file_TTW = TFile.Open(input_name_TTW)
-    input_name_TTZ = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[9],region)
+    input_name_TTZ = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[8],region)
     input_file_TTZ = TFile.Open(input_name_TTZ)
-    input_name_TTWW = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[10],region)
+    input_name_TTWW = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[9],region)
     input_file_TTWW = TFile.Open(input_name_TTWW)
-    input_name_TTH_hmm = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[11],region)
+    input_name_TTH_hmm = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[10],region)
     input_file_TTH_hmm = TFile.Open(input_name_TTH_hmm)
-    input_name_data = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[12],region)
-    input_file_data = TFile.Open(input_name_data)
-    input_name_TTH_hzz = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[13],region)
+    input_name_TTH_hzz = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[11],region)
     input_file_TTH_hzz = TFile.Open(input_name_TTH_hzz)
+    input_name_tHq_hww = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[12],region)
+    input_file_tHq_hww = TFile.Open(input_name_tHq_hww)
+    input_name_tHq_htt = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[13],region)
+    input_file_tHq_htt = TFile.Open(input_name_tHq_htt)
+    input_name_tHq_hzz = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[14],region)
+    input_file_tHq_hzz = TFile.Open(input_name_tHq_hzz)
+    #input_name_data = '%s/%s/%s_%s.root' % (classifier_samples_dir,channel_name[0],sample_name[12],region)
+    #input_file_data = TFile.Open(input_name_data)
 
-    print 'input_name_data: ', input_name_data
-
-    categories = ['ttHCategory','ttJCategory','ttWCategory','ttZCategory']
+    categories = ['ttHCategory','OtherCategory','ttWCategory','tHqCategory']
 
     separation_dictionary = OrderedDict([
         ('option1' , [])
-        #('option2' , [])
-        #('option3' , [])
     ])
 
     for cat in categories:
@@ -368,37 +373,40 @@ def main():
         ("ttH_HWW" , 2),
         ("ttH_HZZ" , 2),
         ("ttH_Htautau" , 2),
-        ("ttH_other" , 2),
         ("ttH_Hmm" , 2),
+        ("tHq_HWW" , 2),
+        ("tHq_HZZ" , 2),
+        ("tHq_Htautau" , 2),
         ("Data" , 1)
         ])
 
-        #option_name = ['option1','option2','option3']
         option_name = ['option1']
 
         #bckg_hists = ROOT.TH1F('bckg_hists','bckg_hists',n_xbins,x_bin_edges_fuckyouroot)
         #sig_hists = ROOT.TH1F('sig_hists','sig_hists',n_xbins,x_bin_edges_fuckyouroot)
 
-        print 'input_file_TTH_hww: ', input_file_TTH_hww
-
         for option_ in option_name:
             print option_
             hist_stack = ROOT.THStack()
 
-            histo_Conv_name = 'histo_%s_events_Conv_%s' % (cat,option_)
-            histo_EWK_name = 'histo_%s_events_EWK_%s' % (cat,option_)
-            histo_Fakes_name = 'histo_%s_events_Fakes_%s' % (cat,option_)
-            histo_Flips_name = 'histo_%s_events_Flips_%s' % (cat,option_)
-            histo_Rares_name = 'histo_%s_events_Rares_%s' % (cat,option_)
-            histo_TTH_hww_name = 'histo_%s_events_ttH_HWW_%s' % (cat,option_)
-            histo_TTH_htt_name = 'histo_%s_events_ttH_Htautau_%s' % (cat,option_)
-            histo_TTH_hot_name = 'histo_%s_events_ttH_other_%s' % (cat,option_)
-            histo_TTH_hmm_name = 'histo_%s_events_ttH_Hmm_%s' % (cat,option_)
-            histo_TTH_hzz_name = 'histo_%s_events_ttH_HZZ_%s' % (cat,option_)
-            histo_TTW_name = 'histo_%s_events_ttW_%s' % (cat,option_)
-            histo_TTZ_name = 'histo_%s_events_ttZ_%s' % (cat,option_)
-            histo_TTWW_name = 'histo_%s_events_ttWW_%s' % (cat,option_)
-            histo_data_name = 'histo_%s_events_Data_%s' % (cat,option_)
+            histo_Conv_name = 'histo_%s_events_Conv' % (cat)
+            histo_EWK_name = 'histo_%s_events_EWK' % (cat)
+            histo_Fakes_name = 'histo_%s_events_Fakes' % (cat)
+            histo_Flips_name = 'histo_%s_events_Flips' % (cat)
+            histo_Rares_name = 'histo_%s_events_Rares' % (cat)
+            histo_TTH_hww_name = 'histo_%s_events_ttH_HWW' % (cat)
+            histo_TTH_htt_name = 'histo_%s_events_ttH_Htautau' % (cat)
+            histo_TTH_hmm_name = 'histo_%s_events_ttH_Hmm' % (cat)
+            histo_TTH_hzz_name = 'histo_%s_events_ttH_HZZ' % (cat)
+
+            histo_tHq_hww_name = 'histo_%s_events_tHq_HWW' % (cat)
+            histo_tHq_htt_name = 'histo_%s_events_tHq_Htautau' % (cat)
+            histo_tHq_hzz_name = 'histo_%s_events_tHq_HZZ' % (cat)
+
+            histo_TTW_name = 'histo_%s_events_ttW' % (cat)
+            histo_TTZ_name = 'histo_%s_events_ttZ' % (cat)
+            histo_TTWW_name = 'histo_%s_events_ttWW' % (cat)
+            histo_data_name = 'histo_%s_events_Data' % (cat)
 
             histo_Conv_sample = input_file_Conv.Get(histo_Conv_name)
             histo_EWK_sample = input_file_EWK.Get(histo_EWK_name)
@@ -407,13 +415,17 @@ def main():
             histo_Rares_sample = input_file_Rares.Get(histo_Rares_name)
             histo_TTH_hww_sample = input_file_TTH_hww.Get(histo_TTH_hww_name)
             histo_TTH_htt_sample = input_file_TTH_htt.Get(histo_TTH_htt_name)
-            histo_TTH_hot_sample = input_file_TTH_hot.Get(histo_TTH_hot_name)
             histo_TTH_hmm_sample = input_file_TTH_hmm.Get(histo_TTH_hmm_name)
             histo_TTH_hzz_sample = input_file_TTH_hzz.Get(histo_TTH_hzz_name)
+
+            histo_tHq_hww_sample = input_file_tHq_hww.Get(histo_tHq_hww_name)
+            histo_tHq_htt_sample = input_file_tHq_htt.Get(histo_tHq_htt_name)
+            histo_tHq_hzz_sample = input_file_tHq_hzz.Get(histo_tHq_hzz_name)
+
             histo_TTW_sample = input_file_TTW.Get(histo_TTW_name)
             histo_TTZ_sample = input_file_TTZ.Get(histo_TTZ_name)
             histo_TTWW_sample = input_file_TTWW.Get(histo_TTWW_name)
-            histo_data_sample = input_file_data.Get(histo_data_name)
+            #histo_data_sample = input_file_data.Get(histo_data_name)
 
             # Turn this into dictionary
             hist_list = OrderedDict([
@@ -427,17 +439,20 @@ def main():
             ("ttWW" , histo_TTWW_sample),
             ("ttH_HWW" , histo_TTH_hww_sample),
             ("ttH_Htautau" , histo_TTH_htt_sample),
-            ("ttH_other" , histo_TTH_hot_sample),
             ("ttH_Hmm" , histo_TTH_hmm_sample),
             ("ttH_HZZ" , histo_TTH_hzz_sample),
-            ("Data" , histo_data_sample)
+            ("tHq_HWW" , histo_tHq_hww_sample),
+            ("tHq_Htautau" , histo_tHq_htt_sample),
+            ("tHq_HZZ" , histo_tHq_hzz_sample)
+            #("Data" , histo_data_sample)
             ])
 
             #nBins = hist_list.get('ttW').GetNbinsX()
             # Rebin Histograms so > 0 total background entries per bin.
             # Returns array of histograms in same order as was passed to the function.
 
-            rebinned_histograms, x_bin_edges_ = rebinHistograms(hist_list, histo_data_sample)
+            #rebinned_histograms, x_bin_edges_ = rebinHistograms(hist_list, histo_data_sample)
+            rebinned_histograms, x_bin_edges_ = rebinHistograms(hist_list)
             bckg_hists = ROOT.TH1F('bckg_hists','bckg_hists',len(x_bin_edges_)-1,x_bin_edges_)
             sig_hists = ROOT.TH1F('sig_hists','sig_hists',len(x_bin_edges_)-1,x_bin_edges_)
             print 'sig_hists; ', sig_hists
@@ -445,13 +460,13 @@ def main():
             legend.SetNColumns(2)
 
             if cat == 'ttHCategory':
-                signal_string = 'ttH_HWW,ttH_Htautau,ttH_other,ttH_Hmm,ttH_HZZ'
-            if cat == 'ttJCategory':
-                signal_string = 'Fakes,Flips,Conv'
+                signal_string = 'ttH_HWW,ttH_Htautau,ttH_Hmm,ttH_HZZ'
+            if cat == 'OtherCategory':
+                signal_string = 'Fakes,Flips,Conv,ttZ'
             if cat == 'ttWCategory':
                 signal_string = 'ttW'
-            elif cat == 'ttZCategory':
-                signal_string = 'ttZ'
+            elif cat == 'tHqCategory':
+                signal_string = 'tHq'
 
             #rebincount = 0
             for rebinned_hist_name, rebinned_hist in rebinned_histograms.iteritems():
@@ -474,8 +489,6 @@ def main():
                         rebinned_hist.SetFillStyle(1001)
                     if 'TTH_htt' in rebinned_hist_name:
                         rebinned_hist.SetFillStyle(4001)
-                    if 'TTH_hot' in rebinned_hist_name:
-                        rebinned_hist.SetFillStyle(5001)
                     if 'TTH_hzz' in rebinned_hist_name:
                         rebinned_hist.SetFillStyle(6001)
                     else:
@@ -507,6 +520,7 @@ def main():
 
             bckg_hists.Reset()
             sig_hists.Reset()
+        hist_list.clear()
 
     #for key, value in separation_dictionary.iteritems():
     #print 'saving table to ', classifier_samples_dir
