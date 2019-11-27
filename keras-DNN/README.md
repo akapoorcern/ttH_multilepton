@@ -48,7 +48,10 @@ The script
 convert_hdf5_2_pb.py
 ```
 
-Converts the .h5 model to .pb format so that it can be read into a c++ framework.
+Converts the .h5 model to .pb format so that it can be run in CMSSW framework. To convert model to be run in C++ framework refer to the package here:
+```
+https://github.com/BinghuanLi/lwtnn_example_lxplus
+```
 
 ## DNN Application
 Inside the `application` directory are the scripts that apply the trained networks in the signal region. To evaluate the network and add outputs to the input TTrees and create diagnostic distributions for the signal region, one can run the following script:
