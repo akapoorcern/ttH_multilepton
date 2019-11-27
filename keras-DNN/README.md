@@ -3,8 +3,8 @@
 
 This python script uses the Keras library to train deep neural network for ttH multilepton dilepton analysis region. The script is setup up to use a TensorFlow backend but can easily be setup to use other backends compatible with keras.
 
-### Author: Joshuha Thomas-Wilsker, Binghuan Li
-### Institute: IHEP CAS CERN
+### Authors: Joshuha Thomas-Wilsker, Binghuan Li
+#### Institute: IHEP CAS CERN
 
 ## Introduction
 - This script and the setup in this .md has been written assuming one is logged on to a CERN lxplus slc7 machine (the default lxplus operating system).
