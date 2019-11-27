@@ -43,6 +43,13 @@ Outputs:
 - All diagnostic plots are stored inside a subdirectory called 'plots' e.g. overtraining, confusion matrices, loss-function evolution & output node distributions ('categorised' = only values where events value on this node was maximum of all nodes).
 - The script relies on the 'plotting' package in order to make these.
 
+The script
+```
+convert_hdf5_2_pb.py
+```
+
+Converts the .h5 model to .pb format so that it can be read into a c++ framework.
+
 ## DNN Application
 Inside the `application` directory are the scripts that apply the trained networks in the signal region. To evaluate the network and add outputs to the input TTrees and create diagnostic distributions for the signal region, one can run the following script:
 ```
