@@ -265,7 +265,7 @@ def main():
     column_headers.append('nEvent')
 
     # Create instance of the input files directory
-    inputs_file_path = '/afs/cern.ch/work/j/jthomasw/private/IHEP/ttHML/github/ttH_multilepton/keras-DNN/samples/rootplas_LegacyMVA_1113/DiLepRegion/ttH2017TrainDNN2L/'
+    inputs_file_path = '/eos/user/j/jthomasw/4anshul/rootplas_LegacyMVA_1113/DiLepRegion/ttH2017TrainDNN2L/'
 
     # Load ttree into .csv including all variables listed in column_headers
     print '<train-DNN> Input file path: ', inputs_file_path
