@@ -36,7 +36,7 @@ class plotter(object):
 
     def plot_training_progress_acc(self, histories, labels):
         self.fig, self.ax1 = plt.subplots(ncols=1, figsize=(10,10))
-        for i in range(len(histories)):
+        for i in xrange(len(histories)):
             history1 = histories[i]
             label_name_train = '%s train' % (labels[i])
             label_name_test = '%s test' % (labels[i])
@@ -127,7 +127,7 @@ class plotter(object):
         output_probs_train = []
         output_probs_test = []
         # Loop over all training events
-        for i in range(0,len(original_encoded_train_Y)):
+        for i in xrange(0,len(original_encoded_train_Y)):
             # If training events truth value is target for the node assigned as signal by the variable encoded_signal append a 1
             # else assign as background and append a 0.
             if original_encoded_train_Y[i] == encoded_signal:
@@ -137,7 +137,7 @@ class plotter(object):
             # For ith event, get the probability that this event is from the signal process
             output_probs_train.append(result_probs_train[i][encoded_signal])
         # Loop over all testing events
-        for i in range(0,len(original_encoded_test_Y)):
+        for i in xrange(0,len(original_encoded_test_Y)):
             if original_encoded_test_Y[i] == encoded_signal:
                 SorB_class_test.append(1)
             else:
@@ -182,7 +182,7 @@ class plotter(object):
         separation = 0;
         # sanity check: signal and background histograms must have same number of bins and same limits
         if len(hist_sig) != len(hist_bckg):
-            print('Number of bins different for sig. and bckg')
+            print 'Number of bins different for sig. and bckg'
 
         nBins = len(hist_sig)
         #dX = (hist_sig.GetXaxis().GetXmax() - hist_sig.GetXaxis().GetXmin()) / len(hist_sig)
@@ -190,11 +190,11 @@ class plotter(object):
         nB = np.sum(hist_bckg)#*dX
 
         if nS == 0:
-            print('WARNING: no signal')
+            print 'WARNING: no signal'
         if nB == 0:
-            print('WARNING: no bckg')
+            print 'WARNING: no bckg'
 
-        for i in range(1,nBins):
+        for i in xrange(1,nBins):
             sig_bin_norm = hist_sig[i]/nS
             bckg_bin_norm = hist_bckg[i]/nB
             # Separation:
@@ -211,14 +211,14 @@ class plotter(object):
         plots_dir = plot_info[3]
         node_name = plot_info[4]
         plot_title = plot_info[5]
-        name = list(filter(str.isalnum, str(data_type).split(".")[-1]))
+        name = filter(str.isalnum, str(data_type).split(".")[-1])
         self.fig, self.ax = plt.subplots(figsize=(8,6))
         self.ax.grid(which='major', linestyle='-', linewidth='0.2', color='gray')
         self.ax.set_facecolor('white')
 
         bin_edges_low_high = np.array([0.,0.0625,0.125,0.1875,0.25,0.3125,0.375,0.4375,0.5,0.5625,0.6125,0.675,0.7375,0.8,0.8625,0.9375,1.0])
 
-        for index in range(len(y_scores_train)):
+        for index in xrange(len(y_scores_train)):
             y_train = y_scores_train[index]
             y_test = y_scores_test[index]
             label = labels[index]
@@ -382,7 +382,7 @@ class plotter(object):
         frame.set_facecolor('White')
 
         overfitting_plot_file_name = 'overfitting_plot_%s_%s.png' % (node_name,plot_title)
-        print('Saving : %s%s' % (plots_dir, overfitting_plot_file_name))
+        print 'Saving : %s%s' % (plots_dir, overfitting_plot_file_name)
         self.save_plots(dir=plots_dir, filename=overfitting_plot_file_name)
 
         return separations_forTable
@@ -407,7 +407,7 @@ tHQ & %s \\ \hline
 '''
         table_path = os.path.join(outputdir,'separation_table')
         table_tex = table_path+'.tex'
-        print('table_tex: ', table_tex)
+        print 'table_tex: ', table_tex
         with open(table_tex,'w') as f:
             f.write( content % (self.separations_categories[0], self.separations_categories[1], self.separations_categories[2], self.separations_categories[3] ) )
         return
@@ -465,7 +465,7 @@ tHQ & %s \\ \hline
         y_scores_train_ttW_sample_tHQ_categorised = []
         y_scores_train_tHQ_sample_tHQ_categorised = []
 
-        for i in range(len(result_probs)):
+        for i in xrange(len(result_probs)):
             train_event_weight = train_weights[i]
             if Y_train[i][0] == 1:
                 y_scores_train_ttH_sample_ttHnode.append(result_probs[i][0])
@@ -570,7 +570,7 @@ tHQ & %s \\ \hline
         y_scores_test_ttW_sample_tHQ_categorised = []
         y_scores_test_tHQ_sample_tHQ_categorised = []
 
-        for i in range(len(result_probs_test)):
+        for i in xrange(len(result_probs_test)):
             test_event_weight = test_weights[i]
             if Y_test[i][0] == 1:
                 y_scores_test_ttH_sample_ttHnode.append(result_probs_test[i][0])
