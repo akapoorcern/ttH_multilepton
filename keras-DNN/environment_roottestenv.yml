@@ -11,6 +11,7 @@ dependencies:
   - astor=0.8.0=py37_0
   - attrs=19.3.0=py_0
   - backcall=0.1.0=py_0
+  - bayesian-optimization=1.0.1=py_0
   - binutils-meta=1.0.4=0
   - binutils_impl_linux-64=2.33.1=he1b5a44_7
   - binutils_linux-64=2.33.1=h9595d00_15
@@ -19,7 +20,7 @@ dependencies:
   - bzip2=1.0.8=h516909a_2
   - c-ares=1.15.0=h7b6447c_1001
   - c-compiler=1.0.4=h516909a_0
-  - ca-certificates=2019.11.27=0
+  - ca-certificates=2019.11.28=hecc5488_0
   - cairo=1.16.0=hfb77d84_1002
   - certifi=2019.11.28=py37_0
   - cfitsio=3.470=hb60a0a2_2
@@ -34,6 +35,7 @@ dependencies:
   - dbus=1.13.6=he372182_0
   - decorator=4.4.1=py_0
   - defusedxml=0.6.0=py_0
+  - eli5=0.10.1=py37_1
   - entrypoints=0.3=py37_0
   - expat=2.2.5=he1b5a44_1004
   - fftw=3.3.8=nompi_h7f3a6c3_1110
@@ -156,6 +158,7 @@ dependencies:
   - pythia8=8.240=py37he1b5a44_3
   - python=3.7.6=h357f687_1
   - python-dateutil=2.8.1=py_0
+  - python-graphviz=0.13.2=py_0
   - pytz=2019.3=py_0
   - pyyaml=5.2=py37h7b6447c_0
   - pyzmq=18.1.0=py37he6710b0_0
@@ -168,9 +171,11 @@ dependencies:
   - seaborn=0.9.0=pyh91ea838_1
   - send2trash=1.5.0=py_0
   - setuptools=42.0.2=py37_0
+  - singledispatch=3.4.0.3=py37_1000
   - six=1.13.0=py37_0
   - sqlite=3.30.1=hcee41ef_0
   - statsmodels=0.10.1=py37hdd07704_0
+  - tabulate=0.8.6=py_0
   - tbb=2019.9=hc9558a2_1
   - tbb-devel=2019.9=hc9558a2_1
   - tensorboard=2.0.0=pyhb38c66f_1
