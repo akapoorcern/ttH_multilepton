@@ -16,7 +16,11 @@
 #SBATCH --account=mlgpu
   
 # Specify your job name, optional option, but strongly recommand to specify some name
-#SBATCH --job-name=test
+#SBATCH --job-name=py3_Joshuha_BS_XMAS
+#_modi2_newJSON
+#newDNNs_BiggerBatch3
+#newDNNs_ExactJoshuha
+##newDNNs_13thJan_JoshuhaExact_vs_JoshuaHigherBatch
   
 # Specify how many cores you will need, default is one if not specified
 #SBATCH --ntasks=1
@@ -30,26 +34,31 @@
 #SBATCH --mem-per-cpu=30000
   
 # Specify how many GPU cards to use
-#SBATCH --gres=gpu:v100:2
+#SBATCH --gres=gpu:v100:1
     
 ######## Part 2 ######
 # Script workload    #
 ######################
   
 # Replace the following lines with your real workload
-Fname='full_3000_newArchitecture2'
+########################################
+Fname='py3_Joshuha_BS_XMAS'
+#_modi2_newJSON
+#'newDNNs_13thJan_JoshuhaExact_vs_JoshuaHigherBatch'
 #Fname=$fname
 echo $Fname$
-
-###########################################
 pyFname='train-DNN_'$Fname'.py'
-dir='2017samples_'$Fname'_tH_InverseSRYields'
+dir='2017samples_full_'$Fname'_tH_InverseSRYields'
 cd /hpcfs/bes/mlgpu/kapoor/work/slc7/ttH_multilepton/keras-DNN
 source ./setup.sh
 date
 time(python $pyFname -t 1 -s tH)
-tar -zcvf $Fname.tar.gz $(find ./$dir/ -type f '!' -name '*.csv')
+tar -zcvf $dir-Folder.tar.gz $(find ./$dir/ -type f '!' -name '*.csv')
 ##########################################
+# Work load end
+
+# Do not remove below this line
+
 # list the allocated hosts
 srun -l hostname
   
