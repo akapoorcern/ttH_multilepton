@@ -8,7 +8,9 @@ import pandas
 import pandas as pd
 import optparse, json, argparse, math
 import ROOT
-from plotting import *
+from helpers import *
+from Varlist import *
+
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
@@ -41,13 +43,10 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
 from root_numpy import root2array, tree2array
-
-print("TensorFlow version: ", tf.__version__)
-# assert version.parse(tf.__version__).release[0] >= 2, \
-#     "This notebook requires TensorFlow 2.0 or above."
-
 import argparse
 import sys
+
+print("TensorFlow version: ", tf.__version__)
 
 BS=int(sys.argv[1])
 LR=float(sys.argv[2])
@@ -57,192 +56,14 @@ NN=int(sys.argv[5])
 GPU=int(sys.argv[6])
 
 chain = ROOT.TChain('syncTree')
-chain.Add('TTH_ctcvcp_DiLepRegion_New2016.root')
-chain.Add('TTH_ctcvcp_DiLepRegion_New2017.root')
-chain.Add('TTH_ctcvcp_DiLepRegion_New2018.root')
+chain.Add('samples/TTH_ctcvcp_DiLepRegion_New2016.root')
+chain.Add('samples/TTH_ctcvcp_DiLepRegion_New2017.root')
+chain.Add('samples/TTH_ctcvcp_DiLepRegion_New2018.root')
 
 treeNP = tree2array(chain)
 
 odf = pd.DataFrame(treeNP)
 df = odf.loc[(odf['n_presel_jet']>2.0) & (odf['is_tH_like_and_not_ttH_like'] !=1.0) & (odf['HiggsDecay'] !=1.0)]
-
-listVar1=['mvaOutput_2lss_ttV',
-          'avg_dr_jet',
-          'dr_leps',
-         'massL',
-         'deta_highest2b',
-         'dphi_highest2b',
-         'mindr_lep1_jet',
-         'mindr_lep2_jet',
-         'lep1_pt',
-         'lep1_eta',
-         'lep1_phi',
-         'lep2_pt',
-         'lep2_eta',
-         'lep2_phi',
-         'jet1_pt',
-         'jet2_pt',
-         'jet3_pt',
-         'jethb1_pt',
-         'jethb1_eta',
-         'jethb1_E',
-         'jethb1_phi',
-         'jethb2_pt',
-         'jethb2_eta',
-         'jethb2_E',
-         'jethb2_phi',
-         'EVENT_rWeights',
-         'EVENT_originalXWGTUP']
-
-
-listVar2=['angle_bbpp_truth2l2b',
-         'cosa_bbpp_truth2l2b',
-         'truth_H_eta',
-         'truth_H_pt',
-         'truth_cosa_2b',
-         'truth_deta_2b',
-         'truth_hadTop_eta',
-         'truth_hadTop_pt',
-         'EVENT_rWeights',
-         'EVENT_originalXWGTUP']
-
-
-listVar3=['mvaOutput_2lss_ttV',
-         'avg_dr_jet',
-         'dr_leps',
-         'massL',
-         'deta_highest2b',
-         'dphi_highest2b',
-         'mindr_lep1_jet',
-         'mindr_lep2_jet',
-         'lep1_pt',
-         'lep2_pt',
-         'EVENT_rWeights',
-         'EVENT_originalXWGTUP']
-
-listVar4=['mvaOutput_2lss_ttV',
-          'avg_dr_jet',
-          'dr_leps',
-          'massL',
-          'deta_highest2b',
-          'dphi_highest2b',
-          'mindr_lep1_jet',
-          'mindr_lep2_jet',
-          'lep1_pt',
-          'lep1_eta',
-          'lep1_phi',
-          'lep2_pt',
-          'lep2_eta',
-          'lep2_phi',
-          'jet1_pt',
-          'jet2_pt',
-          'jet3_pt',
-          'jethb1_pt',
-          'jethb1_eta',
-          'jethb1_E',
-          'jethb1_phi',
-          'jethb2_pt',
-          'jethb2_eta',
-          'jethb2_E',
-          'jethb2_phi',
-          #'acuteangle_bbpp_highest2b',
-          'angle_bbpp_highest2b',
-          #'angle_bbpp_loose2b',
-          #'cosa_highest2b',
-          'EVENT_rWeights',
-          'EVENT_originalXWGTUP']
-
-
-
-listVar5=['avg_dr_jet',
-          'dr_leps',
-          'massL',
-          'deta_highest2b',
-          'dphi_highest2b',
-          'mindr_lep1_jet',
-          'mindr_lep2_jet',
-          'lep1_pt',
-          'lep1_eta',
-          'lep1_phi',
-          'lep1_E',
-          'lep2_pt',
-          'lep2_eta',
-          'lep2_phi',
-          'lep2_E',
-         'jethb1_pt',
-         'jethb1_eta',
-         'jethb1_E',
-         'jethb1_phi',
-         'jethb2_pt',
-         'jethb2_eta',
-         'jethb2_E',
-         'jethb2_phi',
-         'EVENT_rWeights',
-         'EVENT_originalXWGTUP']
-
-
-listVar6=['lep1_pt',
-          'lep1_eta',
-          'lep1_phi',
-          'lep1_E',
-          'lep2_pt',
-          'lep2_eta',
-          'lep2_phi',
-          'lep2_E',
-         'jet1_pt',
-         'jet1_eta',
-         'jet1_E',
-         'jet1_phi',
-         'jet2_pt',
-         'jet2_eta',
-         'jet2_E',
-         'jet2_phi',
-         'jet3_pt',
-         'jet3_eta',
-         'jet3_E',
-         'jet3_phi',
-         'jet4_pt',
-         'jet4_eta',
-         'jet4_E',
-         'jet4_phi',
-         'EVENT_rWeights',
-         'EVENT_originalXWGTUP']
-
-
-listVar7=['mvaOutput_2lss_ttV',
-          'avg_dr_jet',
-          'dr_leps',
-          'massL',
-          'deta_highest2b',
-          'dphi_highest2b',
-          'mindr_lep1_jet',
-          'mindr_lep2_jet',
-          'lep1_pt',
-          'lep1_eta',
-          'lep1_phi',
-          'lep1_E',
-          'lep2_pt',
-          'lep2_eta',
-          'lep2_phi',
-          'lep2_E',
-          'jet1_pt',
-          'jet1_eta',
-          'jet1_E',
-          'jet1_phi',
-          'jet2_pt',
-          'jet2_eta',
-          'jet2_E',
-          'jet2_phi',
-          'jet3_pt',
-          'jet3_eta',
-          'jet3_E',
-          'jet3_phi',
-          'jet4_pt',
-          'jet4_eta',
-          'jet4_E',
-          'jet4_phi',
-          'EVENT_rWeights',
-          'EVENT_originalXWGTUP']
 
 listVar=[]
 if LV==1:
@@ -263,36 +84,39 @@ if LV==7:
 InputN=len(listVar)-2
 
 
-df_even=df[listVar]
-df_even['CPWeighto'] = [x[11] for x in df_even['EVENT_rWeights']]
-df_even['CPWeightp'] = df_even['CPWeighto']/df_even['EVENT_originalXWGTUP']
-sumWp=sum(df_even['CPWeightp'])
-print(f'CPWeightp sump for even : {sumWp}')
-sumW=1
-df_even['CPWeight']=df_even['CPWeightp'].div(sumW)
-df_even['Output'] = 0
-df_even = df_even.drop(['EVENT_rWeights'],axis=1)
-df_neweven = df_even.rename(columns={'CPWeight':'Weight','Output':'Category'})
-df_neweven_forcorr=df_neweven.drop(['Weight','Category','EVENT_originalXWGTUP','CPWeighto','CPWeightp'],axis=1)
+df_neweven, df_neweven_forcorr= CPdataset(df,11,1,listVar,0)
+df_newodd, df_newodd_forcorr= CPdataset(df,59,5,listVar,1)
+
+# df_even=df[listVar]
+# df_even['CPWeighto'] = [x[11] for x in df_even['EVENT_rWeights']]
+# df_even['CPWeightp'] = df_even['CPWeighto']/df_even['EVENT_originalXWGTUP']
+# sumWp=sum(df_even['CPWeightp'])
+# print(f'CPWeightp sump for even : {sumWp}')
+# sumW=1
+# df_even['CPWeight']=df_even['CPWeightp'].div(sumW)
+# df_even['Output'] = 0
+# df_even = df_even.drop(['EVENT_rWeights'],axis=1)
+# df_neweven = df_even.rename(columns={'CPWeight':'Weight','Output':'Category'})
+# df_neweven_forcorr=df_neweven.drop(['Weight','Category','EVENT_originalXWGTUP','CPWeighto','CPWeightp'],axis=1)
 
 
-df_odd=df[listVar]
-#print(df_odd['EVENT_rWeights'])
-df_odd['CPWeighto'] = [x[59] for x in df_odd['EVENT_rWeights']]
-df_odd['CPWeightp'] = df_odd['CPWeighto']/df_odd['EVENT_originalXWGTUP']
-#df_odd['CPWeight'] = 1
-#df_odd['CPWeighto'] = 1
-sumwp=sum(df_odd['CPWeightp'])
-print(f'CPWeightp sump for odd : {sumwp}')
-sumw=5
-df_odd['CPWeight']=df_odd['CPWeightp'].mul(sumw)
-#print(df_odd['CPWeight'])
-df_odd['Output'] = 1
-df_odd = df_odd.drop(['EVENT_rWeights'],axis=1)
-df_newodd = df_odd.rename(columns={'CPWeight':'Weight','Output':'Category'})
-#df_newodd.to_csv(r'Cat1.csv', index = False)
-#print(df_odd.iloc[0])
-df_newodd_forcorr=df_newodd.drop(['Weight','Category','EVENT_originalXWGTUP','CPWeighto','CPWeightp'],axis=1)
+# df_odd=df[listVar]
+# #print(df_odd['EVENT_rWeights'])
+# df_odd['CPWeighto'] = [x[59] for x in df_odd['EVENT_rWeights']]
+# df_odd['CPWeightp'] = df_odd['CPWeighto']/df_odd['EVENT_originalXWGTUP']
+# #df_odd['CPWeight'] = 1
+# #df_odd['CPWeighto'] = 1
+# sumwp=sum(df_odd['CPWeightp'])
+# print(f'CPWeightp sump for odd : {sumwp}')
+# sumw=5
+# df_odd['CPWeight']=df_odd['CPWeightp'].mul(sumw)
+# #print(df_odd['CPWeight'])
+# df_odd['Output'] = 1
+# df_odd = df_odd.drop(['EVENT_rWeights'],axis=1)
+# df_newodd = df_odd.rename(columns={'CPWeight':'Weight','Output':'Category'})
+# #df_newodd.to_csv(r'Cat1.csv', index = False)
+# #print(df_odd.iloc[0])
+# df_newodd_forcorr=df_newodd.drop(['Weight','Category','EVENT_originalXWGTUP','CPWeighto','CPWeightp'],axis=1)
 
 evencorr=df_neweven_forcorr.corr()
 oddcorr=df_newodd_forcorr.corr()

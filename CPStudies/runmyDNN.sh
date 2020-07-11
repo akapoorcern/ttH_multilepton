@@ -10,7 +10,7 @@ do
 		do
 		    for GPUN in 1
 		    do
-			sbatch --export=BS=${BSi},LR=${LRi},LV=${LVi},NN=${NNi},EPO=${EPi},GPU=${GPUN} --gres=gpu:v100:${GPUN} --output=/hpcfs/bes/mlgpu/kapoor/work/slc7/ttH_multilepton/keras-DNN/CPStudies/outfiles/slurm_BS${BSi}_LR${LRi}_LV${LVi}_NN${NNi}_EPO${EPi}_GPU${GPUN}_%u_%x_%j.out slurm_gpu_Keras.sh
+			sbatch --export=BS=${BSi},LR=${LRi},LV=${LVi},NN=${NNi},EPO=${EPi},GPU=${GPUN} --gres=gpu:v100:${GPUN} --output=/hpcfs/bes/mlgpu/kapoor/work/slc7/new/ttH_multilepton/CPStudies/outfiles/slurm_BS${BSi}_LR${LRi}_LV${LVi}_NN${NNi}_EPO${EPi}_GPU${GPUN}_%u_%x_%j.out slurm_gpu_Keras.sh
 		    done
 		done
 	    done

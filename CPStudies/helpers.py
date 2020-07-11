@@ -5,7 +5,6 @@ import pandas
 import pandas as pd
 import optparse, json, argparse, math
 import ROOT
-from plotting import *
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
@@ -154,3 +153,18 @@ def plotit(train_history, model,X_train,y_train,Wt_train,X_test,y_test,Wt_test,a
     plt.tight_layout()
     plt.savefig(f'results/foo_withAdj_v1_BS{BS}_EP{EP}_LR{LR}_LV{LV}_NN{NN}_GPU{GPU}.png',dpi=300)
     plt.savefig(f'results/foo_withAdj_v1_BS{BS}_EP{EP}_LR{LR}_LV{LV}_NN{NN}_GPU{GPU}.pdf')
+
+def CPdataset(df,index,weight,listVar,Cat):
+
+    df=df[listVar]
+    df['CPWeighto'] = [x[index] for x in df['EVENT_rWeights']]
+    df['CPWeightp'] = df['CPWeighto']/df['EVENT_originalXWGTUP']
+    sumWp=sum(df['CPWeightp'])
+    print(f'CPWeightp sump for index {index} : {sumWp}')
+    sumW=weight
+    df['CPWeight']=df['CPWeightp'].mul(sumW)
+    df['Output'] = Cat
+    df = df.drop(['EVENT_rWeights'],axis=1)
+    df_new= df.rename(columns={'CPWeight':'Weight','Output':'Category'})
+    df_new_forcorr=df_new.drop(['Weight','Category','EVENT_originalXWGTUP','CPWeighto','CPWeightp'],axis=1)
+    return df_new, df_new_forcorr

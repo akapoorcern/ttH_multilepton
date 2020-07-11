@@ -309,7 +309,7 @@ df_even['CPWeightp'] = df_even['CPWeighto']/df_even['EVENT_originalXWGTUP']
 sumWp=sum(df_even['CPWeightp'])
 print(f'CPWeightp sump for even : {sumWp}')
 sumW=1
-df_even['CPWeight']=df_even['CPWeightp'].div(sumW)
+df_even['CPWeight']=df_even['CPWeightp'].mul(sumW)
 df_even['Output'] = 0
 df_even = df_even.drop(['EVENT_rWeights'],axis=1)
 df_neweven = df_even.rename(columns={'CPWeight':'Weight','Output':'Category'})

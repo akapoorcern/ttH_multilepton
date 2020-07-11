@@ -49,7 +49,7 @@
 #echo $Fname$
 #pyFname='train-DNN_'$Fname'.py'
 #dir='2017samples_full_'$Fname'_tH_InverseSRYields'
-cd /hpcfs/bes/mlgpu/kapoor/work/slc7/ttH_multilepton/keras-DNN/CPStudies/
+cd /hpcfs/bes/mlgpu/kapoor/work/slc7/new/ttH_multilepton/CPStudies/
 #source /cvmfs/sft.cern.ch/lcg/views/dev3python3/latest/x86_64-centos7-gcc8-opt/setup.sh
 #source /cvmfs/sft.cern.ch/lcg/views/LCG_96python3/x86_64-centos7-gcc8-opt/setup.sh
 source setup.sh
