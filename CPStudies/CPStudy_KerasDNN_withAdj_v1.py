@@ -1,3 +1,5 @@
+from numpy.random import seed
+seed(1)
 import os
 from os import environ
 os.environ['KERAS_BACKEND'] = 'tensorflow'
@@ -10,6 +12,7 @@ import optparse, json, argparse, math
 import ROOT
 from helpers import *
 from Varlist import *
+from DNNs import *
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import cross_val_score
@@ -25,6 +28,7 @@ from sklearn.metrics import auc
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import GridSearchCV
 import tensorflow as tf
+tf.random.set_seed(2) 
 from tensorflow.keras import backend as K
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.utils import plot_model
@@ -54,6 +58,7 @@ EP=int(sys.argv[3])
 LV=int(sys.argv[4])
 NN=int(sys.argv[5])
 GPU=int(sys.argv[6])
+
 
 chain = ROOT.TChain('syncTree')
 chain.Add('samples/TTH_ctcvcp_DiLepRegion_New2016.root')
@@ -87,37 +92,6 @@ InputN=len(listVar)-2
 df_neweven, df_neweven_forcorr= CPdataset(df,11,1,listVar,0)
 df_newodd, df_newodd_forcorr= CPdataset(df,59,5,listVar,1)
 
-# df_even=df[listVar]
-# df_even['CPWeighto'] = [x[11] for x in df_even['EVENT_rWeights']]
-# df_even['CPWeightp'] = df_even['CPWeighto']/df_even['EVENT_originalXWGTUP']
-# sumWp=sum(df_even['CPWeightp'])
-# print(f'CPWeightp sump for even : {sumWp}')
-# sumW=1
-# df_even['CPWeight']=df_even['CPWeightp'].div(sumW)
-# df_even['Output'] = 0
-# df_even = df_even.drop(['EVENT_rWeights'],axis=1)
-# df_neweven = df_even.rename(columns={'CPWeight':'Weight','Output':'Category'})
-# df_neweven_forcorr=df_neweven.drop(['Weight','Category','EVENT_originalXWGTUP','CPWeighto','CPWeightp'],axis=1)
-
-
-# df_odd=df[listVar]
-# #print(df_odd['EVENT_rWeights'])
-# df_odd['CPWeighto'] = [x[59] for x in df_odd['EVENT_rWeights']]
-# df_odd['CPWeightp'] = df_odd['CPWeighto']/df_odd['EVENT_originalXWGTUP']
-# #df_odd['CPWeight'] = 1
-# #df_odd['CPWeighto'] = 1
-# sumwp=sum(df_odd['CPWeightp'])
-# print(f'CPWeightp sump for odd : {sumwp}')
-# sumw=5
-# df_odd['CPWeight']=df_odd['CPWeightp'].mul(sumw)
-# #print(df_odd['CPWeight'])
-# df_odd['Output'] = 1
-# df_odd = df_odd.drop(['EVENT_rWeights'],axis=1)
-# df_newodd = df_odd.rename(columns={'CPWeight':'Weight','Output':'Category'})
-# #df_newodd.to_csv(r'Cat1.csv', index = False)
-# #print(df_odd.iloc[0])
-# df_newodd_forcorr=df_newodd.drop(['Weight','Category','EVENT_originalXWGTUP','CPWeighto','CPWeightp'],axis=1)
-
 evencorr=df_neweven_forcorr.corr()
 oddcorr=df_newodd_forcorr.corr()
 
@@ -150,105 +124,10 @@ y_test = np.asarray(y_test)
 
 
 tensorboard_callback = TensorBoard(log_dir=f'LOGGY2/logdir_BS{BS}_EP{EP}_LR{LR}_LV{LV}_NN{NN}_GPU{GPU}_withAdj_v1')
-
 tf.compat.v1.disable_eager_execution()
 print("[INFO] training with {} GPUs...".format(GPU))
 
-model = Sequential()
-
-if NN==1:
-    model.add(Dense(36, kernel_initializer='glorot_normal', activation='relu', input_dim=InputN))
-    model.add(Reshape((6, 6, 1), input_shape = (36, )))
-    model.add(Conv2D(72, kernel_size = (3, 3), kernel_initializer = 'glorot_normal',activation ='relu', padding = 'same'))
-    #model.add(BatchNormalization())
-    #model.add(Conv2D(32, kernel_size = (3, 3), kernel_initializer = 'glorot_normal',activation ='relu', padding = 'same'))
-    model.add(Flatten())
-    model.add(Dense(100, activation = 'relu'))
-    model.add(Dense(10, activation = 'relu'))
-    model.add(Dense(2, activation = 'softmax'))
-
-if NN==2:
-    
-    model.add(Dense(32, kernel_initializer='glorot_normal', activation='relu', input_dim=InputN))
-    model.add(Dropout(0.1))
-    #model.add(Dense(32, kernel_initializer='glorot_normal', activation='relu'))
-    #model.add(Dropout(0.1))
-    model.add(Dense(16, kernel_initializer='glorot_normal', activation='relu'))
-    model.add(Dropout(0.1))
-    model.add(Dense(8, kernel_initializer='glorot_normal', activation='relu'))
-    model.add(Dropout(0.1))
-    model.add(Dense(2, kernel_initializer='glorot_uniform', activation='softmax'))
-
-if NN==3:
-    
-    model.add(Dense(36, kernel_initializer='glorot_normal', activation='relu', input_dim=InputN))
-    model.add(Reshape((6, 6, 1), input_shape = (36, )))
-    model.add(Conv2D(32, kernel_size = (3, 3), kernel_initializer = 'glorot_normal',activation ='relu', padding = 'same'))
-    model.add(BatchNormalization())
-    model.add(Conv2D(32, kernel_size = (3, 3), kernel_initializer = 'glorot_normal',activation ='relu', padding = 'same'))
-    model.add(Flatten())
-    model.add(Dense(10, activation = 'relu'))
-    model.add(Dense(2, activation = 'softmax'))
-
-if NN==4:
-    
-    model.add(Dense(100, kernel_initializer='glorot_normal', activation='relu', input_dim=InputN))
-    for x in range(1):
-        model.add(Dense(10, kernel_initializer='glorot_normal', activation='relu'))
-    model.add(Dense(2, kernel_initializer='glorot_uniform', activation='softmax'))
-
-if NN==5:
-    
-    model.add(Dense(36, kernel_initializer='glorot_normal', activation='relu', input_dim=InputN))
-    model.add(Reshape((6, 6, 1), input_shape = (25, )))
-    model.add(Conv2D(8, kernel_size = (3, 3), kernel_initializer = 'glorot_normal',activation ='relu', padding = 'same'))
-    #model.add(BatchNormalization())
-    model.add(Conv2D(8, kernel_size = (3, 3), kernel_initializer = 'glorot_normal',activation ='relu', padding = 'same'))
-    model.add(Flatten())
-    model.add(Dense(10, activation = 'relu'))
-    model.add(Dense(2, activation = 'softmax'))
-
-if NN==6:
-    model.add(Dense(36, kernel_initializer='glorot_normal', activation='relu', input_dim=InputN))
-    model.add(Reshape((6, 6, 1), input_shape = (25, )))
-    model.add(Conv2D(16, kernel_size = (3, 3), kernel_initializer = 'glorot_normal',activation ='relu', padding = 'same'))
-    model.add(Conv2D(16, kernel_size = (3, 3), kernel_initializer = 'glorot_normal',activation ='relu', padding = 'same'))
-    model.add(Flatten())
-    model.add(Dense(10, activation = 'relu'))
-    model.add(Dense(2, activation = 'softmax'))
-    
-if NN==10:
-    model.add(Dense(100, kernel_initializer='glorot_normal', activation='relu', input_dim=InputN))
-    model.add(Dense(100, kernel_initializer='glorot_normal', activation='relu'))
-    for x in range(1):
-        model.add(Dense(10, kernel_initializer='glorot_normal', activation='relu'))
-        model.add(Dropout(0.01))
-    model.add(Dense(2, kernel_initializer='glorot_normal', activation='softmax'))
-
-if NN==11:
-    
-    model.add(Dense(32, kernel_initializer='glorot_normal', activation='relu', input_dim=InputN))
-    model.add(Dense(16, kernel_initializer='glorot_normal', activation='relu'))
-    model.add(Dense(8, kernel_initializer='glorot_normal', activation='relu'))
-    model.add(Dropout(0.1))
-    model.add(Dense(2, kernel_initializer='glorot_uniform', activation='softmax'))
-
-
-if NN==12:
-    
-    model.add(Dense(48, kernel_initializer='glorot_normal', activation='relu', input_dim=InputN))
-    model.add(Dense(16, kernel_initializer='glorot_normal', activation='relu'))
-    model.add(Dense(8, kernel_initializer='glorot_normal', activation='relu'))
-    model.add(Dropout(0.2))
-    model.add(Dense(2, kernel_initializer='glorot_uniform', activation='softmax'))
-
-if NN==13:
-    
-    model.add(Dense(100, kernel_initializer='glorot_normal', activation='relu', input_dim=InputN))
-    model.add(Dense(50, kernel_initializer='glorot_normal', activation='relu'))
-    model.add(Dropout(0.1))
-    model.add(Dense(2, kernel_initializer='glorot_uniform', activation='softmax'))
-
+model=createmodel(NN,InputN)
 
 if GPU>1:
     model = multi_gpu_model(model, gpus=GPU)
@@ -256,6 +135,7 @@ if GPU>1:
 print("[INFO] compiling model...")
 model.compile(loss='binary_crossentropy', optimizer=Adam(lr=LR), metrics=['accuracy',])
 model.summary()
+
 es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=20)
     
 train_history = model.fit(X_train, y_train,epochs=EP, batch_size=BS, validation_data=(X_test, y_test, Wt_test), verbose=1,sample_weight=Wt_train, 
