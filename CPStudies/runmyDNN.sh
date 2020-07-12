@@ -1,8 +1,8 @@
 for BSi in 6000
 do
-    for LRi in 0.00002
+    for LRi in 0.00006
     do
-	for EPi in 20 21 22
+	for EPi in 2
 	do
 	    for NNi in 4
 	    do

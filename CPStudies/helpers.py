@@ -26,7 +26,14 @@ def plotit(train_history, model,X_train,y_train,Wt_train,X_test,y_test,Wt_test,a
     # global roc_curve
     # global roc_auc_score
     
-
+    # X_train=Xdata[0]
+    # y_train=ydata[0]
+    # Wt_train=Wts[0]
+    
+    # X_test=Xdata[1]
+    # y_test=ydata[1]
+    # Wt_test=Wts[1]
+    
     BS=int(arg[1])
     LR=float(arg[2])
     EP=int(arg[3])
